@@ -1,0 +1,26 @@
+{
+  "name": "vibetrace",
+  "version": "1.0.0",
+  "description": "Real-time AI Code Observability and Causal Drift Tracer",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "keywords": [
+    "observability",
+    "ai",
+    "git",
+    "tracing",
+    "fishbone",
+    "vibe-coding"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "simple-git": "^3.25.0"
+  }
+}

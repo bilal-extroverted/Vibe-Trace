@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeTrace — AI Code Observability & Causal Drift Tracer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-bar glass-panel">
+    <div class="brand">
+      <div class="logo-icon">VT</div>
+      <div class="brand-text">
+        <span class="brand-title">VibeTrace</span>
+        <span class="brand-subtitle">AI Causal Observability</span>
+      </div>
+    </div>
+
+    <div class="status-container">
+      <div class="status-indicator">
+        <span class="pulse-dot"></span>
+        <span id="watcher-status-text">Listening for AI edits...</span>
+      </div>
+      <div class="project-pill" id="project-path-display">
+        <span class="pill-label">Watched:</span>
+        <span class="pill-path" id="watched-dir">Connecting...</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-run-scenario" class="btn btn-primary" title="Simulate an AI database migration with silent permission drift">
+        <span class="btn-icon">⚡</span> Run Demo Scenario
+      </button>
+      <div class="health-badge badge-safe" id="global-drift-status">
+        <span class="badge-icon">●</span> System Clean
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Side-by-Side Layout -->
+  <div class="workspace-layout">
+    <!-- Left Pane: Timeline of AI Prompts & Changes -->
+    <aside id="timeline-pane" class="glass-panel">
+      <div class="pane-header">
+        <div class="pane-title">
+          <span>AI Interaction Timeline</span>
+          <span class="count-badge" id="event-count-badge">0</span>
+        </div>
+        <div class="pane-caption">Chronological trace of AI code generation</div>
+      </div>
+
+      <div class="timeline-list" id="timeline-list">
+        <!-- Event tiles injected here -->
+      </div>
+    </aside>
+
+    <!-- Main Canvas: Causal Inspector, Fishbone Tree, and Diffs -->
+    <main id="main-canvas" class="glass-panel">
+      <!-- Empty State View (Shown when no events yet) -->
+      <div id="empty-state" class="empty-state">
+        <div class="empty-graphic">⚡</div>
+        <h2>Connected & Watching Workspace</h2>
+        <p class="empty-desc">
+          VibeTrace is actively monitoring your local files and Git repository in real time.
+        </p>
+        <div class="empty-steps">
+          <div class="step-card">
+            <span class="step-num">1</span>
+            <strong>Side-by-Side</strong>
+            <span>Keep this dashboard open beside Cursor, Antigravity, or VS Code.</span>
+          </div>
+          <div class="step-card">
+            <span class="step-num">2</span>
+            <strong>Prompt Agent</strong>
+            <span>Ask your AI agent to write or modify code in the workspace.</span>
+          </div>
+          <div class="step-card">
+            <span class="step-num">3</span>
+            <strong>Instant Telemetry</strong>
+            <span>Changes appear automatically here with plain-language causal analysis.</span>
+          </div>
+        </div>
+        <button id="btn-empty-demo" class="btn btn-secondary">
+          Run Demo Scenario (DB + Silent Permission Drift)
+        </button>
+      </div>
+
+      <!-- Active Event Details (Hidden when empty) -->
+      <div id="event-details" class="event-details hidden">
+        <!-- Header Highlight Card -->
+        <div class="highlight-card glass-panel-inner" id="highlight-card">
+          <div class="card-meta">
+            <span class="time-stamp" id="detail-timestamp">--:--:--</span>
+            <span class="drift-tag" id="detail-drift-tag">Safe</span>
+          </div>
+          <h1 class="highlight-title" id="detail-title">Action Title</h1>
+          <p class="plain-summary" id="detail-summary">Plain English summary will render here.</p>
+        </div>
+
+        <!-- Drift Warning Banner -->
+        <div id="drift-alert-banner" class="drift-alert-banner hidden">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <strong class="alert-title">Unintended Drift Detected</strong>
+            <p class="alert-message" id="drift-alert-message">
+              Changes detected outside the stated prompt intent.
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Fishbone Causal Breakdown -->
+        <section class="fishbone-section">
+          <div class="section-header">
+            <h3>Interactive Fishbone Causal Breakdown</h3>
+            <span class="section-tag">Cause ➔ Subsystems ➔ Effects</span>
+          </div>
+
+          <div class="fishbone-root">
+            <div class="fishbone-cause-card">
+              <span class="cause-label">ROOT PROMPT / TRIGGER</span>
+              <div class="cause-text" id="fishbone-cause">User Prompt</div>
+            </div>
+
+            <div class="fishbone-branches" id="fishbone-branches">
+              <!-- Subsystem branch cards injected by fishbone.js -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Code & File Diff Drawer -->
+        <section class="diff-section">
+          <div class="section-header">
+            <h3>Modified Files & Diffs</h3>
+            <span class="section-tag" id="diff-file-count">0 files</span>
+          </div>
+
+          <div class="diff-container" id="diff-container">
+            <!-- Diff accordions injected by diffViewer.js -->
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="diffViewer.js"></script>
+  <script src="fishbone.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
