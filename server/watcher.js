@@ -1,8 +1,10 @@
 const chokidar = require('chokidar');
 const path = require('path');
+const crypto = require('crypto');
 const gitService = require('./gitService');
 const harnessContext = require('./harnessContext');
 const { analyze } = require('./analyzer');
+const sse = require('./sse');
 
 class WorkspaceWatcher {
   constructor() {
@@ -10,12 +12,11 @@ class WorkspaceWatcher {
     this.watchDir = null;
     this.onEventCallback = null;
     this.debounceTimer = null;
+    this.maxWaitTimer = null;
+    this.firstChangeTimestamp = null;
     this.pendingChangedFiles = new Set();
-    this.lastPromptIntent = '';
-  }
-
-  setPromptIntent(prompt) {
-    this.lastPromptIntent = prompt || '';
+    this.lastAnalyzedDiffHash = null;
+    this.isProcessing = false;
   }
 
   start(watchDir = '.', onEventCallback) {
@@ -40,24 +41,47 @@ class WorkspaceWatcher {
       persistent: true,
       ignoreInitial: true,
       usePolling: true,
-      interval: 250,
-      binaryInterval: 500,
+      interval: 200,
+      binaryInterval: 400,
       awaitWriteFinish: {
-        stabilityThreshold: 300,
+        stabilityThreshold: 400,
         pollInterval: 100
       }
     });
 
     const handleChange = (filepath, eventType) => {
       const relPath = path.relative(this.watchDir, filepath);
-      console.log(`[Watcher Event] ${eventType}: ${relPath}`);
       this.pendingChangedFiles.add(relPath);
 
-      // Debounce burst of AI saves
+      const now = Date.now();
+      if (!this.firstChangeTimestamp) {
+        this.firstChangeTimestamp = now;
+      }
+
+      // Notify frontend that agent is actively writing files
+      sse.broadcast({
+        type: 'agent_status',
+        status: 'writing',
+        filesCount: this.pendingChangedFiles.size,
+        lastFile: relPath,
+        message: `Agent writing code: ${this.pendingChangedFiles.size} file(s) modified...`
+      });
+
+      // Clear existing sliding timer
       clearTimeout(this.debounceTimer);
+
+      // Maximum wait ceiling: if agent writes non-stop for 4 seconds, force process
+      const timeSinceFirstChange = now - this.firstChangeTimestamp;
+      if (timeSinceFirstChange > 4000) {
+        console.log(`[VibeTrace Watcher] Max wait threshold reached (${timeSinceFirstChange}ms), processing batch...`);
+        this.processBatch();
+        return;
+      }
+
+      // Sliding window debounce (1500ms of inactivity required to confirm agent is done writing)
       this.debounceTimer = setTimeout(() => {
         this.processBatch();
-      }, 500);
+      }, 1500);
     };
 
     this.watcher
@@ -68,18 +92,40 @@ class WorkspaceWatcher {
   }
 
   async processBatch() {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
+    clearTimeout(this.debounceTimer);
+    clearTimeout(this.maxWaitTimer);
+    this.firstChangeTimestamp = null;
+
     const files = Array.from(this.pendingChangedFiles);
     this.pendingChangedFiles.clear();
 
-    if (files.length === 0) return;
+    let diffs = [];
+    if (files.length === 0) {
+      diffs = await gitService.getDiffs();
+      if (!diffs || diffs.length === 0) {
+        this.isProcessing = false;
+        return;
+      }
+      files.push(...diffs.map(d => d.file));
+    }
 
-    console.log(`[VibeTrace Watcher] Processing live AI burst (${files.length} files touched)...`);
+    sse.broadcast({
+      type: 'agent_status',
+      status: 'analyzing',
+      filesCount: files.length,
+      message: `Stabilized: extracting Git diffs across ${files.length} file(s)...`
+    });
 
     try {
       // 1. Gather git context and diffs
       const branch = await gitService.getCurrentBranch();
       const recentCommits = await gitService.getRecentCommits(3);
-      let diffs = await gitService.getDiffs();
+      if (!diffs || diffs.length === 0) {
+        diffs = await gitService.getDiffs();
+      }
 
       if (!diffs || diffs.length === 0) {
         diffs = files.map(f => ({
@@ -89,20 +135,36 @@ class WorkspaceWatcher {
         }));
       }
 
-      // 2. Read harness and skills context
-      const harnessRules = harnessContext.read(this.watchDir);
+      // 2. Check if diff has actually changed since last trace (deduplication)
+      const diffContent = diffs.map(d => `${d.file}:${d.content}`).join('\n');
+      const diffHash = crypto.createHash('md5').update(diffContent).digest('hex');
 
-      // 3. Infer or use prompt intent
-      let prompt = this.lastPromptIntent;
-      if (!prompt) {
-        if (recentCommits.length > 0 && recentCommits[0].message) {
-          prompt = `Git Activity: ${recentCommits[0].message}`;
-        } else {
-          prompt = `Live AI code edit touching ${files.slice(0, 3).join(', ')}`;
-        }
+      if (diffHash === this.lastAnalyzedDiffHash) {
+        console.log('[VibeTrace Watcher] Diff content identical to previous analysis. Skipping redundant LLM call.');
+        sse.broadcast({
+          type: 'agent_status',
+          status: 'idle',
+          message: 'Listening for new code mutations...'
+        });
+        this.isProcessing = false;
+        return;
       }
 
-      // 4. Run causal analysis
+      this.lastAnalyzedDiffHash = diffHash;
+
+      // 3. Read harness and skills context
+      const harnessRules = harnessContext.read(this.watchDir);
+
+      // 4. Infer prompt intent from commit or touched files
+      let prompt = '';
+      if (recentCommits.length > 0 && recentCommits[0].message) {
+        prompt = `Git Activity: ${recentCommits[0].message}`;
+      } else {
+        prompt = `Code modifications across ${files.slice(0, 3).join(', ')}`;
+      }
+
+      // 5. Run causal analysis & trace generation
+      console.log(`[VibeTrace Watcher] Analyzing code changes across ${files.length} file(s)...`);
       const analysis = await analyze({
         prompt,
         diffs,
@@ -110,21 +172,24 @@ class WorkspaceWatcher {
         harnessRules
       });
 
-      const traceId = `tr_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 4)}`;
-
-      const event = {
-        id: traceId,
-        timestamp: new Date().toLocaleTimeString(),
-        source: 'live-watcher',
-        watchedDir: this.watchDir,
-        ...analysis
-      };
-
       if (this.onEventCallback) {
-        this.onEventCallback(event);
+        this.onEventCallback(analysis);
       }
+
+      sse.broadcast({
+        type: 'agent_status',
+        status: 'idle',
+        message: `Trace captured: ${analysis.title}`
+      });
     } catch (err) {
       console.error('[VibeTrace Watcher Error in processBatch]:', err);
+      sse.broadcast({
+        type: 'agent_status',
+        status: 'idle',
+        message: `Error during trace capture: ${err.message}`
+      });
+    } finally {
+      this.isProcessing = false;
     }
   }
 
@@ -133,7 +198,10 @@ class WorkspaceWatcher {
       this.watcher.close();
       this.watcher = null;
     }
+    clearTimeout(this.debounceTimer);
+    clearTimeout(this.maxWaitTimer);
   }
 }
 
 module.exports = new WorkspaceWatcher();
+

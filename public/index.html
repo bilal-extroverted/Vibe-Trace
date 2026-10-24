@@ -3,152 +3,224 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VibeTrace — AI Code Observability & Causal Drift Tracer</title>
+  <title>VibeTrace — AI Code Observability & Traceability</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Top Navigation Bar -->
-  <header class="top-bar glass-panel">
-    <div class="brand">
-      <div class="logo-icon">VT</div>
-      <div class="brand-text">
-        <span class="brand-title">VibeTrace</span>
-        <span class="brand-subtitle">AI Causal Observability</span>
+
+  <!-- Top Global Header -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#38bdf8" stroke-width="2"/>
+          <path d="M8 12L11 15L16 9" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="repo-breadcrumb">
+        <span class="root-label">admin</span>
+        <span class="sep">/</span>
+        <span class="repo-name" id="repo-name-display">workspace</span>
       </div>
     </div>
 
-    <div class="status-container">
-      <div class="status-indicator">
+    <!-- Active Local Repository Connection Controls -->
+    <div class="repo-connect-box">
+      <div class="status-indicator" id="live-indicator-pill">
         <span class="pulse-dot"></span>
-        <span id="watcher-status-text">Listening for AI edits...</span>
+        <span class="status-text" id="live-indicator-text">Watching Live</span>
       </div>
-      <div class="project-pill" id="project-path-display">
-        <span class="pill-label">Watched:</span>
-        <span class="pill-path" id="watched-dir">Connecting...</span>
+      <div class="folder-input-wrapper">
+        <span class="folder-icon">📁</span>
+        <input type="text" id="repo-path-input" placeholder="Path to watch..." spellcheck="false">
+        <button id="btn-update-repo" class="btn btn-primary" title="Connect to this folder">Connect</button>
+        <button id="btn-rescan-repo" class="btn btn-ghost" title="Force Git diff rescan">↻ Rescan</button>
       </div>
     </div>
 
-    <div class="actions">
-      <button id="btn-run-scenario" class="btn btn-primary" title="Simulate an AI database migration with silent permission drift">
-        <span class="btn-icon">⚡</span> Run Demo Scenario
-      </button>
-      <div class="health-badge badge-safe" id="global-drift-status">
-        <span class="badge-icon">●</span> System Clean
+    <!-- Right Metadata -->
+    <div class="nav-meta">
+      <div class="model-pill" title="Configured AI model in .env">
+        <span class="pill-dot"></span>
+        <span id="active-model-name">inkling-small:free</span>
       </div>
     </div>
   </header>
 
-  <!-- Main Side-by-Side Layout -->
-  <div class="workspace-layout">
-    <!-- Left Pane: Timeline of AI Prompts & Changes -->
-    <aside id="timeline-pane" class="glass-panel">
+  <!-- Main 3-Pane Observability Layout -->
+  <main class="app-workspace">
+
+    <!-- ========================================================
+         LEFT PANE: Traces & Changes List
+         ======================================================== -->
+    <aside class="pane pane-left" id="pane-left">
       <div class="pane-header">
-        <div class="pane-title">
-          <span>AI Interaction Timeline</span>
-          <span class="count-badge" id="event-count-badge">0</span>
+        <div class="pane-title-row">
+          <span class="pane-title">Execution Traces</span>
+          <span class="count-badge" id="traces-count-badge">0</span>
         </div>
-        <div class="pane-caption">Chronological trace of AI code generation</div>
+        <div class="pane-search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="traces-search" placeholder="Filter traces or files...">
+        </div>
       </div>
 
-      <div class="timeline-list" id="timeline-list">
-        <!-- Event tiles injected here -->
+      <div class="traces-list" id="traces-list">
+        <!-- Trace cards injected dynamically -->
+      </div>
+
+      <div id="traces-empty" class="pane-empty-state">
+        <div class="pulse-ring"></div>
+        <p>Listening for code modifications in connected folder...</p>
       </div>
     </aside>
 
-    <!-- Main Canvas: Causal Inspector, Fishbone Tree, and Diffs -->
-    <main id="main-canvas" class="glass-panel">
-      <!-- Empty State View (Shown when no events yet) -->
-      <div id="empty-state" class="empty-state">
-        <div class="empty-graphic">⚡</div>
-        <h2>Connected & Watching Workspace</h2>
-        <p class="empty-desc">
-          VibeTrace is actively monitoring your local files and Git repository in real time.
-        </p>
-        <div class="empty-steps">
-          <div class="step-card">
-            <span class="step-num">1</span>
-            <strong>Side-by-Side</strong>
-            <span>Keep this dashboard open beside Cursor, Antigravity, or VS Code.</span>
-          </div>
-          <div class="step-card">
-            <span class="step-num">2</span>
-            <strong>Prompt Agent</strong>
-            <span>Ask your AI agent to write or modify code in the workspace.</span>
-          </div>
-          <div class="step-card">
-            <span class="step-num">3</span>
-            <strong>Instant Telemetry</strong>
-            <span>Changes appear automatically here with plain-language causal analysis.</span>
-          </div>
+    <!-- ========================================================
+         MIDDLE PANE: Content of the Selected Trace (Diffs & Code)
+         ======================================================== -->
+    <section class="pane pane-middle" id="pane-middle">
+      <div class="pane-header middle-header">
+        <div class="middle-header-left">
+          <span class="content-heading">Trace Content</span>
+          <span class="trace-id-badge" id="middle-trace-id">--</span>
+          <span class="trace-time-badge" id="middle-timestamp">--:--:--</span>
         </div>
-        <button id="btn-empty-demo" class="btn btn-secondary">
-          Run Demo Scenario (DB + Silent Permission Drift)
-        </button>
+        <div class="file-filter-row" id="file-filter-tabs">
+          <!-- File pills injected dynamically -->
+        </div>
       </div>
 
-      <!-- Active Event Details (Hidden when empty) -->
-      <div id="event-details" class="event-details hidden">
-        <!-- Header Highlight Card -->
-        <div class="highlight-card glass-panel-inner" id="highlight-card">
-          <div class="card-meta">
-            <span class="time-stamp" id="detail-timestamp">--:--:--</span>
-            <span class="drift-tag" id="detail-drift-tag">Safe</span>
-          </div>
-          <h1 class="highlight-title" id="detail-title">Action Title</h1>
-          <p class="plain-summary" id="detail-summary">Plain English summary will render here.</p>
+      <div class="diff-content-scroll" id="diff-content-scroll">
+        <div id="diffs-container" class="diffs-container">
+          <!-- Diff cards rendered here -->
         </div>
 
-        <!-- Drift Warning Banner -->
-        <div id="drift-alert-banner" class="drift-alert-banner hidden">
-          <div class="alert-icon">⚠️</div>
-          <div class="alert-content">
-            <strong class="alert-title">Unintended Drift Detected</strong>
-            <p class="alert-message" id="drift-alert-message">
-              Changes detected outside the stated prompt intent.
-            </p>
-          </div>
+        <div id="middle-empty" class="pane-empty-state middle-empty">
+          <div class="empty-icon">⎇</div>
+          <h3>No Trace Selected</h3>
+          <p>Select a trace from the left pane or make code edits in your editor to observe diffs in real time.</p>
         </div>
-
-        <!-- Interactive Fishbone Causal Breakdown -->
-        <section class="fishbone-section">
-          <div class="section-header">
-            <h3>Interactive Fishbone Causal Breakdown</h3>
-            <span class="section-tag">Cause ➔ Subsystems ➔ Effects</span>
-          </div>
-
-          <div class="fishbone-root">
-            <div class="fishbone-cause-card">
-              <span class="cause-label">ROOT PROMPT / TRIGGER</span>
-              <div class="cause-text" id="fishbone-cause">User Prompt</div>
-            </div>
-
-            <div class="fishbone-branches" id="fishbone-branches">
-              <!-- Subsystem branch cards injected by fishbone.js -->
-            </div>
-          </div>
-        </section>
-
-        <!-- Code & File Diff Drawer -->
-        <section class="diff-section">
-          <div class="section-header">
-            <h3>Modified Files & Diffs</h3>
-            <span class="section-tag" id="diff-file-count">0 files</span>
-          </div>
-
-          <div class="diff-container" id="diff-container">
-            <!-- Diff accordions injected by diffViewer.js -->
-          </div>
-        </section>
       </div>
-    </main>
-  </div>
+    </section>
 
-  <!-- Scripts -->
+    <!-- ========================================================
+         RIGHT PANE: Summary, Changings, Info & AI Question Area
+         ======================================================== -->
+    <aside class="pane pane-right" id="pane-right">
+      
+      <!-- Interactive AI Question Engine -->
+      <div class="ai-query-section">
+        <div class="section-title">
+          <span class="sparkle">◈</span> Ask About These Changes
+        </div>
+        <div class="query-box">
+          <input type="text" id="query-input" placeholder="Ask questions about these changes... (Press Enter)" spellcheck="false">
+          <button id="btn-submit-query" class="btn btn-query">
+            <span class="btn-text">Ask</span>
+            <span class="spinner hidden" id="query-spinner"></span>
+          </button>
+        </div>
+        <div class="quick-chips">
+          <button class="chip" data-q="What files changed and what was implemented?">Summary of changes</button>
+          <button class="chip" data-q="What is the architectural and downstream impact?">Architectural impact</button>
+          <button class="chip" data-q="Did this change adhere to repository harness rules?">Harness check</button>
+        </div>
+
+        <!-- AI Query Answer Box -->
+        <div id="query-answer-card" class="query-answer-card hidden">
+          <div class="answer-card-header">
+            <span class="answer-label">◈ VibeTrace Intelligence</span>
+            <span class="answer-model" id="answer-model-tag">nvidia/nemotron</span>
+            <button id="btn-close-answer" class="btn-close">✕</button>
+          </div>
+          <div class="answer-text" id="answer-text">Answer will appear here...</div>
+        </div>
+      </div>
+
+      <!-- Trace Summary & Changings Card -->
+      <div class="summary-card" id="summary-card">
+        <div class="summary-header">
+          <span class="badge-change-type" id="summary-change-type">Code Mutation</span>
+          <span class="badge-latency" id="summary-latency">0.24s</span>
+        </div>
+
+        <h2 class="summary-title" id="summary-title">Trace Details</h2>
+
+        <div class="info-block">
+          <h3>PLAIN ENGLISH SUMMARY</h3>
+          <p id="summary-text">No trace selected.</p>
+        </div>
+
+        <div class="info-block">
+          <h3>ARCHITECTURAL & SYSTEMIC IMPACT</h3>
+          <p id="impact-text">No trace selected.</p>
+        </div>
+
+        <div class="info-block">
+          <h3>SUBSYSTEMS TOUCHED</h3>
+          <div class="subsystem-pills" id="subsystems-list">
+            <span class="subsystem-pill">Application Logic</span>
+          </div>
+        </div>
+
+        <div class="info-block">
+          <h3>AI HARNESS ENGINEERING</h3>
+          <div class="harness-box" id="harness-box">
+            <div class="harness-row">
+              <span class="h-label">Harness Context:</span>
+              <span class="h-val" id="harness-rules-status">Loaded</span>
+            </div>
+            <div class="harness-preview" id="harness-rules-preview">
+              Repository skills and guidelines verified.
+            </div>
+          </div>
+        </div>
+
+        <!-- Git & Metadata -->
+        <div class="info-block metadata-block">
+          <h3>GIT & TELEMETRY</h3>
+          <div class="meta-grid">
+            <div class="meta-item">
+              <span class="m-k">Branch</span>
+              <span class="m-v" id="meta-branch">main</span>
+            </div>
+            <div class="meta-item">
+              <span class="m-k">Commit</span>
+              <span class="m-v" id="meta-commit">HEAD</span>
+            </div>
+            <div class="meta-item">
+              <span class="m-k">Additions</span>
+              <span class="m-v add" id="meta-additions">+0</span>
+            </div>
+            <div class="meta-item">
+              <span class="m-k">Deletions</span>
+              <span class="m-v del" id="meta-deletions">-0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Bottom Ticker Footer -->
+  <footer class="app-footer">
+    <div class="footer-status" id="footer-status">
+      <span class="dot"></span>
+      <span id="footer-status-label">WATCHER ACTIVE</span>
+    </div>
+    <div class="footer-msg" id="footer-msg">
+      Listening for filesystem mutations and Git changes...
+    </div>
+    <div class="footer-counts">
+      <span>Traces: <b id="footer-count">0</b></span>
+    </div>
+  </footer>
+
+  <!-- Client Script -->
   <script src="diffViewer.js"></script>
-  <script src="fishbone.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

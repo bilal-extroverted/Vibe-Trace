@@ -1,210 +1,169 @@
-// VibeTrace Causal Intelligence & OpenRouter Engine
-// Evaluates prompt intent vs. diffs to detect architectural and permission drift
+// VibeTrace Observability & Trace Engine
+// Analyzes real filesystem mutations, Git diffs, and repository harness context
 
-// Rule-based heuristic analyzer (Instant, robust, runs offline with zero API key)
-function analyzeWithHeuristics({ prompt, diffs = [], gitContext = {} }) {
+const crypto = require('crypto');
+
+function generateTraceId() {
+  return crypto.randomBytes(12).toString('hex');
+}
+
+function formatTimestamp(d = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+// Generate real trace object from git diffs and context
+function generateTraceObject({ prompt, diffs = [], gitContext = {}, harnessRules = '', aiResponse = null, latencyMs = 240, modelUsed = 'heuristic-tracer' }) {
   const files = diffs.map(d => d.file || '');
   const diffContent = diffs.map(d => d.content || '').join('\n');
+  const additions = (diffContent.match(/^\+[^+]/gm) || []).length;
+  const deletions = (diffContent.match(/^-[^-]/gm) || []).length;
 
-  // Subsystem layer detection
+  const traceId = generateTraceId();
+  const timestamp = formatTimestamp();
+
+  // Subsystem classification
   const dbFiles = files.filter(f => /\.(sql|prisma)$|migration|schema|database/i.test(f));
-  const logicFiles = files.filter(f => /\.(js|ts|py|go|rs|jsx|tsx)$/i.test(f) && !dbFiles.includes(f));
-  const configFiles = files.filter(f => /(\.env|config|\.ya?ml|\.toml)/i.test(f) && !/permission|auth|key/i.test(f));
-  const permFiles = files.filter(f => /permission|auth|token|secret|key|policy|\.env/i.test(f) || /chmod|public_access|0777|allow_all/i.test(diffContent));
+  const logicFiles = files.filter(f => /\.(js|ts|py|go|rs|jsx|tsx|html|css|c|cpp|java)$/i.test(f) && !dbFiles.includes(f));
+  const configFiles = files.filter(f => /(\.env|config|\.ya?ml|\.toml|\.json)/i.test(f));
 
-  const promptLower = (prompt || '').toLowerCase();
-  const isDbPrompt = /table|database|schema|migration|column|model/i.test(promptLower);
-  const isAuthPrompt = /permission|auth|role|access|login|security|secret/i.test(promptLower);
+  let changeType = 'Code Mutation';
+  if (dbFiles.length > 0) changeType = 'Database Update';
+  else if (configFiles.length > 0 && logicFiles.length === 0) changeType = 'Config Update';
+  else if (additions > 50 && deletions > 30) changeType = 'Architectural Refactor';
 
-  // Drift condition: Sensitive security/permissions touched when prompt was non-security (e.g. database table)
-  let driftDetected = false;
-  let driftMessage = '';
-
-  if (permFiles.length > 0 && !isAuthPrompt) {
-    driftDetected = true;
-    driftMessage = `Unintended Drift Warning: Permission/security files (${permFiles.join(', ')}) were modified without an explicit security prompt.`;
-  }
-
-  // Determine Title and Plain-English Summary
-  let title = 'Code Modifications Detected';
-  let summary = 'The AI agent made changes across your workspace.';
-
-  if (isDbPrompt && dbFiles.length > 0) {
-    title = `Created Database Table Schema`;
-    summary = `The AI created or updated database schema definitions in ${dbFiles.join(', ')}.`;
-    if (driftDetected) {
-      summary += ` However, it also silently altered permissions in ${permFiles.join(', ')}, which was outside your stated prompt.`;
-    }
-  } else if (logicFiles.length > 0) {
-    title = `Updated Application Logic`;
-    summary = `Modified application code across ${logicFiles.slice(0, 3).join(', ')}.`;
-  }
-
-  // Construct structured fishbone layers
-  const layers = [
-    {
-      name: 'Database Layer',
-      status: dbFiles.length > 0 ? (isDbPrompt ? 'intended' : 'drift') : 'neutral',
-      description: dbFiles.length > 0 
-        ? `Modified schema/tables in: ${dbFiles.join(', ')}` 
-        : 'No database schema changes in this step.',
-      files: dbFiles
-    },
-    {
-      name: 'Application Logic',
-      status: logicFiles.length > 0 ? 'intended' : 'neutral',
-      description: logicFiles.length > 0 
-        ? `Updated business logic in: ${logicFiles.join(', ')}` 
-        : 'No core application logic modified.',
-      files: logicFiles
-    },
-    {
-      name: 'Configuration',
-      status: configFiles.length > 0 ? 'intended' : 'neutral',
-      description: configFiles.length > 0 
-        ? `Altered configuration files: ${configFiles.join(', ')}` 
-        : 'Configuration unchanged.',
-      files: configFiles
-    },
-    {
-      name: 'Configuration & Permissions',
-      status: permFiles.length > 0 ? (driftDetected ? 'drift' : 'intended') : 'neutral',
-      description: permFiles.length > 0
-        ? (driftDetected 
-            ? `WARNING: Security rules altered in ${permFiles.join(', ')} without explicit request!` 
-            : `Updated security rules in ${permFiles.join(', ')}`)
-        : 'Security and permission boundaries remained untouched.',
-      files: permFiles
-    }
-  ];
+  const summary = aiResponse?.summary || `Observed code modifications across ${files.length} file(s). Added ${additions} line(s), removed ${deletions} line(s).`;
+  const architecturalImpact = aiResponse?.architecturalImpact || `Files modified in ${files.slice(0, 3).join(', ')}. Code structure updated with consistent boundaries.`;
+  const title = aiResponse?.title || `${changeType} (${files.length} file${files.length === 1 ? '' : 's'})`;
 
   return {
+    id: traceId,
+    changeType,
     title,
+    timestamp,
+    latency: `${(latencyMs / 1000).toFixed(2)}s`,
+    status: 'success',
+    model: modelUsed,
+    files,
+    additions,
+    deletions,
     summary,
-    fishbone: {
-      cause: prompt || 'AI Agent Prompt',
-      layers
-    },
-    driftDetected,
-    driftMessage,
+    architecturalImpact,
+    subsystems: [
+      dbFiles.length ? 'Database' : null,
+      logicFiles.length ? 'Application Logic' : null,
+      configFiles.length ? 'Configuration' : null
+    ].filter(Boolean),
     git: {
       branch: gitContext.branch || 'main',
-      filesChanged: files,
-      additions: (diffContent.match(/^\+[^+]/gm) || []).length,
-      deletions: (diffContent.match(/^-[^-]/gm) || []).length
+      commit: gitContext.commitHash || 'HEAD',
+      prompt: prompt || 'Automatic File Watcher Ingestion'
+    },
+    harness: {
+      rulesLoaded: Boolean(harnessRules && harnessRules.length > 10),
+      rulesPreview: (harnessRules || 'Standard workspace guidelines').slice(0, 300)
     },
     diffs
   };
 }
 
-// OpenRouter API Analyzer with heuristic fallback
-async function analyze({ prompt, diffs = [], gitContext = {}, harnessRules = '' }) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-
-  if (!apiKey || apiKey.trim() === '') {
-    // Instant heuristic fallback
-    return analyzeWithHeuristics({ prompt, diffs, gitContext });
-  }
-
-  try {
-    const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
-
-    const systemPrompt = `You are VibeTrace, an expert AI observability engine for developer code changes.
-Given a prompt intent and code diffs, produce a valid JSON object analyzing the cause-and-effect:
+// OpenRouter API call with cascade
+async function callOpenRouter(apiKey, modelList, promptText, diffSummary, harnessRules) {
+  const systemPrompt = `You are VibeTrace, an industrial AI observability and traceability system for codebases and agent harness engineering.
+Analyze the prompt and code diffs, and return a strict JSON object:
 {
-  "title": "Short 3-6 word plain English highlight of what was done",
-  "summary": "2-3 sentences explaining to a non-technical or junior developer what changed and any consequences",
-  "driftDetected": boolean (true if the AI modified permissions, configs, or files outside the prompt's intent),
-  "driftMessage": "Clear warning if driftDetected is true, else empty string",
-  "layers": [
-    {
-      "name": "Database Layer",
-      "status": "intended" | "drift" | "neutral",
-      "description": "What changed here",
-      "files": ["file names"]
-    },
-    {
-      "name": "Application Logic",
-      "status": "intended" | "drift" | "neutral",
-      "description": "What changed here",
-      "files": ["file names"]
-    },
-    {
-      "name": "Configuration",
-      "status": "intended" | "drift" | "neutral",
-      "description": "What changed here",
-      "files": ["file names"]
-    },
-    {
-      "name": "Configuration & Permissions",
-      "status": "intended" | "drift" | "neutral",
-      "description": "What changed here",
-      "files": ["file names"]
-    }
-  ]
+  "title": "Concise 3-6 word summary of what the code change did",
+  "summary": "2-3 clear, technical sentences explaining what was implemented, refactored, or fixed",
+  "architecturalImpact": "A concise assessment of how this change impacts system architecture and downstream dependencies"
 }
-Return ONLY pure JSON.`;
+Return ONLY valid JSON.`;
 
-    const userPrompt = `User Prompt / Intent: "${prompt}"
-Agent Harness Rules: "${harnessRules || 'Standard repo rules'}"
-Code Diffs:
-${diffSummary.slice(0, 4000)}`;
+  const userPrompt = `Context: "${promptText}"
+Harness Rules: "${harnessRules.slice(0, 1000)}"
+Code Changes:
+${diffSummary.slice(0, 3500)}`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+  for (const model of modelList) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://github.com/challengepost/learn-ai-basics',
-        'X-Title': 'VibeTrace'
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.1,
-        response_format: { type: 'json_object' }
-      }),
-      signal: controller.signal
-    });
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/challengepost/learn-ai-basics',
+          'X-Title': 'VibeTrace Observability'
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.1,
+          max_tokens: 350
+        }),
+        signal: controller.signal
+      });
 
-    clearTimeout(timeout);
+      clearTimeout(timeout);
 
-    if (!response.ok) {
-      console.warn(`[VibeTrace] OpenRouter HTTP ${response.status}, falling back to local heuristics.`);
-      return analyzeWithHeuristics({ prompt, diffs, gitContext });
+      if (response.ok) {
+        const data = await response.json();
+        const raw = data.choices[0].message.content;
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) {
+          const parsed = JSON.parse(match[0]);
+          return { parsed, modelUsed: model };
+        }
+      }
+    } catch (e) {
+      // try next candidate
     }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-    const parsed = JSON.parse(content);
-
-    return {
-      title: parsed.title,
-      summary: parsed.summary,
-      driftDetected: Boolean(parsed.driftDetected),
-      driftMessage: parsed.driftMessage || '',
-      fishbone: {
-        cause: prompt,
-        layers: parsed.layers
-      },
-      git: {
-        branch: gitContext.branch || 'main',
-        filesChanged: diffs.map(d => d.file),
-        additions: (diffSummary.match(/^\+[^+]/gm) || []).length,
-        deletions: (diffSummary.match(/^-[^-]/gm) || []).length
-      },
-      diffs
-    };
-  } catch (err) {
-    console.warn(`[VibeTrace] OpenRouter error (${err.message}), using local heuristic engine.`);
-    return analyzeWithHeuristics({ prompt, diffs, gitContext });
   }
+
+  return null;
 }
 
-module.exports = { analyze, analyzeWithHeuristics };
+async function analyze({ prompt, diffs = [], gitContext = {}, harnessRules = '' }) {
+  const startTime = Date.now();
+  const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
+  const configuredModel = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
+
+  const modelsToTry = [
+    configuredModel,
+    'nvidia/nemotron-3.5-lightning:free'
+  ];
+
+  const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
+
+  if (apiKey) {
+    const aiResult = await callOpenRouter(apiKey, modelsToTry, prompt, diffSummary, harnessRules);
+    if (aiResult && aiResult.parsed) {
+      const latencyMs = Date.now() - startTime;
+      return generateTraceObject({
+        prompt,
+        diffs,
+        gitContext,
+        harnessRules,
+        aiResponse: aiResult.parsed,
+        latencyMs,
+        modelUsed: aiResult.modelUsed
+      });
+    }
+  }
+
+  // Fallback heuristic trace
+  return generateTraceObject({
+    prompt,
+    diffs,
+    gitContext,
+    harnessRules,
+    latencyMs: 120,
+    modelUsed: 'heuristic-tracer'
+  });
+}
+
+module.exports = { analyze };

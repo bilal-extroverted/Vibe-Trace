@@ -1,7 +1,7 @@
 {
   "name": "vibetrace",
   "version": "1.0.0",
-  "description": "Real-time AI Code Observability and Causal Drift Tracer",
+  "description": "Real-time AI Code Observability, Traceability, and Harness Engineering Platform",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
