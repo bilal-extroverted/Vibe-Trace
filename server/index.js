@@ -10,17 +10,26 @@ const WATCH_DIR = path.resolve(process.env.WATCH_DIR || '.');
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// In-memory trace history
-const eventHistory = [];
+// Mount Scenarios and Analysis Endpoints
+const scenarios = require('./scenarios');
+const { analyze } = require('./analyzer');
+app.use('/api/scenarios', scenarios.router);
 
-// SSE Telemetry Stream Endpoint
-app.get('/api/events', (req, res) => {
-  sse.subscribe(req, res);
-  // Send existing history to newly connected client
-  if (eventHistory.length > 0) {
-    res.write(`data: ${JSON.stringify({ type: 'history', events: eventHistory })}\n\n`);
+app.post('/api/analyze', async (req, res) => {
+  try {
+    const analysis = await analyze(req.body);
+    const event = {
+      id: `evt_${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString(),
+      ...analysis
+    };
+    recordEvent(event);
+    res.json({ success: true, event });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 // Status Endpoint
 app.get('/api/status', (req, res) => {

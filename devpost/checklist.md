@@ -9,7 +9,7 @@ Build mode: fast
 
 ## Slices
 
-- [ ] **1. Scaffolding, Live Server, and Glassmorphic Dashboard UI**
+- [x] **1. Scaffolding, Live Server, and Glassmorphic Dashboard UI**
   Becomes usable: The local Node.js/Express server boots up on `http://localhost:3000` with the complete monochrome glassmorphic single-page dashboard: top status bar, left timeline pane, main fishbone canvas with expandable cards, and SSE listener connection established.
   Why now: Bootstraps the project and delivers an immediate visual, working surface on `localhost:3000` side-by-side with the IDE so every subsequent backend component has a live screen to render onto.
   PRD ref: `prd.md > Screens and Layout`, `prd.md > Look and Feel`
