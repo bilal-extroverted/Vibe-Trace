@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Open `http://localhost:3000` in your browser alongside your editor and confirm the monochrome glassmorphic layout loads cleanly with the "Listening for AI edits" pulse.
   Commit: `feat: scaffold server and glassmorphic dashboard UI`
 
-- [ ] **2. Causal Intelligence Engine, OpenRouter API Client & Offline Fallback**
+- [x] **2. Causal Intelligence Engine, OpenRouter API Client & Offline Fallback**
   Becomes usable: The backend causal analysis module (`server/analyzer.js`) can take a diff + prompt/context, query OpenRouter (or use its local heuristic fallback), classify touched subsystems (Database, Logic, Config, Permissions), and detect unintended permission/security drift.
   Why now: De-risks the intelligence layer early—proving that both the OpenRouter API integration and the resilient offline rule classifier work reliably and return properly structured JSON with drift warnings.
   PRD ref: `prd.md > 3. Plain-English Summary & Causal Highlight`, `prd.md > 4. Interactive Fishbone Causal Breakdown`

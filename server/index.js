@@ -1,26 +1,88 @@
 const express = require('express');
 const path = require('path');
 const sse = require('./sse');
+const watcher = require('./watcher');
+const scenarios = require('./scenarios');
+const { analyze } = require('./analyzer');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const WATCH_DIR = path.resolve(process.env.WATCH_DIR || '.');
+let WATCH_DIR = path.resolve(process.env.WATCH_DIR || '.');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Mount Scenarios and Analysis Endpoints
-const scenarios = require('./scenarios');
-const { analyze } = require('./analyzer');
-app.use('/api/scenarios', scenarios.router);
+// In-memory trace history
+const eventHistory = [];
 
+// Helper to record and broadcast event
+function recordEvent(event) {
+  eventHistory.unshift(event);
+  if (eventHistory.length > 100) eventHistory.pop();
+  sse.broadcast({ type: 'change', event });
+  return event;
+}
+
+// SSE Telemetry Stream Endpoint
+app.get('/api/events', (req, res) => {
+  sse.subscribe(req, res);
+  if (eventHistory.length > 0) {
+    res.write(`data: ${JSON.stringify({ type: 'history', events: eventHistory })}\n\n`);
+  }
+});
+
+// System Status Endpoint
+app.get('/api/status', (req, res) => {
+  const model = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
+  res.json({
+    status: 'active',
+    watchDir: WATCH_DIR,
+    eventsCount: eventHistory.length,
+    openRouterConfigured: Boolean((process.env.OPENROUTER_API_KEY || '').trim()),
+    model
+  });
+});
+
+// Endpoint to change watched directory dynamically
+app.post('/api/watch', (req, res) => {
+  const newDir = req.body.directory;
+  if (!newDir) return res.status(400).json({ error: 'Directory path is required' });
+
+  try {
+    WATCH_DIR = path.resolve(newDir);
+    watcher.start(WATCH_DIR, recordEvent);
+    res.json({ success: true, watchDir: WATCH_DIR });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to register the prompt intent
+app.post('/api/prompt', (req, res) => {
+  const prompt = req.body.prompt || '';
+  watcher.setPromptIntent(prompt);
+  res.json({ success: true, prompt });
+});
+
+// Endpoint to force immediate rescan of git diffs
+app.post('/api/rescan', async (req, res) => {
+  try {
+    await watcher.processBatch();
+    res.json({ success: true, message: 'Rescan completed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Direct analysis endpoint
 app.post('/api/analyze', async (req, res) => {
   try {
     const analysis = await analyze(req.body);
     const event = {
-      id: `evt_${Date.now()}`,
+      id: `tr_${Date.now().toString(36)}`,
       timestamp: new Date().toLocaleTimeString(),
+      source: 'manual-analysis',
       ...analysis
     };
     recordEvent(event);
@@ -30,50 +92,21 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
+// Mount scenarios
+app.use('/api/scenarios', scenarios.router);
 
-// Status Endpoint
-app.get('/api/status', (req, res) => {
-  res.json({
-    status: 'watching',
-    watchDir: WATCH_DIR,
-    eventsCount: eventHistory.length,
-    openRouterConfigured: Boolean(process.env.OPENROUTER_API_KEY)
-  });
-});
+// Start watcher on startup
+watcher.start(WATCH_DIR, recordEvent);
 
-// Helper to record and broadcast event
-function recordEvent(event) {
-  eventHistory.unshift(event);
-  if (eventHistory.length > 50) eventHistory.pop();
-  sse.broadcast({ type: 'change', event });
-  return event;
-}
-
-// Export app and recorder for integration with watcher and scenarios
-module.exports = { app, recordEvent, eventHistory, WATCH_DIR };
-
-// If run directly, start server
+// Start listening
 if (require.main === module) {
-  // Try loading watcher and scenarios if present
-  try {
-    const watcher = require('./watcher');
-    watcher.start(WATCH_DIR, recordEvent);
-  } catch (err) {
-    console.log('[VibeTrace] Watcher module initializing in next slice.');
-  }
-
-  try {
-    const scenarios = require('./scenarios');
-    app.use('/api/scenarios', scenarios.router);
-  } catch (err) {
-    console.log('[VibeTrace] Scenarios module initializing in next slice.');
-  }
-
   app.listen(PORT, () => {
     console.log(`\n=================================================`);
-    console.log(`  VibeTrace Observability Dashboard running!`);
-    console.log(`  Local URL:  http://localhost:${PORT}`);
-    console.log(`  Watching:   ${WATCH_DIR}`);
+    console.log(`  VibeTrace Observability Server Online`);
+    console.log(`  Dashboard URL:  http://localhost:${PORT}`);
+    console.log(`  Live Watching:  ${WATCH_DIR}`);
     console.log(`=================================================\n`);
   });
 }
+
+module.exports = { app, recordEvent, eventHistory, WATCH_DIR };
