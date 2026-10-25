@@ -82,6 +82,16 @@
   const rightFileSummaryDesc = document.getElementById('right-file-summary-desc');
   let latestProtocol = null;
 
+  // Top Card: Synthesized User Prompt & Task Intent (Right Pane)
+  const rightPromptTaskCard = document.getElementById('right-prompt-task-card');
+  const promptCardTaskTitle = document.getElementById('prompt-card-task-title');
+  const promptCardSynthesizedText = document.getElementById('prompt-card-synthesized-text');
+  const promptWordsBadge = document.getElementById('prompt-words-badge');
+  const promptCardStatusDot = document.getElementById('prompt-card-status-dot');
+  const promptCardStatusLabel = document.getElementById('prompt-card-status-label');
+  const promptCardAgentLabel = document.getElementById('prompt-card-agent-label');
+  const btnCopyPrompt = document.getElementById('btn-copy-prompt');
+
   // Mechanical Harness Section
   const harnessOverallStatus = document.getElementById('harness-overall-status');
   const harnessAdviceText = document.getElementById('harness-advice-text');
@@ -351,6 +361,127 @@
     }
   }
 
+  // -----------------------------------------------------------------
+  // Synthesized Prompt & Task Intent from vibetrace.md (Constrained under defined word count)
+  // -----------------------------------------------------------------
+  const DEFINED_PROMPT_MAX_WORDS = 32;
+
+  function synthesizePromptText(task, intent, maxWords = DEFINED_PROMPT_MAX_WORDS) {
+    if (!task && !intent) {
+      return {
+        title: 'Ready for AI coding agent task',
+        synthesizedText: 'Waiting for prompt from user and declared intent in vibetrace.md...',
+        fullText: 'Waiting for prompt from user and declared intent in vibetrace.md...',
+        wordCount: 0,
+        totalWordCount: 0,
+        isTruncated: false
+      };
+    }
+
+    const rawTask = (task || '').trim();
+    const rawIntent = (intent || '').trim();
+
+    // In vibetrace.md, prompt intent is written in ## Current Task Intent (> user prompt)
+    let sourceText = rawIntent || rawTask;
+
+    // Clean markdown formatting: quotes (>), backticks, lists, code blocks
+    let cleaned = sourceText
+      .replace(/^>\s*/gm, '')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\r?\n+/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    // Remove conversational filler prefixes to synthesize concise intent
+    cleaned = cleaned.replace(/^(please\s+|can\s+you\s+|i\s+want\s+you\s+to\s+|i\s+need\s+you\s+to\s+|task:\s*)/i, '');
+    if (cleaned.length > 0) {
+      cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    const totalWordCount = words.length;
+    let synthesizedText = cleaned;
+    let isTruncated = false;
+
+    if (totalWordCount > maxWords) {
+      synthesizedText = words.slice(0, maxWords).join(' ') + '...';
+      isTruncated = true;
+    }
+
+    return {
+      title: rawTask || (words.slice(0, 7).join(' ') + (words.length > 7 ? '...' : '')),
+      synthesizedText,
+      fullText: cleaned,
+      wordCount: isTruncated ? maxWords : totalWordCount,
+      totalWordCount,
+      isTruncated
+    };
+  }
+
+  function updatePromptCard(proto, currentStatus) {
+    if (!rightPromptTaskCard) return;
+
+    const p = proto || latestProtocol || {};
+    const status = (currentStatus || p.status || 'idle').toLowerCase();
+    const synth = synthesizePromptText(p.task, p.intent);
+
+    if (promptCardTaskTitle) {
+      promptCardTaskTitle.textContent = synth.title;
+      promptCardTaskTitle.title = synth.title;
+    }
+
+    if (promptCardSynthesizedText) {
+      promptCardSynthesizedText.textContent = synth.synthesizedText;
+      promptCardSynthesizedText.title = synth.fullText;
+    }
+
+    if (promptWordsBadge) {
+      promptWordsBadge.textContent = synth.isTruncated 
+        ? `${synth.wordCount}/${synth.totalWordCount} words`
+        : `${synth.wordCount} words`;
+    }
+
+    if (promptCardStatusDot) {
+      promptCardStatusDot.className = 'prompt-status-dot';
+      if (status === 'in_progress' || status === 'working') {
+        promptCardStatusDot.classList.add('dot-working');
+      } else if (status === 'writing' || status === 'changing') {
+        promptCardStatusDot.classList.add('dot-changing');
+      }
+    }
+
+    if (promptCardStatusLabel) {
+      if (status === 'in_progress' || status === 'working') {
+        promptCardStatusLabel.textContent = 'Agent Working';
+      } else if (status === 'writing' || status === 'changing') {
+        promptCardStatusLabel.textContent = 'Files Changing';
+      } else if (status === 'completed') {
+        promptCardStatusLabel.textContent = 'Completed';
+      } else {
+        promptCardStatusLabel.textContent = 'Standby';
+      }
+    }
+
+    if (promptCardAgentLabel) {
+      promptCardAgentLabel.textContent = p.agent || 'Antigravity AI';
+    }
+
+    if (btnCopyPrompt && !btnCopyPrompt.dataset.bound) {
+      btnCopyPrompt.dataset.bound = 'true';
+      btnCopyPrompt.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(synth.fullText);
+          btnCopyPrompt.textContent = 'Copied!';
+          setTimeout(() => { btnCopyPrompt.textContent = 'Copy'; }, 1500);
+        } catch (e) {
+          btnCopyPrompt.textContent = 'Failed';
+          setTimeout(() => { btnCopyPrompt.textContent = 'Copy'; }, 1500);
+        }
+      });
+    }
+  }
+
   // 4. Render Agent Protocol from `vibetrace.md`
   function renderProtocol(proto) {
     if (!proto) return;
@@ -362,6 +493,9 @@
       protoStatusTag.className = `agent-status-pill status-${status}`;
       protoStatusTag.textContent = status === 'in_progress' ? 'IN PROGRESS' : status.toUpperCase();
     }
+
+    // Update Top Prompt & Task Intent Card
+    updatePromptCard(proto, status);
 
     // Populate Right Pane Live Active File Card
     if (rightActiveFileCard) {
@@ -470,6 +604,10 @@
       if (rightActiveFilePath) rightActiveFilePath.textContent = activeFile;
       if (data.file_action && rightFileActionDesc) rightFileActionDesc.textContent = data.file_action;
       if (rightActiveFileCard) rightActiveFileCard.classList.add('is-live');
+
+      if (latestProtocol) {
+        updatePromptCard(latestProtocol, status);
+      }
 
       const activeTaskName = data.task || latestProtocol?.task || 'Active Agent Task';
 
@@ -1035,6 +1173,10 @@
 
   // 13. Populate Right Pane (Dual Isolated Perspectives & Visual Impact)
   function populateRightPane(trace) {
+    // Update Top Synthesized Prompt & Task Card
+    const traceProto = trace.agentProtocol || (trace.inProgress ? latestProtocol : null) || {};
+    updatePromptCard(traceProto, trace.inProgress ? (trace.changing ? 'writing' : 'working') : 'completed');
+
     // -----------------------------------------------------------------
     // PERSPECTIVE 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS
     // (What happened, Exact mechanical changes, Affected Features, Downstream Ripple Effects)

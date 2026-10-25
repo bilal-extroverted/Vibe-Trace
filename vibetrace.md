@@ -1,25 +1,25 @@
 ---
 status: completed
-task: "Implement persistent task lifecycle traces with Yellow (Working) -> Animated Gradient (Changing) -> Blue (Completed) card states"
+task: "Add Synthesized Prompt & Task Intent Card to top of right pane"
 agent: "Antigravity AI"
 active_file: "public/app.js"
-file_action: "Verified persistent trace lifecycle across Yellow (Working), Animated Gradient (Changing), and Sapphire Blue (Completed)"
-file_summary: "Trace card created permanently on task start, transitions states in-place dynamically without disappearing or flickering, and persists in Sapphire Blue upon completion"
-started_at: "2026-10-25T06:28:00Z"
-updated_at: "2026-10-25T06:50:00Z"
+file_action: "Verified synthesized prompt card with defined word limits (max 32 words) in right pane"
+file_summary: "Created small elevated prompt card on top of right pane, parsing user prompt and declared task from vibetrace.md, synthesizing text under 32 words, and dynamically updating"
+started_at: "2026-10-25T06:56:00Z"
+updated_at: "2026-10-25T07:05:00Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Create a permanent trace immediately upon task start that never disappears. Transitions its visual states in-place on the same card: Warm Yellow when working/planning, animated gradient when files mutate/change, and Sapphire Blue when completed.
+> in the right pane make a small card on top as like others have, but in this card get data from md file what is the task what prompt does user gave it will be synthesized in text and will be give under defined number of words
 
 ## Execution Plan & Steps
-- [x] Ensure watcher creates and persists active trace immediately on protocol 'in_progress', broadcasting it to the timeline
-- [x] Support three distinct card states on the same trace: 'working' (Yellow), 'changing' (Animated Gradient), 'completed' (Sapphire Blue)
-- [x] Update public/style.css to style Yellow (Working/Planning), Animated Gradient (Changing), and Sapphire Blue (Completed) cards
-- [x] Update public/app.js to transition trace state in-place without removing or flickering the card
-- [x] Verify transition lifecycle from start to finish
+- [x] Add HTML structure for top prompt synthesis card in public/index.html
+- [x] Style prompt card with clean typography, badges, and dark mode in public/style.css
+- [x] Implement synthesis and defined word-limiting logic (max 32 words) in public/app.js
+- [x] Connect dynamic updates via protocol SSE and trace selection
+- [x] Verify synthesized output and word constraints
 
 ## Inter-Agent & Harness Communication Notes
 - Real-time SSE telemetry active on /api/events

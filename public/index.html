@@ -6,7 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4.6">
+  <link rel="stylesheet" href="style.css?v=4.7">
 </head>
 <body class="light-theme">
 
@@ -211,6 +211,54 @@
          PANE 3 (RIGHT): DUAL ISOLATED SUMMARIES & VISUAL IMPACT
          ======================================================== -->
     <aside class="pane pane-right" id="pane-right">
+
+      <!-- TOP CARD: SYNTHESIZED USER PROMPT & TASK INTENT (FROM vibetrace.md) -->
+      <div class="inspector-section prompt-task-card" id="right-prompt-task-card">
+        <div class="section-top-header prompt-card-header">
+          <div class="header-cluster">
+            <span class="section-icon prompt-icon">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </span>
+            <div>
+              <span class="section-eyebrow">DECLARED PROMPT & INTENT</span>
+              <h3 class="section-heading">Synthesized Task</h3>
+            </div>
+          </div>
+          <div class="header-tags">
+            <span class="prompt-words-badge" id="prompt-words-badge">0 words</span>
+            <span class="tag-chip tag-prompt-source" title="Synchronized from vibetrace.md">vibetrace.md</span>
+          </div>
+        </div>
+
+        <div class="prompt-card-body">
+          <div class="prompt-task-title-row">
+            <span class="prompt-task-label">TASK:</span>
+            <span class="prompt-task-title" id="prompt-card-task-title">Loading active task...</span>
+          </div>
+
+          <div class="prompt-synthesized-block">
+            <div class="prompt-synthesized-header">
+              <span class="detail-caption">SYNTHESIZED PROMPT INTENT (<span id="prompt-max-limit-label">MAX 32 WORDS</span>)</span>
+              <button type="button" class="prompt-copy-btn" id="btn-copy-prompt" title="Copy full prompt intent">Copy</button>
+            </div>
+            <p class="prompt-synthesized-text" id="prompt-card-synthesized-text" title="Full prompt will appear here">
+              Awaiting prompt from user and declared intent in vibetrace.md...
+            </p>
+          </div>
+        </div>
+
+        <div class="prompt-card-footer">
+          <div class="prompt-footer-status">
+            <span class="prompt-status-dot" id="prompt-card-status-dot"></span>
+            <span class="prompt-status-label" id="prompt-card-status-label">Standby</span>
+          </div>
+          <div class="prompt-footer-meta" id="prompt-card-agent-label">
+            Antigravity AI
+          </div>
+        </div>
+      </div>
 
       <!-- SECTION 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS -->
       <div class="inspector-section ai-synthesis-section">
@@ -467,7 +515,7 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="diffViewer.js?v=4.6"></script>
-  <script src="app.js?v=4.6"></script>
+  <script src="diffViewer.js?v=4.7"></script>
+  <script src="app.js?v=4.7"></script>
 </body>
 </html>
