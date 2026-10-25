@@ -435,6 +435,25 @@
     }
   }
 
+  // 6b. Fetch Initial Traces via REST
+  async function fetchTraces() {
+    try {
+      const res = await fetch('/api/traces');
+      const data = await res.json();
+      if (data && data.traces && data.traces.length > 0) {
+        if (traces.length === 0) {
+          traces = data.traces;
+          renderTracesList();
+          if (!selectedTraceId && traces.length > 0) {
+            selectTrace(traces[0].id);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Initial traces fetch failed:', e);
+    }
+  }
+
   // 7. Force Immediate Rescan
   async function rescanRepo() {
     btnRescan.classList.add('loading');
@@ -969,6 +988,8 @@
         w.style.display = allCollapsed ? 'none' : 'block';
       });
     });
+  }
+
   // Copy Project Path Action
   const repoPathCopyBtn = document.getElementById('repo-path-copy-btn');
   const repoPathCopyTag = document.getElementById('repo-path-copy-tag');
@@ -1021,6 +1042,8 @@
         }
       } catch (e) {}
     });
+  }
+
   // Toggle Trace Impact & Change Intelligence Banner
   if (btnToggleTraceImpact && middleTraceImpactBody) {
     btnToggleTraceImpact.addEventListener('click', () => {
@@ -1035,5 +1058,6 @@
   initResizers();
   initTheme();
   fetchStatus();
+  fetchTraces();
   initSSE();
 })();
