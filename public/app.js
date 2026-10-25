@@ -1741,19 +1741,49 @@
 
       const data = await res.json();
       if (data.success) {
-        if (queryAnswerBody) queryAnswerBody.textContent = data.answer;
-        if (queryModelTag) {
-          queryModelTag.textContent = data.modelUsed ? (data.modelUsed.split('/')[1] || data.modelUsed) : 'OpenRouter AI';
+        if (queryAnswerBody) {
+          queryAnswerBody.innerHTML = renderMarkdownToHtml(data.answer);
         }
+        if (queryModelTag) {
+          const modelName = data.modelUsed || 'VibeTrace AI';
+          queryModelTag.textContent = modelName.includes('/') ? modelName.split('/')[1] : modelName;
+        }
+        if (queryAnswerCard) queryAnswerCard.classList.remove('hidden');
+      } else {
+        if (queryAnswerBody) queryAnswerBody.innerHTML = `<span style="color:#ef4444;">${escapeHtml(data.error || 'Failed to analyze query')}</span>`;
         if (queryAnswerCard) queryAnswerCard.classList.remove('hidden');
       }
     } catch (err) {
-      if (queryAnswerBody) queryAnswerBody.textContent = `Error querying AI engine: ${err.message}`;
+      if (queryAnswerBody) queryAnswerBody.innerHTML = `<span style="color:#ef4444;">Error querying AI engine: ${escapeHtml(err.message)}</span>`;
       if (queryAnswerCard) queryAnswerCard.classList.remove('hidden');
     } finally {
       if (btnRunQuery) btnRunQuery.disabled = false;
       if (querySpinner) querySpinner.classList.add('hidden');
     }
+  }
+
+  function renderMarkdownToHtml(raw) {
+    if (!raw) return '';
+    let text = escapeHtml(raw);
+
+    // Headers
+    text = text.replace(/^### (.*$)/gim, '<h4 class="qa-heading">$1</h4>');
+    text = text.replace(/^#### (.*$)/gim, '<h5 class="qa-subheading">$1</h5>');
+
+    // Bold text
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Inline code
+    text = text.replace(/`([^`]+)`/g, '<code class="qa-code">$1</code>');
+
+    // Bullet points
+    text = text.replace(/^\s*-\s+(.*$)/gim, '<div class="qa-bullet"><span class="qa-dot">•</span> <span>$1</span></div>');
+
+    // Spacers between sections
+    text = text.replace(/\n\n+/g, '<div class="qa-spacer"></div>');
+    text = text.replace(/\n/g, '<br>');
+
+    return text;
   }
 
   function escapeHtml(str) {

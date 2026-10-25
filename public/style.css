@@ -4018,10 +4018,67 @@ body.dark-theme .drift-discrepancies-list li.item-clean {
 
 .response-body {
   font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.qa-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 2px 0 6px 0;
+  letter-spacing: -0.01em;
+}
+
+.qa-subheading {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 8px 0 4px 0;
+}
+
+.qa-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+body.dark-theme .qa-code,
+[data-theme="dark"] .qa-code {
+  color: #93c5fd;
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.qa-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
   line-height: 1.45;
   color: var(--text-secondary);
-  white-space: pre-wrap;
-  font-weight: 400;
+  margin-bottom: 3.5px;
+}
+
+.qa-dot {
+  color: #2563eb;
+  font-weight: bold;
+  line-height: 1;
+}
+
+body.dark-theme .qa-dot,
+[data-theme="dark"] .qa-dot {
+  color: #60a5fa;
+}
+
+.qa-spacer {
+  height: 6px;
 }
 
 /* Telemetry Grid */
