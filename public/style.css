@@ -128,6 +128,29 @@
   --font-sans: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, 'Courier New', monospace;
 
+  /* Normalized 3-Pane Pastel Aesthetic System */
+  --pane-left-bg: #FAFBFD;
+  --pane-left-border: #E5E7EB;
+
+  /* Middle Pane: Standout Soothing Pastel Periwinkle / Slate Mist */
+  --pane-middle-bg: #EEF4F9;
+  --pane-middle-header: #E5EFF8;
+  --pane-middle-border: #D2E2F0;
+  --pane-middle-card-bg: #FFFFFF;
+  --pane-middle-card-border: #D5E3F0;
+  --pane-middle-subtle: #F5F9FD;
+
+  /* Right Pane: Refined Pastel Sage / Mint Mist Highlighting */
+  --pane-right-bg: #F1F6F3;
+  --pane-right-border: #D5E6DC;
+  --pane-right-card-bg: #FFFFFF;
+  --pane-right-card-border: #D2E4DA;
+  --pane-right-subtle: #F3F9F5;
+
+  /* Resizer Dividers */
+  --resizer-bg: #DCE5EE;
+  --resizer-hover: #3b82f6;
+
   /* Compact Radii */
   --radius-card: 10px;
   --radius-item: 8px;
@@ -143,6 +166,28 @@
   --bg-surface-hover: #4e4a4b;
   --bg-diff: #312F30;
   --gutter-bg: #292728;
+
+  --pane-left-bg: #282526;
+  --pane-left-border: #3A3637;
+
+  /* Middle Pane: Standout Dark Pastel Slate */
+  --pane-middle-bg: #252A2F;
+  --pane-middle-header: #2B3137;
+  --pane-middle-border: #3B434C;
+  --pane-middle-card-bg: #2C3238;
+  --pane-middle-card-border: #3D4650;
+  --pane-middle-subtle: #22262B;
+
+  /* Right Pane: Refined Dark Pastel Sage */
+  --pane-right-bg: #272E2A;
+  --pane-right-border: #38433D;
+  --pane-right-card-bg: #2D3631;
+  --pane-right-card-border: #3F4C45;
+  --pane-right-subtle: #232A26;
+
+  /* Resizer Dividers */
+  --resizer-bg: #383E44;
+  --resizer-hover: #C5D4CA;
 
   --border-subtle: #444242;
   --border-medium: #444242;
@@ -400,11 +445,11 @@ body.dark-theme .pill-btn.action-btn:hover {
   overflow: hidden;
 }
 
-/* Draggable Splitters */
+/* Draggable Splitters (Subtle Neutral Bridge) */
 .pane-resizer {
   width: 5px;
   cursor: col-resize;
-  background: var(--border-medium);
+  background: var(--resizer-bg);
   flex-shrink: 0;
   position: relative;
   z-index: 40;
@@ -413,42 +458,72 @@ body.dark-theme .pill-btn.action-btn:hover {
 
 .pane-resizer:hover,
 .pane-resizer.dragging {
-  background: var(--emerald-light) !important;
+  background: var(--resizer-hover) !important;
 }
 
-/* PANE 1 (LEFT) */
+/* PANE 1 (LEFT) — Minimal, Neutral, Un-highlighted */
 .pane-left {
   width: 300px;
   min-width: 230px;
   max-width: 500px;
   flex-shrink: 0;
-  background: var(--bg-surface);
+  background: var(--pane-left-bg);
   border-right: none;
+  position: relative;
 }
 
-/* PANE 2 (MIDDLE) */
+/* PANE 2 (MIDDLE) — Standout Pastel Periwinkle/Slate Mist (Restful & Focused) */
 .pane-middle {
   flex: 1;
   min-width: 320px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg-surface);
+  background: var(--pane-middle-bg);
+  border-left: 1px solid var(--pane-middle-border);
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
 }
 
-/* PANE 3 (RIGHT) */
+/* Attached UI Connection: Left border of Pane 2 coordinates with the active trace card */
+#pane-middle[data-active-trace-status="completed"] {
+  border-left: 2px solid #93c5fd;
+}
+#pane-middle[data-active-trace-status="working"] {
+  border-left: 2px solid #fde68a;
+}
+#pane-middle[data-active-trace-status="editing"] {
+  border-left: 2px solid #fed7aa;
+}
+#pane-middle[data-active-trace-status="difference"] {
+  border-left: 2px solid #fca5a5;
+}
+
+[data-theme="dark"] #pane-middle[data-active-trace-status="completed"] {
+  border-left-color: #1e3a8a;
+}
+[data-theme="dark"] #pane-middle[data-active-trace-status="working"] {
+  border-left-color: #78350f;
+}
+[data-theme="dark"] #pane-middle[data-active-trace-status="editing"] {
+  border-left-color: #7c2d12;
+}
+[data-theme="dark"] #pane-middle[data-active-trace-status="difference"] {
+  border-left-color: #7f1d1d;
+}
+
+/* PANE 3 (RIGHT) — Refined Pastel Sage / Mint Mist Highlighting */
 .pane-right {
   width: 380px;
   min-width: 280px;
   max-width: 600px;
   flex-shrink: 0;
-  border-left: none;
   overflow-y: auto;
-  background: var(--bg-canvas);
-  padding: 10px;
+  background: var(--pane-right-bg);
+  border-left: 1px solid var(--pane-right-border);
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 /* Scrollbars */
@@ -661,25 +736,25 @@ body.dark-theme .pill-btn.action-btn:hover {
   letter-spacing: 0.03em;
 }
 
-/* Traces Scroll Feed */
+/* Traces Scroll Feed — Clean Minimal Neutral Feed */
 .traces-scroll-feed {
   flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--bg-canvas);
-  padding: 6px 8px;
+  background: var(--pane-left-bg);
+  padding: 8px 12px 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
-/* Normal (Inactive) Trace Item: Clean SaaS Card */
+/* Normal (Inactive) Trace Item: Clean Minimal SaaS Card */
 .trace-item-row {
   display: flex;
   flex-direction: column;
-  padding: 8px 11px;
-  border-radius: 8px;
+  padding: 9px 12px;
+  border-radius: 7px;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   cursor: pointer;
@@ -688,12 +763,41 @@ body.dark-theme .pill-btn.action-btn:hover {
   user-select: none;
   flex-shrink: 0 !important;
   box-sizing: border-box;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .trace-item-row:hover {
   border-color: var(--border-strong);
   background: var(--bg-surface-hover);
+}
+
+/* =========================================================
+   ATTACHED UI: CONNECTING ACTIVE TRACE CARD DIRECTLY TO MIDDLE PANE
+   ========================================================= */
+.trace-item-row.active {
+  position: relative;
+  z-index: 45;
+  margin-right: -1px;
+  border-top-right-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
+  overflow: visible !important;
+}
+
+/* Seamless right-pointing connector indicator arrow bridging across divider */
+.trace-item-row.active::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 8px solid var(--card-connector-color, #2563eb);
+  z-index: 50;
+  filter: drop-shadow(2px 0 2px rgba(0, 0, 0, 0.18));
+  pointer-events: none;
 }
 
 .trace-item-header {
@@ -841,6 +945,8 @@ body.dark-theme .pill-btn.action-btn:hover {
 /* Completed Card: Selected / Active State — SAPPHIRE / ROYAL BLUE GRADIENT */
 .trace-item-row.active.status-completed,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
+  --card-connector-color: #2563eb;
+  overflow: visible !important;
   animation: none !important;
   background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -1003,6 +1109,8 @@ body.dark-theme .trace-item-row.status-completed:not(.active) .trace-item-tag.ta
 /* Working Card: Selected / Active State — WARM GOLDEN AMBER GRADIENT */
 .trace-item-row.active.is-working,
 .trace-item-row.active.status-working {
+  --card-connector-color: #d97706;
+  overflow: visible !important;
   animation: none !important;
   background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.45) !important;
@@ -1152,6 +1260,14 @@ body.dark-theme .trace-item-row.active.status-working {
   color: #ffffff !important;
   position: relative;
   overflow: hidden;
+}
+
+.trace-item-row.active.is-changing,
+.trace-item-row.active.status-changing,
+.trace-item-row.active.is-editing,
+.trace-item-row.active.status-editing {
+  --card-connector-color: #ea580c;
+  overflow: visible !important;
 }
 
 /* Moving Light Beam Ray Across The Changing Card */
@@ -1405,6 +1521,8 @@ body.dark-theme .trace-item-row.active.is-editing {
 .trace-item-row.active.status-difference,
 .trace-item-row.active.has-difference,
 .trace-item-row.active.status-diverged {
+  --card-connector-color: #dc2626;
+  overflow: visible !important;
   background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 30%, #b91c1c 60%, #dc2626 85%, #ef4444 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.55) !important;
   box-shadow: 0 4px 18px -2px rgba(220, 38, 38, 0.65), 0 0 14px rgba(239, 68, 68, 0.4) !important;
@@ -1681,10 +1799,38 @@ body.dark-theme #agent-prompt-input {
    4. PANE 2 (MIDDLE): PRECISE SYNTAX DIFF INSPECTOR
    ========================================================= */
 .middle-header {
-  padding: 10px 14px 0;
-  border-bottom: 1px solid var(--border-medium);
-  background: var(--bg-surface);
+  padding: 12px 18px 0;
+  border-bottom: 1px solid var(--pane-middle-border);
+  background: var(--pane-middle-header);
   flex-shrink: 0;
+  position: relative;
+}
+
+.middle-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3.5px;
+  background: var(--middle-active-accent, #2563eb);
+  transition: background 0.2s ease;
+}
+
+#pane-middle[data-active-trace-status="completed"] .middle-header::before {
+  background: #2563eb;
+}
+
+#pane-middle[data-active-trace-status="working"] .middle-header::before {
+  background: #d97706;
+}
+
+#pane-middle[data-active-trace-status="editing"] .middle-header::before {
+  background: #ea580c;
+}
+
+#pane-middle[data-active-trace-status="difference"] .middle-header::before {
+  background: #dc2626;
 }
 
 .middle-title-row {
@@ -1877,13 +2023,13 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 .file-pill {
-  padding: 3px 9px;
+  padding: 3.5px 10px;
   border-radius: 5px;
   font-size: 11px;
   font-weight: 500;
   font-family: var(--font-sans);
-  border: 1px solid var(--border-medium);
-  background: var(--bg-surface);
+  border: 1px solid var(--pane-middle-card-border);
+  background: var(--pane-middle-card-bg);
   color: var(--text-secondary);
   cursor: pointer;
   white-space: nowrap;
@@ -2038,8 +2184,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--bg-diff);
-  padding: 10px;
+  background: var(--pane-middle-bg);
+  padding: 14px 18px;
   position: relative;
 }
 
@@ -2047,8 +2193,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
    MIDDLE PANE GLOBAL TRACE CHANGE & IMPACT INTELLIGENCE BANNER
    ========================================================= */
 .middle-trace-impact-banner {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
+  background: var(--pane-middle-card-bg);
+  border: 1px solid var(--pane-middle-card-border);
   border-radius: 8px;
   margin-bottom: 12px;
   overflow: hidden;
@@ -2059,9 +2205,9 @@ body.dark-theme .middle-meta-badge.tag-completed {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  background: var(--bg-surface-subtle);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 7px 12px;
+  background: var(--pane-middle-subtle);
+  border-bottom: 1px solid var(--pane-middle-card-border);
 }
 
 .impact-header-left {
@@ -2181,10 +2327,10 @@ body.dark-theme .middle-meta-badge.tag-completed {
    PER-FILE CHANGE & IMPACT INTELLIGENCE BANNER (IN EACH FILE CARD)
    ========================================================= */
 .diff-file-card {
-  border: 1px solid var(--border-medium);
+  border: 1px solid var(--pane-middle-card-border);
   border-radius: 8px;
-  background: var(--bg-surface);
-  margin-bottom: 10px;
+  background: var(--pane-middle-card-bg);
+  margin-bottom: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
@@ -2210,9 +2356,9 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 .diff-file-header {
-  padding: 6px 11px;
-  background: var(--bg-surface-subtle);
-  border-bottom: 1px solid var(--border-medium);
+  padding: 7px 12px;
+  background: var(--pane-middle-subtle);
+  border-bottom: 1px solid var(--pane-middle-card-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2266,8 +2412,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 .diff-file-insights {
-  background: var(--bg-surface-subtle);
-  border-bottom: 1px solid var(--border-medium);
+  background: var(--pane-middle-subtle);
+  border-bottom: 1px solid var(--pane-middle-card-border);
   padding: 7px 12px;
 }
 
@@ -2372,8 +2518,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
   color: #94a3b8;
   user-select: none;
   font-size: 10px;
-  background: #fafbfc;
-  border-right: 1px solid #f1f5f9;
+  background: var(--pane-middle-subtle);
+  border-right: 1px solid var(--pane-middle-border);
   flex-shrink: 0;
 }
 
@@ -2488,21 +2634,45 @@ body.dark-theme .middle-meta-badge.tag-completed {
    (GRAY & BLACK COMBINATIONS, SMALL SANS-SERIF)
    ========================================================= */
 
-/* All Inspector Sections: Clean, Small, Compact White Cards */
+/* All Inspector Sections: Clean, Small, Compact Pastel-Accented Cards */
 .inspector-section {
-  background: #ffffff;
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-card-bg);
+  border: 1px solid var(--pane-right-card-border);
   border-radius: var(--radius-card);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.15s ease;
 }
 
 [data-theme="dark"] .inspector-section {
-  background: var(--bg-surface);
-  border-color: var(--border-medium);
+  background: var(--pane-right-card-bg);
+  border-color: var(--pane-right-card-border);
+}
+
+/* Specific Top Border Pastel Accents for Right Pane Cards */
+#right-prompt-task-card,
+.prompt-task-card {
+  border-top: 3.5px solid #60a5fa !important; /* Soft Pastel Sky Blue */
+}
+
+#right-drift-guard-card,
+.drift-guard-card {
+  border-top: 3.5px solid #34d399 !important; /* Soft Pastel Emerald */
+}
+
+.ai-synthesis-section {
+  border-top: 3.5px solid #a78bfa !important; /* Soft Pastel Violet */
+}
+
+.agent-protocol-section {
+  border-top: 3.5px solid #2dd4bf !important; /* Soft Pastel Teal */
+}
+
+.harness-audit-section {
+  border-top: 3.5px solid #94a3b8 !important; /* Soft Pastel Slate */
 }
 
 .section-top-header {
@@ -2625,8 +2795,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  background: var(--bg-surface-subtle);
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-subtle);
+  border: 1px solid var(--pane-right-border);
   border-radius: 6px;
   padding: 7px 10px;
 }
@@ -2723,8 +2893,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 .impact-callout {
-  background: var(--bg-surface-subtle);
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-subtle);
+  border: 1px solid var(--pane-right-border);
   border-radius: 6px;
   padding: 8px 10px;
 }
@@ -2769,8 +2939,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
    ========================================================= */
 .prompt-task-card {
   position: relative;
-  background: #ffffff;
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-card-bg);
+  border: 1px solid var(--pane-right-card-border);
   border-radius: var(--radius-card);
   padding: 12px 14px;
   display: flex;
@@ -2785,8 +2955,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 [data-theme="dark"] .prompt-task-card {
-  background: var(--bg-surface);
-  border-color: var(--border-medium);
+  background: var(--pane-right-card-bg);
+  border-color: var(--pane-right-card-border);
 }
 
 .prompt-card-header {
@@ -2849,8 +3019,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  background: var(--bg-surface-subtle);
-  border: 1px solid var(--border-subtle);
+  background: var(--pane-right-subtle);
+  border: 1px solid var(--pane-right-border);
   border-radius: 6px;
   padding: 8px 10px;
 }
@@ -2936,8 +3106,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
    ========================================================= */
 .drift-guard-card {
   position: relative;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-card-bg);
+  border: 1px solid var(--pane-right-card-border);
   border-radius: var(--radius-card);
   padding: 12px 14px;
   display: flex;
@@ -2952,8 +3122,8 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 [data-theme="dark"] .drift-guard-card {
-  background: var(--bg-surface);
-  border-color: var(--border-medium);
+  background: var(--pane-right-card-bg);
+  border-color: var(--pane-right-card-border);
 }
 
 .drift-guard-header {
@@ -3255,8 +3425,8 @@ body.dark-theme .drift-alert-banner.alert-warning .drift-alert-message {
 }
 
 .drift-comparison-box {
-  background: var(--bg-surface-subtle);
-  border: 1px solid var(--border-subtle);
+  background: var(--pane-right-subtle);
+  border: 1px solid var(--pane-right-border);
   border-radius: 6px;
   padding: 7px 9px;
   display: flex;
@@ -3487,8 +3657,8 @@ body.dark-theme .drift-discrepancies-list li.item-clean {
    LIVE ACTIVE FILE & MUTATION STATUS CARD (RIGHT PANE)
    ========================================================= */
 .active-file-mutation-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-subtle);
+  border: 1px solid var(--pane-right-border);
   border-radius: 6px;
   padding: 8px 10px;
   display: flex;
@@ -3687,8 +3857,8 @@ body.dark-theme .drift-discrepancies-list li.item-clean {
 }
 
 .inter-agent-notes-box {
-  background: var(--bg-surface-subtle);
-  border: 1px solid var(--border-medium);
+  background: var(--pane-right-subtle);
+  border: 1px solid var(--pane-right-border);
   border-radius: 6px;
   padding: 6px 8px;
   font-size: 10.5px;

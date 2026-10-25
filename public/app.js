@@ -1246,6 +1246,13 @@
       row.classList.toggle('active', row.dataset.id === id);
     });
 
+    // Set active status on middle pane for visual attachment indicator
+    const paneMiddleEl = document.getElementById('pane-middle');
+    if (paneMiddleEl) {
+      const status = (trace.inProgress ? (trace.changing ? 'editing' : 'working') : (trace.hasDifference ? 'difference' : 'completed'));
+      paneMiddleEl.setAttribute('data-active-trace-status', status);
+    }
+
     // Check if viewing completed history while an agent task is active
     const activeLiveTrace = traces.find(t => t.inProgress || t.status === 'in_progress');
     const isViewingHistoricalWhileLive = Boolean(activeLiveTrace && activeLiveTrace.id !== trace.id && !trace.inProgress);
