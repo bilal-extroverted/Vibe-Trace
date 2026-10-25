@@ -26,13 +26,19 @@ Every user prompt transitions through 4 visual card states in VibeTrace:
 
 ## ⚡ Agent Step-by-Step Workflow
 
-### Step 1: Verify VibeTrace Server is Active
-Before writing code, verify that the VibeTrace server is running:
+### Step 1: Verify & Auto-Setup VibeTrace Daemon
+Before writing code, verify that the VibeTrace observability server is running:
 - Check `http://localhost:3000/api/status`.
-- If not running, start it as a background daemon:
-  ```bash
-  node server/index.js &
-  ```
+- If not running, the agent automatically starts it in the background:
+  - Inside the VibeTrace repository:
+    ```bash
+    node server/index.js &
+    ```
+  - In any other project (where skill was added via `npx skills add bilal-extroverted/Vibe-Trace --all -y`):
+    ```bash
+    npx -y github:bilal-extroverted/Vibe-Trace &
+    ```
+- Ensure `vibetrace.md` exists in the project root (auto-create it if missing).
 
 ### Step 2: Initialize `vibetrace.md` at Task Inception
 **CRITICAL:** Update `vibetrace.md` in the repository root **immediately** upon receiving a user prompt, *before* creating or editing code files.

@@ -12,10 +12,15 @@ Use this skill whenever working on this repository or any codebase with VibeTrac
 ### 1. Ensure VibeTrace Server is Running
 Before making code changes, check if the VibeTrace server is active on `http://localhost:3000`.
 If it is not running, start it in the background:
-```bash
-node server/index.js
-```
-The dashboard will be live at `http://localhost:3000`.
+- Inside this repository:
+  ```bash
+  node server/index.js &
+  ```
+- In any other project (installed via `npx skills add bilal-extroverted/Vibe-Trace --all -y`):
+  ```bash
+  npx -y github:bilal-extroverted/Vibe-Trace &
+  ```
+The dashboard will be live at `http://localhost:3000`. Ensure `vibetrace.md` exists in the project root.
 
 ### 2. Update `vibetrace.md` at Task Start
 When you receive a coding instruction or user request, update `vibetrace.md` in the repository root to inform the harness and other agents:

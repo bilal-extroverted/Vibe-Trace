@@ -1,19 +1,19 @@
 ---
 status: completed
-task: "Update specs, PRD, scope, checklist, and README, and prepare GitHub release"
+task: "Add executable bin/vibetrace.js, npx skills add support, and agent auto-setup"
 agent: "Antigravity AI"
 active_file: "README.md"
-file_action: "Updated PRD, spec, scope, checklist, and README with Features Over Time and Interactive Analysis Q&A engine"
-file_summary: "Synchronized all project specifications and documentation with implemented architecture and set remote to https://github.com/bilal-extroverted/Vibe-Trace"
-started_at: "2026-10-25T13:48:00.000Z"
-completed_at: "2026-10-25T13:56:00.000Z"
-updated_at: "2026-10-25T13:56:00.000Z"
+file_action: "Added bin/vibetrace.js CLI, updated package.json bin field, and documented 1-command npx skill setup"
+file_summary: "Allows developers in any repository to run npx skills add bilal-extroverted/Vibe-Trace --all -y for zero-config agent setup"
+started_at: "2026-10-25T14:48:00.000Z"
+completed_at: "2026-10-25T14:50:00.000Z"
+updated_at: "2026-10-25T14:50:00.000Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Update devpost/spec.md, devpost/prd.md, devpost/scope.md, devpost/checklist.md, and README.md to accurately document Features Over Time milestone evolution, Interactive Analysis AST engine, 4-state gradient cards, and SQLite persistence, then push codebase to https://github.com/bilal-extroverted/Vibe-Trace.
+> Enable 1-command skill installation for external projects via `npx skills add bilal-extroverted/Vibe-Trace --all -y` and provide bin/vibetrace.js so agents can auto-setup the VibeTrace daemon behind the scenes.
 
 ## Execution Plan & Steps
 - [x] Step 1: Update devpost/prd.md with Features Over Time evolution graph and Interactive Analysis Q&A engine

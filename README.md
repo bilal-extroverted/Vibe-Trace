@@ -169,8 +169,20 @@ Open your browser to:
 
 VibeTrace includes a specialized **Agent Skill** (`skills/vibetrace/SKILL.md`) compatible with Google Antigravity, Cursor, Claude Code, and Codex.
 
-### How It Works
-When you prompt your AI coding agent, the agent reads `vibetrace.md` to communicate its lifecycle state directly to the VibeTrace dashboard.
+### 📦 1-Command Skill Installation (Any Project)
+To equip your AI agent with VibeTrace in **any existing or new project repository**, simply run:
+```bash
+npx skills add bilal-extroverted/Vibe-Trace --all -y
+```
+*(Or add specifically the VibeTrace observability skill: `npx skills add bilal-extroverted/Vibe-Trace vibetrace -y`)*
+
+### ⚙️ What the Agent Does Behind the Scenes
+Once the skill is installed into your project, you don't need to configure anything manually. When you give your AI agent any task:
+1. **Auto-Daemon Setup:** The agent checks `http://localhost:3000/api/status`. If VibeTrace is not yet running, it automatically boots up the dashboard in the background (`npx -y github:bilal-extroverted/Vibe-Trace &`) watching your project directory.
+2. **Auto-Protocol Initializer:** The agent automatically creates `vibetrace.md` in your project root, logging prompt intent, planned steps, and active file targets.
+3. **Real-Time Telemetry & Drift Prevention:** As the agent edits code, it updates `active_file` and checks off steps. On completion, VibeTrace automatically runs mechanical AST checks and audits prompt-to-diff alignment.
+
+### How It Works (Sequence Flow)
 
 ```mermaid
 sequenceDiagram
