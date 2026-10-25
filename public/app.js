@@ -74,7 +74,8 @@
   const rightMetaAdd = document.getElementById('right-meta-add');
   const rightMetaDel = document.getElementById('right-meta-del');
 
-  // Footer Ticker
+  // Footer Status & Ticker
+  const footerLeftStatus = document.getElementById('footer-left-status') || document.querySelector('.footer-left');
   const footerStatusLabel = document.getElementById('footer-status-label');
   const footerTickerMsg = document.getElementById('footer-ticker-msg');
 
@@ -252,14 +253,14 @@
     }
   }
 
-  // 5. Top Bar Real-Time Status Management
+  // 5. Status Management
   function setTopBarStatus(type, badgeText, detailText) {
-    if (liveIndicatorPill) {
-      liveIndicatorPill.className = `agent-live-pill status-${type}`;
-      if (liveStatusBadge) liveStatusBadge.textContent = badgeText;
-      if (liveIndicatorText) liveIndicatorText.textContent = detailText;
+    if (footerLeftStatus) {
+      footerLeftStatus.className = `footer-left status-${type}`;
     }
-    if (footerStatusLabel) footerStatusLabel.textContent = badgeText;
+    if (footerStatusLabel) {
+      footerStatusLabel.textContent = badgeText;
+    }
   }
 
   function handleAgentStatus(data) {

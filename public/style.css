@@ -1506,22 +1506,104 @@ body.resizing {
 .footer-left {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .footer-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--emerald-primary);
+  background: var(--color-green, #28B900);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .footer-status-label {
-  color: var(--emerald-primary);
   font-size: 10.5px;
   letter-spacing: 0.04em;
   font-weight: 600;
+  transition: color 0.25s ease;
+}
+
+/* 1. Working: Vibrant Cobalt Blue with Aesthetic Double-Ring Pulse */
+.footer-left.status-working .footer-dot {
+  background: #2563eb;
+  box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.75);
+  animation: footerPulseBlue 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.footer-left.status-working .footer-status-label {
+  color: #2563eb;
+  animation: footerTextPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes footerPulseBlue {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.8), 0 0 6px rgba(37, 99, 235, 0.5);
+  }
+  65% {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0), 0 0 12px rgba(37, 99, 235, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0), 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+@keyframes footerTextPulse {
+  0% { opacity: 0.82; }
+  100% { opacity: 1; }
+}
+
+/* 2. Analyzing: Luminous Violet with Soft Orbit Glow */
+.footer-left.status-analyzing .footer-dot {
+  background: #8b5cf6;
+  box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  animation: footerPulsePurple 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.footer-left.status-analyzing .footer-status-label {
+  color: #8b5cf6;
+}
+
+@keyframes footerPulsePurple {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.75), 0 0 6px rgba(139, 92, 246, 0.4);
+  }
+  65% {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 7px rgba(139, 92, 246, 0), 0 0 10px rgba(139, 92, 246, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0), 0 0 0 rgba(139, 92, 246, 0);
+  }
+}
+
+/* 3. Completed: Crisp Leaf Green */
+.footer-left.status-completed .footer-dot {
+  background: var(--color-green, #28B900);
+  box-shadow: 0 0 6px rgba(40, 185, 0, 0.4);
+}
+
+.footer-left.status-completed .footer-status-label {
+  color: var(--color-green, #28B900);
+}
+
+/* 4. Idle: Calm Steady Green */
+.footer-left.status-idle .footer-dot {
+  background: var(--color-green, #28B900);
+  opacity: 0.85;
+}
+
+.footer-left.status-idle .footer-status-label {
+  color: var(--color-green, #28B900);
 }
 
 .footer-center {
