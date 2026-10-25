@@ -5,7 +5,7 @@ status: approved
 
 # VibeTrace: AI Code Observability Harness & Prompt-to-Execution Drift Guard
 
-A real-time observability dashboard and protocol harness for AI vibe-coding that connects to your local codebase, traces prompt intent against actual code mutations, evaluates drift risk with OpenRouter AI models, and maps cause-and-effect with visual diffs and architectural mind maps to catch unintended side effects (such as silent permission changes, design downgrades, or scope creep).
+A real-time observability dashboard and protocol harness for AI vibe-coding that connects to your local codebase, traces prompt intent against actual code mutations, evaluates drift risk with OpenRouter AI models, and maps cause-and-effect with visual diffs, interactive deep-dive Q&A analysis, and chronological Features Over Time evolution graphs to catch unintended side effects (such as silent permission changes, design downgrades, or scope creep).
 
 ## The Unique Kernel
 Unlike generic diff viewers or prompt loggers that only record chat tokens, VibeTrace acts as an **autonomous observability harness**. It combines:
@@ -13,6 +13,7 @@ Unlike generic diff viewers or prompt loggers that only record chat tokens, Vibe
 2. **Active Protocol (`vibetrace.md`):** Inter-agent communication tracking active files, task intent, and checklist steps.
 3. **Independent Drift Guard:** Automated prompt-to-output fidelity auditing using OpenRouter AI models and local heuristics to flag unauthorized modifications, unrequested scope creep, and regressions.
 4. **4-State Dynamic Gradient Cards & 6-State Footer Engine:** Instant visual feedback (Working, Editing, Completed, Diverged) with an expandable live terminal logs drawer.
+5. **Features Over Time & Interactive Analysis Engine:** Chronological milestone evolution graphs and deep local AST semantic Q&A over codebase mutations.
 
 ## Who It's For
 Developers, engineers, and vibe-coders building with AI coding agents (Antigravity, Cursor, Claude Code, GitHub Copilot) who face the "black box" risk: where prompt-driven agents produce code quickly but introduce subtle, unannounced mutations to permissions, environment configurations, visual design systems, or database structures that only surface as painful production bugs later.
@@ -26,7 +27,7 @@ Developers, engineers, and vibe-coders building with AI coding agents (Antigravi
 
 ## Inspiration & Identity
 - **Inspirations:** Modern engineering observability platforms (LangSmith, Datadog, Turborepo UI, Jaeger), combined with industrial root-cause analysis and modern SaaS high-density micro-design.
-- **Aesthetic:** Modern, sleek engineering observability theme. Curated dark mode with rich data-density, crisp system status pulses, interactive node graphs, and clear color-coded safety vs. drift badges (sapphire blue for verified intent, amber for working, orange for active editing, crimson for unintended drift).
+- **Aesthetic:** Modern, sleek engineering observability theme. Curated dark mode with rich data-density, crisp system status pulses, interactive milestone graphs, and clear color-coded safety vs. drift badges (sapphire blue for verified intent, amber for working, orange for active editing, crimson for unintended drift).
 
 ## What "Working" Looks Like
 A live side-by-side demonstration:
@@ -44,7 +45,8 @@ A live side-by-side demonstration:
   - 6-State footer status engine with active pulse animations and real-time timestamped log ticker.
   - Slide-up Live Observability Logs Drawer console (`#logs-drawer`) with category pills and clear controls.
   - 3-Pane edge-to-edge resizable workbench (Chronological Feed | Active File & Diff Inspector | Dual-Perspective AI & Agent Synthesis).
-  - AI Architecture Mind Map & Anomaly Scanner with interactive Mermaid diagrams.
+  - Features Over Time: Chronological Evolution Graph & Milestone Progression (`/api/features-over-time`) mapping files mutated, additions/deletions, and structural features over agent sessions.
+  - Interactive Deep-Dive Analysis Q&A Engine (`server/queryEngine.js`) supporting natural language codebase questions with zero-downtime offline semantic AST & diff analysis.
   - Persistent SQLite storage (`vibetrace.db` via `node:sqlite`) recording all historical traces, diffs, audits, and queries.
 
 ## Later

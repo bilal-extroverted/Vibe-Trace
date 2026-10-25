@@ -23,7 +23,8 @@ Source: `scope.md > The Unique Kernel`, `scope.md > The Core Loop`, `scope.md > 
    - Center: Active file inspector with unified diffs, line counts, and mechanical change analysis.
    - Right: Prompt card, Drift Guard audit, AI model synthesis, agent checklist steps, mechanical harness checks, and execution telemetry.
 8. **Live Observability Drawer:** Clicking the footer ticker opens a slide-up terminal console displaying timestamped category logs (`[MUTATION]`, `[PROTOCOL]`, `[HARNESS]`, `[DRIFT]`, `[TRACE]`).
-9. **Architectural Mind Map:** Clicking **Mind Map** opens a full-screen modal with an interactive Mermaid subsystem graph, flaw scanner, and systemic recommendations.
+9. **Features Over Time Evolution Graph & Milestones:** Clicking **Features Over Time** opens a full-screen interactive milestone graph and chronological timeline visualizing all files and features added, modified, or removed across repository iterations with SQLite persistence.
+10. **Interactive Analysis AI Query Engine:** Developers can ask questions directly about any observed code change in the right pane ("What was changed?", "Downstream impact?", "Breaking changes?"), answered with deep local AST & diff semantic analysis.
 
 ---
 
@@ -33,7 +34,7 @@ A unified, 3-pane edge-to-edge resizable workbench optimized for side-by-side ti
 
 - **Top Navigation Bar:**
   - VibeTrace brand logo with live pulse indicator.
-  - Action buttons: **Mind Map** modal trigger, **Rescan Diffs**, and Dark/Light Theme toggle.
+  - Action buttons: **Features Over Time** evolution modal trigger, **Rescan Diffs**, and Dark/Light Theme toggle.
 - **Left Pane (Chronological Execution Traces Feed):**
   - Repository header with project name, branch tag (`main`), and click-to-copy path bar.
   - Live search/filter bar to filter traces by task, file, or keyword.
@@ -54,14 +55,15 @@ A unified, 3-pane edge-to-edge resizable workbench optimized for side-by-side ti
   - **Section 1: Independent Prompt vs Output Drift Guard:** Alignment score badge (0–100%), risk pill (LOW/MEDIUM/HIGH/CRITICAL), divergence alert box, What Prompt Gave vs. What Output Did comparison, discrepancy tags, risk assessment, and suggested remedy.
   - **Section 2: AI Model Synthesis:** Plain-English overview, mechanical changes bullet list, affected feature chips, downstream impact, and model badge.
   - **Section 3: Agent Execution Plan & Harness Checklist:** Interactive step checkboxes read from `vibetrace.md` (`- [x]` completed / `- [ ]` pending), notes, and mechanical checks (Syntax Check, AST Integrity, Sensitive Files, File Count, Line Delta).
-  - **Section 4: Performance Telemetry:** Latency meter, model used, timestamp, git branch, and commit hash.
+  - **Section 4: Interactive Analysis & Trace Q&A Engine:** Ask any technical question about code changes with preset chips ("What was changed?", "Downstream impact?", "Breaking changes?"), answered by deep local AST & diff semantic analysis.
+  - **Section 5: Performance Telemetry:** Latency meter, model used, timestamp, git branch, and commit hash.
 - **Bottom Status Bar & Live Observability Drawer:**
   - 6-state pulsing status dot and label (`WORKING`, `EDITING`, `ANALYZING`, `COMPLETED`, `DIFFERENCE`, `IDLE`).
   - Active log ticker streaming timestamped events.
   - Live Logs Drawer button with unread counter badge.
   - Slide-up terminal console (`#logs-drawer`) with live stream indicator, clear controls, and auto-scrolling log stream.
-- **Mind Map Modal:**
-  - Full-screen glassmorphic overlay with dynamic Mermaid architecture diagram, flaw & risk cards, and recommendations.
+- **Features Over Time & Evolution Graph Modal:**
+  - Full-screen glassmorphic overlay with dynamic SVG milestone evolution graph, feature additions/modifications/removals, chronological timeline cards, and SQLite persistence.
 
 ---
 

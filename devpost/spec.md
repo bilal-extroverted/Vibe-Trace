@@ -27,7 +27,8 @@ graph TD
         Git["Git Service (server/gitService.js)"]
         DriftGuard["Drift & Risk Auditor (server/driftAnalyzer.js)"]
         Analyzer["Dual-Perspective Synthesizer (server/analyzer.js)"]
-        MindMap["Mind Map Engine (server/mindMapEngine.js)"]
+        TimelineEngine["Features Over Time Engine (server/featureTimelineEngine.js)"]
+        QueryEngine["Interactive Analysis Engine (server/queryEngine.js)"]
         DB["SQLite Storage (node:sqlite -> vibetrace.db)"]
         SSE["SSE Broadcaster (server/sse.js)"]
     end
@@ -40,9 +41,9 @@ graph TD
     subgraph Frontend["3-Pane Workbench Dashboard (Vanilla JS/CSS)"]
         Feed["Left Pane: 4-State Gradient Traces Feed"]
         DiffUI["Center Pane: File Inspector & Diff Viewer"]
-        IntelUI["Right Pane: Drift Guard & Dual Synthesis"]
+        IntelUI["Right Pane: Drift Guard, Dual Synthesis & Q&A"]
         FooterUI["Footer: 6-State Status Bar & Logs Drawer"]
-        MindMapUI["Modal: Interactive Mermaid Mind Map"]
+        TimelineUI["Modal: Features Over Time Evolution Graph"]
     end
 
     Agent -->|Updates status & active_file| ProtocolFile
@@ -53,13 +54,16 @@ graph TD
     Watcher --> Git
     Git --> Analyzer
     Git --> DriftGuard
+    Git --> TimelineEngine
     DriftGuard -->|Strictly process.env.OPENROUTER_API_MODEL| OpenRouter
     DriftGuard -->|Offline / rate-limit fallback| Heuristics
     Analyzer --> OpenRouter
     Analyzer --> Heuristics
+    QueryEngine --> OpenRouter
+    QueryEngine --> Heuristics
     Analyzer --> DB
     DriftGuard --> DB
-    MindMap --> DB
+    TimelineEngine --> DB
     Analyzer --> SSE
     DriftGuard --> SSE
     SSE -->|Real-Time SSE Stream| Frontend
@@ -133,9 +137,25 @@ graph TD
   - 🔵 Completed: Sapphire blue gradient (`#2563eb`).
   - 🔴 Diverged / Difference: Crimson alert gradient (`#dc2626`).
 - **Center Pane (`public/diffViewer.js`):** Unified visual diff renderer with line additions/deletions, syntax coloring, file jump pills, and "What Changed in This File" mechanical analysis.
-- **Right Pane:** Declared Prompt Card, Drift Guard Audit, AI Model Synthesis, Agent Execution Plan checklist, Mechanical Harness Checks, and Performance Telemetry.
+- **Right Pane:** Declared Prompt Card, Drift Guard Audit, AI Model Synthesis, Agent Execution Plan checklist, Mechanical Harness Checks, Interactive Analysis Q&A Engine (with preset chips and local AST diff inspection), and Performance Telemetry.
 - **Footer Status Engine & Drawer:** 6-state pulsing status indicator, real-time activity ticker, and slide-up `#logs-drawer` terminal console with live stream badge and clear controls.
-- **Mind Map Modal (`server/mindMapEngine.js`):** Full-screen overlay rendering dynamic Mermaid architecture diagrams, subsystem classification, flaw detection, and systemic recommendations.
+- **Features Over Time Modal (`server/featureTimelineEngine.js`):** Full-screen interactive evolution graph rendering SVG milestone progression, chronological feature cards, additions/deletions diff counts, and SQLite persistence across sessions.
+
+### 2.8 Features Over Time Evolution Engine (`server/featureTimelineEngine.js`)
+- Maps the chronological progression of features, files mutated, and code volume changes across all agent sessions.
+- Exposes `/api/features-over-time` (with backward-compatible `/api/mindmap` alias) querying SQLite history.
+- Categorizes milestone mutations into structural features (`Frontend & UI`, `Backend & APIs`, `Protocol & Harness`, `AI & Telemetry`, `Design System`).
+- Renders dynamic SVG evolution curves illustrating cumulative feature velocity and complexity changes over time.
+
+### 2.9 Interactive Analysis & AST Q&A Engine (`server/queryEngine.js`)
+- Provides deep natural language query resolution over observed traces and active code diffs (`/api/query`).
+- **Dual-Mode Execution:**
+  - Queries `process.env.OPENROUTER_API_MODEL` with high-density system prompts and diff context when available.
+  - Seamlessly falls back to `analyzeLocally` when offline or HTTP 429 rate-limited.
+- **Deep Local Semantic Parser:**
+  - Identifies intent from query keywords (`changes`, `downstream`, `breaking`, `security`, `syntax`).
+  - Extracts touched symbols, function signatures, API routes, and CSS selectors directly from mechanical diffs.
+  - Generates rich Markdown technical breakdowns with zero external dependencies and sub-30ms response latency.
 
 ---
 
@@ -150,7 +170,8 @@ graph TD
 | **Database** | `node:sqlite` | Native | Zero-dependency, crash-resilient persistent SQLite storage (`vibetrace.db`) |
 | **AI Cloud** | OpenRouter API | REST | OpenAI-compatible endpoint strictly bound to `OPENROUTER_API_MODEL` |
 | **Styling** | Vanilla CSS | Modern | Custom design system, CSS variables, glassmorphic filters, and gradients |
-| **Diagrams** | Mermaid.js | CDN | Dynamic rendering of architectural subsystem mind maps |
+| **Evolution Graph** | SVG & Dynamic Canvas | Native | Milestone curves and chronological feature progression charts |
+| **Interactive Analysis** | Local AST & Diff Parser | Native | Deep offline semantic diff analysis and technical Q&A |
 
 ---
 

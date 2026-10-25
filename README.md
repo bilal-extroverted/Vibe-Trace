@@ -53,15 +53,19 @@ Execution traces in the timeline visually broadcast their lifecycle state using 
 - Monospace timestamped log ticker streams workspace events, debouncing updates, and drift audits.
 - **Slide-up Live Observability Logs Drawer:** Clickable drawer console with real-time log stream, category pills (`[MUTATION]`, `[PROTOCOL]`, `[HARNESS]`, `[DRIFT]`, `[TRACE]`), and instant clear controls.
 
-### 5. Architectural Mind Map & Anomaly Scanner
-- Click the **Mind Map** button in the header to view an interactive full-screen Mermaid architecture diagram of detected subsystems (`Frontend`, `Backend`, `AI Intelligence`, `Design System`, `Database`).
-- Scans repository traces for architectural flaws, rate limit exposures, and security bottlenecks with severity ratings and recommendations.
+### 5. Features Over Time: Chronological Evolution Graph & Milestones
+- Click the **Features Over Time** button in the header to view an interactive full-screen evolution graph visualizing the cumulative progression of files mutated, lines added/removed, and architectural milestones over time.
+- Categorizes mutations into structural domains (`Frontend & UI`, `Backend & APIs`, `Protocol & Harness`, `AI & Telemetry`, `Design System`) with interactive SVG trend curves and SQLite persistence across server restarts.
 
-### 6. Resilient AI Engine (Strict `.env` Binding + Offline Heuristic Fallback)
+### 6. Interactive Trace Analysis & Deep AST Q&A Engine
+- Ask questions directly about any observed code change in the right pane ("What was changed?", "Downstream impact?", "Breaking changes?").
+- **Dual-mode architecture:** Seamlessly queries OpenRouter AI models or executes sub-30ms offline semantic AST and diff parsing to deliver precise, technical markdown breakdowns even during cloud API rate limits.
+
+### 7. Resilient AI Engine (Strict `.env` Binding + Offline Heuristic Fallback)
 - **Strictly Model-Bound:** OpenRouter queries are strictly locked to `process.env.OPENROUTER_API_MODEL`. Zero unauthorized fallback models or surprise API consumption.
 - **Offline Heuristics:** If OpenRouter is offline, unconfigured, or rate-limited (HTTP 429), VibeTrace seamlessly switches to embedded local heuristic engines, preserving 100% dashboard functionality without crashes.
 
-### 7. Persistent SQLite Telemetry
+### 8. Persistent SQLite Telemetry
 - All traces, diffs, protocol states, and query responses are saved permanently to `vibetrace.db` using Node.js native `node:sqlite`. Traces persist across server restarts.
 
 ---
@@ -91,7 +95,8 @@ learn-ai-basics/
 │   ├── db.js                 # SQLite persistent storage (node:sqlite)
 │   ├── analyzer.js           # Trace synthesis engine with OpenRouter & fallback
 │   ├── driftAnalyzer.js      # Independent prompt-to-output drift & risk auditor
-│   ├── queryEngine.js        # Natural language trace Q&A engine
+│   ├── queryEngine.js        # Natural language & local AST semantic Q&A engine
+│   ├── featureTimelineEngine.js # Features Over Time & milestone evolution engine
 │   ├── mindMapEngine.js      # Architectural subsystem mapper & flaw scanner
 │   ├── gitService.js         # Git diff extractor & branch inspector
 │   └── harness/              # Agent protocol reader & mechanical AST validator
@@ -120,8 +125,8 @@ learn-ai-basics/
 
 ### 2. Installation
 ```bash
-git clone https://github.com/challengepost/learn-ai-basics.git
-cd learn-ai-basics
+git clone https://github.com/bilal-extroverted/Vibe-Trace.git
+cd Vibe-Trace
 npm install
 ```
 
@@ -229,9 +234,10 @@ updated_at: "2026-10-25T10:05:00.000Z"
 | `/api/status` | `GET` | System health, active watcher status, project path, event count, and configured AI model |
 | `/api/traces` | `GET` | Fetches historical execution traces with full diffs, audits, and synthesis data |
 | `/api/projects` | `GET` | Lists all observed projects stored in SQLite |
-| `/api/mindmap` | `GET` | Generates full architectural subsystem mind map, flaw scan, and recommendations |
+| `/api/features-over-time` | `GET` | Generates chronological milestone evolution graph, feature additions/deletions, and trend charts |
+| `/api/mindmap` | `GET` | Subsystem architecture map, flaw scanner, and recommendations (alias to timeline) |
 | `/api/analyze-drift`| `POST` | Re-runs independent OpenRouter prompt-to-output drift audit on demand |
-| `/api/query` | `POST` | Natural language question answering over observed traces and code diffs |
+| `/api/query` | `POST` | Natural language question answering with deep local AST and diff semantic analysis |
 
 ---
 

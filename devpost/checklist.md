@@ -79,6 +79,16 @@ Build mode: fast
   Learner check: Click the bottom footer ticker to view the live terminal drawer streaming timestamped workspace events.
   Commit: `feat: synchronize footer status bar with active states and stream live activity logs`
 
+- [x] **8. Features Over Time Evolution Graph, Milestones Engine & Deep AST Q&A Engine**
+  Becomes usable: Clicking "Features Over Time" renders a full-screen chronological evolution graph mapping additions, deletions, and structural feature progression across SQLite history. The Interactive Analysis engine delivers sub-30ms offline technical answers to codebase questions ("What was changed?", "Downstream impact?", "Breaking changes?") with deep local AST and diff parsing.
+  Why now: Provides macro-level architectural visibility across long vibe-coding sessions and eliminates AI rate-limit dependencies for in-depth code inspections.
+  PRD ref: `prd.md > 9. Features Over Time Evolution Graph & Milestones`, `prd.md > 10. Interactive Analysis AI Query Engine`
+  Spec ref: `spec.md > 2.8 Features Over Time Evolution Engine`, `spec.md > 2.9 Interactive Analysis & AST Q&A Engine`
+  Build: Built `server/featureTimelineEngine.js`, wired `/api/features-over-time`, added local AST and semantic diff analysis to `server/queryEngine.js`, and styled markdown QA blocks in `public/style.css`.
+  Verify (mechanical): Tested `/api/features-over-time` milestone aggregation and verified `/api/query` responses with mock rate-limited upstream.
+  Learner check: Click "Features Over Time" in the top bar to explore the chronological evolution graph, and ask a question in the right pane to get instant technical breakdown.
+  Commit: `feat: implement features over time evolution graph and deep local AST query engine`
+
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — Real-time debounced file watcher & OpenRouter causal intelligence
