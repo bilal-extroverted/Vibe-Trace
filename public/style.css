@@ -132,9 +132,9 @@
   --pane-left-bg: #FAFBFD;
   --pane-left-border: #E5E7EB;
 
-  /* Middle Pane: Standout Soothing Pastel Periwinkle / Slate Mist */
+  /* Middle Pane: Solid Standout Soothing Pastel Periwinkle / Slate Mist */
   --pane-middle-bg: #EEF4F9;
-  --pane-middle-header: #E5EFF8;
+  --pane-middle-header: #EEF4F9;
   --pane-middle-border: #D2E2F0;
   --pane-middle-card-bg: #FFFFFF;
   --pane-middle-card-border: #D5E3F0;
@@ -170,13 +170,13 @@
   --pane-left-bg: #282526;
   --pane-left-border: #3A3637;
 
-  /* Middle Pane: Standout Dark Pastel Slate */
+  /* Middle Pane: Solid Standout Dark Pastel Slate */
   --pane-middle-bg: #252A2F;
-  --pane-middle-header: #2B3137;
+  --pane-middle-header: #252A2F;
   --pane-middle-border: #3B434C;
   --pane-middle-card-bg: #2C3238;
   --pane-middle-card-border: #3D4650;
-  --pane-middle-subtle: #22262B;
+  --pane-middle-subtle: #202428;
 
   /* Right Pane: Refined Dark Pastel Sage */
   --pane-right-bg: #272E2A;
@@ -447,12 +447,14 @@ body.dark-theme .pill-btn.action-btn:hover {
 
 /* Draggable Splitters (Subtle Neutral Bridge) */
 .pane-resizer {
-  width: 5px;
+  width: 6px;
+  margin-left: -3px;
+  margin-right: -3px;
   cursor: col-resize;
-  background: var(--resizer-bg);
+  background: transparent;
   flex-shrink: 0;
   position: relative;
-  z-index: 40;
+  z-index: 50;
   transition: background 0.15s ease;
 }
 
@@ -468,47 +470,31 @@ body.dark-theme .pill-btn.action-btn:hover {
   max-width: 500px;
   flex-shrink: 0;
   background: var(--pane-left-bg);
-  border-right: none;
+  border-right: 1px solid var(--pane-middle-border);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-/* PANE 2 (MIDDLE) — Standout Pastel Periwinkle/Slate Mist (Restful & Focused) */
+/* PANE 2 (MIDDLE) — Standout Solid Soothing Pastel Canvas (Restful & Focused) */
 .pane-middle {
   flex: 1;
   min-width: 320px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--pane-middle-bg);
-  border-left: 1px solid var(--pane-middle-border);
-  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
+  background: var(--pane-middle-bg) !important;
+  border-left: none !important;
+  box-shadow: none !important;
 }
 
-/* Attached UI Connection: Left border of Pane 2 coordinates with the active trace card */
-#pane-middle[data-active-trace-status="completed"] {
-  border-left: 2px solid #93c5fd;
-}
-#pane-middle[data-active-trace-status="working"] {
-  border-left: 2px solid #fde68a;
-}
-#pane-middle[data-active-trace-status="editing"] {
-  border-left: 2px solid #fed7aa;
-}
-#pane-middle[data-active-trace-status="difference"] {
-  border-left: 2px solid #fca5a5;
+/* Zero dividing lines between selected card and middle pane */
+#pane-middle[data-active-trace-status] {
+  border-left: none !important;
 }
 
-[data-theme="dark"] #pane-middle[data-active-trace-status="completed"] {
-  border-left-color: #1e3a8a;
-}
-[data-theme="dark"] #pane-middle[data-active-trace-status="working"] {
-  border-left-color: #78350f;
-}
-[data-theme="dark"] #pane-middle[data-active-trace-status="editing"] {
-  border-left-color: #7c2d12;
-}
-[data-theme="dark"] #pane-middle[data-active-trace-status="difference"] {
-  border-left-color: #7f1d1d;
+[data-theme="dark"] #pane-middle[data-active-trace-status] {
+  border-left: none !important;
 }
 
 /* PANE 3 (RIGHT) — Refined Pastel Sage / Mint Mist Highlighting */
@@ -743,10 +729,11 @@ body.dark-theme .pill-btn.action-btn:hover {
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--pane-left-bg);
-  padding: 8px 12px 8px 10px;
+  padding: 8px 0 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-right: -1px;
 }
 
 /* Normal (Inactive) Trace Item: Clean Minimal SaaS Card */
@@ -754,7 +741,7 @@ body.dark-theme .pill-btn.action-btn:hover {
   display: flex;
   flex-direction: column;
   padding: 9px 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   cursor: pointer;
@@ -764,6 +751,7 @@ body.dark-theme .pill-btn.action-btn:hover {
   flex-shrink: 0 !important;
   box-sizing: border-box;
   margin-bottom: 0;
+  margin-right: 10px;
 }
 
 .trace-item-row:hover {
@@ -773,30 +761,34 @@ body.dark-theme .pill-btn.action-btn:hover {
 
 /* =========================================================
    ATTACHED UI: CONNECTING ACTIVE TRACE CARD DIRECTLY TO MIDDLE PANE
+   (Zero Arrow, Seamless Continuous Solid Surface Attached to Middle Pane)
    ========================================================= */
 .trace-item-row.active {
   position: relative;
-  z-index: 45;
-  margin-right: -1px;
-  border-top-right-radius: 4px !important;
-  border-bottom-right-radius: 4px !important;
+  z-index: 35;
+  margin-right: 0px !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  border-right: none !important;
+  border-top: 1px solid var(--pane-middle-border) !important;
+  border-bottom: 1px solid var(--pane-middle-border) !important;
+  background: var(--pane-middle-bg) !important;
+  box-shadow: none !important;
   overflow: visible !important;
 }
 
-/* Seamless right-pointing connector indicator arrow bridging across divider */
+/* Seamless solid bridge extending directly into the middle pane */
 .trace-item-row.active::after {
   content: '';
   position: absolute;
-  right: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-left: 8px solid var(--card-connector-color, #2563eb);
-  z-index: 50;
-  filter: drop-shadow(2px 0 2px rgba(0, 0, 0, 0.18));
+  top: 0;
+  bottom: 0;
+  right: -3px;
+  width: 4px;
+  background: var(--pane-middle-bg) !important;
+  z-index: 36;
   pointer-events: none;
 }
 
@@ -946,12 +938,22 @@ body.dark-theme .pill-btn.action-btn:hover {
 .trace-item-row.active.status-completed,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
   --card-connector-color: #2563eb;
-  overflow: visible !important;
+  background: var(--pane-middle-bg) !important;
+  border-top: 1px solid var(--pane-middle-border) !important;
+  border-bottom: 1px solid var(--pane-middle-border) !important;
+  border-left: 4.5px solid #2563eb !important;
+  border-right: none !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  margin-right: 0px !important;
+  box-shadow: none !important;
   animation: none !important;
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.5), 0 0 10px rgba(59, 130, 246, 0.25) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
+  overflow: visible !important;
+  position: relative;
+  z-index: 35;
 }
 
 .trace-item-row.active.status-completed::before,
@@ -962,42 +964,43 @@ body.dark-theme .pill-btn.action-btn:hover {
 /* Active Completed Card Typography & Badges */
 .trace-item-row.active.status-completed .trace-item-time,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-time {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-muted) !important;
   font-weight: 500 !important;
 }
 
 .trace-item-row.active.status-completed .trace-item-title,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-title {
-  color: #ffffff !important;
-  font-weight: 500 !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
 }
 
 .trace-item-row.active.status-completed .trace-item-files,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-files {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-secondary) !important;
   font-weight: 400 !important;
 }
 
 .trace-item-row.active.status-completed .trace-item-tag.tag-completed,
 .trace-item-row.active.status-completed .trace-item-tag.tag-agent,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-tag {
-  background: rgba(255, 255, 255, 0.22) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: rgba(37, 99, 235, 0.1) !important;
+  color: #1d4ed8 !important;
+  border: 1px solid rgba(37, 99, 235, 0.25) !important;
 }
 
 .trace-item-row.active.status-completed .diff-pill-add,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .diff-pill-add {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.22);
+  color: #15803d !important;
+  background: #dcfce7 !important;
   padding: 0 4px;
   border-radius: 3px;
 }
 
 .trace-item-row.active.status-completed .diff-pill-del,
 .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .diff-pill-del {
-  color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.25);
+  color: #b91c1c !important;
+  background: #fee2e2 !important;
   padding: 0 4px;
   border-radius: 3px;
 }
@@ -1013,10 +1016,30 @@ body.dark-theme .trace-item-row.status-completed:not(.active) {
 [data-theme="dark"] .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress),
 body.dark-theme .trace-item-row.active.status-completed,
 body.dark-theme .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.6) !important;
+  background: var(--pane-middle-bg) !important;
+  border-top-color: var(--pane-middle-border) !important;
+  border-bottom-color: var(--pane-middle-border) !important;
+  border-left: 4.5px solid #3b82f6 !important;
+  border-right: none !important;
+  box-shadow: none !important;
   color: #ffffff !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.status-completed .trace-item-title,
+body.dark-theme .trace-item-row.active.status-completed .trace-item-title {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.status-completed .trace-item-time,
+body.dark-theme .trace-item-row.active.status-completed .trace-item-time {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.status-completed .trace-item-tag.tag-completed,
+body.dark-theme .trace-item-row.active.status-completed .trace-item-tag.tag-completed {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
 }
 
 [data-theme="dark"] .trace-item-row.status-completed:not(.active) .trace-item-tag.tag-completed,
@@ -1106,16 +1129,26 @@ body.dark-theme .trace-item-row.status-completed:not(.active) .trace-item-tag.ta
   font-weight: 500;
 }
 
-/* Working Card: Selected / Active State — WARM GOLDEN AMBER GRADIENT */
+/* Working Card: Selected / Attached State — Seamlessly merged into Middle Pane */
 .trace-item-row.active.is-working,
 .trace-item-row.active.status-working {
   --card-connector-color: #d97706;
-  overflow: visible !important;
+  background: var(--pane-middle-bg) !important;
+  border-top: 1px solid var(--pane-middle-border) !important;
+  border-bottom: 1px solid var(--pane-middle-border) !important;
+  border-left: 4.5px solid #d97706 !important;
+  border-right: none !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  margin-right: 0px !important;
+  box-shadow: none !important;
   animation: none !important;
-  background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
-  box-shadow: 0 4px 16px -2px rgba(217, 119, 6, 0.5), 0 0 10px rgba(245, 158, 11, 0.25) !important;
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
+  overflow: visible !important;
+  position: relative;
+  z-index: 35;
 }
 
 .trace-item-row.active.is-working::before,
@@ -1125,35 +1158,35 @@ body.dark-theme .trace-item-row.status-completed:not(.active) .trace-item-tag.ta
 
 .trace-item-row.active.is-working .trace-item-time,
 .trace-item-row.active.status-working .trace-item-time {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: #92400e !important;
   font-weight: 500 !important;
 }
 
 .trace-item-row.active.is-working .trace-item-title,
 .trace-item-row.active.status-working .trace-item-title {
-  color: #ffffff !important;
-  font-weight: 500 !important;
-  font-size: 9.5px !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
 }
 
 .trace-item-row.active.is-working .trace-item-files,
 .trace-item-row.active.status-working .trace-item-files {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--text-secondary) !important;
   font-weight: 400 !important;
 }
 
 .trace-item-row.active.is-working .trace-item-tag.tag-working,
 .trace-item-row.active.status-working .trace-item-tag.tag-working {
-  background: rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
   font-weight: 500 !important;
 }
 
 .trace-item-row.active.is-working .trace-item-tag.tag-working .pill-amber-dot,
 .trace-item-row.active.status-working .trace-item-tag.tag-working .pill-amber-dot {
-  background: #ffffff !important;
-  box-shadow: 0 0 5px #ffffff !important;
+  background: #d97706 !important;
+  box-shadow: 0 0 5px #d97706 !important;
 }
 
 .trace-item-row.active.is-working .trace-item-active-file .active-file-dot,
@@ -1236,22 +1269,33 @@ body.dark-theme .trace-item-row.status-working:not(.active) .trace-item-active-f
 [data-theme="dark"] .trace-item-row.active.status-working,
 body.dark-theme .trace-item-row.active.is-working,
 body.dark-theme .trace-item-row.active.status-working {
-  background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 16px -2px rgba(217, 119, 6, 0.6) !important;
+  background: var(--pane-middle-bg) !important;
+  border-top-color: var(--pane-middle-border) !important;
+  border-bottom-color: var(--pane-middle-border) !important;
+  border-left: 4.5px solid #f59e0b !important;
+  border-right: none !important;
+  box-shadow: none !important;
   color: #ffffff !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.is-working .trace-item-title,
+body.dark-theme .trace-item-row.active.is-working .trace-item-title {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.is-working .trace-item-time,
+body.dark-theme .trace-item-row.active.is-working .trace-item-time {
+  color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* =========================================================
    STATE 2: FILES MUTATING / EDITING — VIBRANT LIVING ORANGE GRADIENT
    (Triggers when agent writes/mutates files in real time: editing [orange])
    ========================================================= */
-.trace-item-row.is-changing,
-.trace-item-row.status-changing,
-.trace-item-row.is-editing,
-.trace-item-row.status-editing,
-.trace-item-row.active.is-changing,
-.trace-item-row.active.is-editing {
+.trace-item-row.is-changing:not(.active),
+.trace-item-row.status-changing:not(.active),
+.trace-item-row.is-editing:not(.active),
+.trace-item-row.status-editing:not(.active) {
   background: linear-gradient(125deg, #9a3412 0%, #c2410c 25%, #ea580c 50%, #f97316 75%, #fb923c 100%) !important;
   background-size: 260% 260% !important;
   animation: liveWorkingMesh 3.2s ease infinite, liveWorkingPulse 2s ease-in-out infinite !important;
@@ -1260,23 +1304,39 @@ body.dark-theme .trace-item-row.active.status-working {
   color: #ffffff !important;
   position: relative;
   overflow: hidden;
+  margin-right: 10px;
+  border-radius: 8px;
 }
 
+/* Editing Card: Selected / Attached State — Seamlessly merged into Middle Pane */
 .trace-item-row.active.is-changing,
 .trace-item-row.active.status-changing,
 .trace-item-row.active.is-editing,
 .trace-item-row.active.status-editing {
   --card-connector-color: #ea580c;
+  background: var(--pane-middle-bg) !important;
+  border-top: 1px solid var(--pane-middle-border) !important;
+  border-bottom: 1px solid var(--pane-middle-border) !important;
+  border-left: 4.5px solid #ea580c !important;
+  border-right: none !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  margin-right: 0px !important;
+  box-shadow: none !important;
+  animation: none !important;
+  color: var(--text-primary) !important;
   overflow: visible !important;
+  position: relative;
+  z-index: 35;
 }
 
-/* Moving Light Beam Ray Across The Changing Card */
-.trace-item-row.is-changing::before,
-.trace-item-row.status-changing::before,
-.trace-item-row.is-editing::before,
-.trace-item-row.status-editing::before,
-.trace-item-row.active.is-changing::before,
-.trace-item-row.active.is-editing::before {
+/* Moving Light Beam Ray Across The Changing Card (Only when inactive) */
+.trace-item-row.is-changing:not(.active)::before,
+.trace-item-row.status-changing:not(.active)::before,
+.trace-item-row.is-editing:not(.active)::before,
+.trace-item-row.status-editing:not(.active)::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1286,6 +1346,13 @@ body.dark-theme .trace-item-row.active.status-working {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
   animation: liveSweepBeam 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
+}
+
+.trace-item-row.active.is-changing::before,
+.trace-item-row.active.status-changing::before,
+.trace-item-row.active.is-editing::before,
+.trace-item-row.active.status-editing::before {
+  display: none !important;
 }
 
 @keyframes liveWorkingMesh {
@@ -1308,35 +1375,53 @@ body.dark-theme .trace-item-row.active.status-working {
   100% { left: 160%; }
 }
 
-.trace-item-row.is-changing .trace-item-time,
-.trace-item-row.status-changing .trace-item-time,
-.trace-item-row.is-editing .trace-item-time,
-.trace-item-row.status-editing .trace-item-time,
+.trace-item-row.is-changing:not(.active) .trace-item-time,
+.trace-item-row.status-changing:not(.active) .trace-item-time,
+.trace-item-row.is-editing:not(.active) .trace-item-time,
+.trace-item-row.status-editing:not(.active) .trace-item-time {
+  color: #c2410c !important;
+  font-weight: 500 !important;
+}
+
 .trace-item-row.active.is-changing .trace-item-time,
-.trace-item-row.active.is-editing .trace-item-time {
-  color: rgba(255, 255, 255, 0.9) !important;
+.trace-item-row.active.status-changing .trace-item-time,
+.trace-item-row.active.is-editing .trace-item-time,
+.trace-item-row.active.status-editing .trace-item-time {
+  color: #c2410c !important;
+  font-weight: 500 !important;
+}
+
+.trace-item-row.is-changing:not(.active) .trace-item-title,
+.trace-item-row.status-changing:not(.active) .trace-item-title,
+.trace-item-row.is-editing:not(.active) .trace-item-title,
+.trace-item-row.status-editing:not(.active) .trace-item-title {
+  color: #9a3412 !important;
+  font-weight: 600 !important;
+  font-size: 10px !important;
+}
+
+.trace-item-row.active.is-changing .trace-item-title,
+.trace-item-row.active.status-changing .trace-item-title,
+.trace-item-row.active.is-editing .trace-item-title,
+.trace-item-row.active.status-editing .trace-item-title {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+}
+
+.trace-item-row.is-changing:not(.active) .trace-item-files,
+.trace-item-row.status-changing:not(.active) .trace-item-files,
+.trace-item-row.is-editing:not(.active) .trace-item-files,
+.trace-item-row.status-editing:not(.active) .trace-item-files {
+  color: #c2410c !important;
   font-weight: 400 !important;
 }
 
-.trace-item-row.is-changing .trace-item-title,
-.trace-item-row.status-changing .trace-item-title,
-.trace-item-row.is-editing .trace-item-title,
-.trace-item-row.status-editing .trace-item-title,
-.trace-item-row.active.is-changing .trace-item-title,
-.trace-item-row.active.is-editing .trace-item-title {
-  color: #ffffff !important;
-  font-weight: 500 !important;
-  font-size: 9.5px !important;
-  line-height: 1.25;
-}
-
-.trace-item-row.is-changing .trace-item-files,
-.trace-item-row.status-changing .trace-item-files,
-.trace-item-row.is-editing .trace-item-files,
-.trace-item-row.status-editing .trace-item-files,
 .trace-item-row.active.is-changing .trace-item-files,
-.trace-item-row.active.is-editing .trace-item-files {
-  color: rgba(255, 255, 255, 0.9) !important;
+.trace-item-row.active.status-changing .trace-item-files,
+.trace-item-row.active.is-editing .trace-item-files,
+.trace-item-row.active.status-editing .trace-item-files {
+  color: var(--text-secondary) !important;
   font-weight: 400 !important;
 }
 
@@ -1517,56 +1602,73 @@ body.dark-theme .trace-item-row.active.is-editing {
   border: 1px solid #b91c1c !important;
 }
 
-/* Difference Card: Selected / Active State — VIBRANT CRIMSON RED GRADIENT */
+/* Difference Card: Selected / Attached State — Seamlessly merged into Middle Pane */
 .trace-item-row.active.status-difference,
 .trace-item-row.active.has-difference,
 .trace-item-row.active.status-diverged {
   --card-connector-color: #dc2626;
+  background: var(--pane-middle-bg) !important;
+  border-top: 1px solid var(--pane-middle-border) !important;
+  border-bottom: 1px solid var(--pane-middle-border) !important;
+  border-left: 4.5px solid #dc2626 !important;
+  border-right: none !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  margin-right: 0px !important;
+  box-shadow: none !important;
+  animation: none !important;
+  color: var(--text-primary) !important;
   overflow: visible !important;
-  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 30%, #b91c1c 60%, #dc2626 85%, #ef4444 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.55) !important;
-  box-shadow: 0 4px 18px -2px rgba(220, 38, 38, 0.65), 0 0 14px rgba(239, 68, 68, 0.4) !important;
-  color: #ffffff !important;
-  animation: liveDifferencePulse 2.4s ease-in-out infinite !important;
+  position: relative;
+  z-index: 35;
 }
 
-@keyframes liveDifferencePulse {
-  0%, 100% {
-    box-shadow: 0 4px 16px -2px rgba(220, 38, 38, 0.5), 0 0 10px rgba(239, 68, 68, 0.3);
-  }
-  50% {
-    box-shadow: 0 4px 20px -1px rgba(220, 38, 38, 0.8), 0 0 18px rgba(239, 68, 68, 0.55);
-  }
+.trace-item-row.active.status-difference::before,
+.trace-item-row.active.has-difference::before,
+.trace-item-row.active.status-diverged::before {
+  display: none !important;
 }
 
 .trace-item-row.active.status-difference .trace-item-time,
-.trace-item-row.active.has-difference .trace-item-time,
+.trace-item-row.active.has-difference .trace-item-time {
+  color: #dc2626 !important;
+  font-weight: 500 !important;
+}
+
 .trace-item-row.active.status-difference .trace-item-title,
-.trace-item-row.active.has-difference .trace-item-title,
+.trace-item-row.active.has-difference .trace-item-title {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+}
+
 .trace-item-row.active.status-difference .trace-item-files,
 .trace-item-row.active.has-difference .trace-item-files {
-  color: #ffffff !important;
+  color: var(--text-secondary) !important;
+  font-weight: 400 !important;
 }
 
 .trace-item-row.active.status-difference .trace-item-tag.tag-difference,
 .trace-item-row.active.has-difference .trace-item-tag.tag-difference {
-  background: rgba(255, 255, 255, 0.28) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
 }
 
 .trace-item-row.active.status-difference .difference-alert-name,
 .trace-item-row.active.has-difference .difference-alert-name {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.25) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #991b1b !important;
+  background: #fee2e2 !important;
+  border: 1px solid #fca5a5 !important;
 }
 
 .trace-item-row.active.status-difference .diff-pill-difference,
 .trace-item-row.active.has-difference .diff-pill-difference {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.28) !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  color: #dc2626 !important;
+  background: #fee2e2 !important;
+  border: 1px solid #fca5a5 !important;
 }
 
 .pill-red-alert-dot {
@@ -1801,36 +1903,16 @@ body.dark-theme #agent-prompt-input {
 .middle-header {
   padding: 12px 18px 0;
   border-bottom: 1px solid var(--pane-middle-border);
-  background: var(--pane-middle-header);
+  background: var(--pane-middle-bg) !important;
   flex-shrink: 0;
   position: relative;
 }
 
+/* Zero vertical dividing line on middle header: seamless canvas */
 .middle-header::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3.5px;
-  background: var(--middle-active-accent, #2563eb);
-  transition: background 0.2s ease;
-}
-
-#pane-middle[data-active-trace-status="completed"] .middle-header::before {
-  background: #2563eb;
-}
-
-#pane-middle[data-active-trace-status="working"] .middle-header::before {
-  background: #d97706;
-}
-
-#pane-middle[data-active-trace-status="editing"] .middle-header::before {
-  background: #ea580c;
-}
-
-#pane-middle[data-active-trace-status="difference"] .middle-header::before {
-  background: #dc2626;
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
 }
 
 .middle-title-row {
