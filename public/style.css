@@ -2506,24 +2506,6 @@ body.dark-theme .middle-meta-badge.tag-completed {
   margin-bottom: 2px;
 }
 
-.prompt-words-badge {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 500;
-  padding: 1.5px 6px;
-  border-radius: 4px;
-  background: var(--bg-surface-subtle);
-  color: var(--text-muted);
-  border: 1px solid var(--border-medium);
-  white-space: nowrap;
-}
-
-[data-theme="dark"] .prompt-words-badge {
-  background: var(--bg-surface-subtle);
-  color: var(--text-muted);
-  border-color: var(--border-medium);
-}
-
 .tag-prompt-source {
   font-family: var(--font-mono);
   font-size: 8.5px;

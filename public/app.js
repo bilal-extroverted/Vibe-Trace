@@ -82,11 +82,10 @@
   const rightFileSummaryDesc = document.getElementById('right-file-summary-desc');
   let latestProtocol = null;
 
-  // Top Card: Synthesized User Prompt & Task Intent (Right Pane)
+  // Top Card: User Prompt & Task Intent (Right Pane)
   const rightPromptTaskCard = document.getElementById('right-prompt-task-card');
   const promptCardTaskTitle = document.getElementById('prompt-card-task-title');
   const promptCardSynthesizedText = document.getElementById('prompt-card-synthesized-text');
-  const promptWordsBadge = document.getElementById('prompt-words-badge');
   const promptCardStatusDot = document.getElementById('prompt-card-status-dot');
   const promptCardStatusLabel = document.getElementById('prompt-card-status-label');
   const promptCardAgentLabel = document.getElementById('prompt-card-agent-label');
@@ -388,19 +387,13 @@
   }
 
   // -----------------------------------------------------------------
-  // Synthesized Prompt & Task Intent from vibetrace.md (Constrained under defined word count)
+  // User Prompt & Task Intent from vibetrace.md
   // -----------------------------------------------------------------
-  const DEFINED_PROMPT_MAX_WORDS = 32;
-
-  function synthesizePromptText(task, intent, maxWords = DEFINED_PROMPT_MAX_WORDS) {
+  function synthesizePromptText(task, intent) {
     if (!task && !intent) {
       return {
         title: 'Ready for AI coding agent task',
-        synthesizedText: 'Waiting for prompt from user and declared intent in vibetrace.md...',
-        fullText: 'Waiting for prompt from user and declared intent in vibetrace.md...',
-        wordCount: 0,
-        totalWordCount: 0,
-        isTruncated: false
+        fullText: 'Waiting for prompt from user and declared intent in vibetrace.md...'
       };
     }
 
@@ -419,29 +412,15 @@
       .replace(/\s{2,}/g, ' ')
       .trim();
 
-    // Remove conversational filler prefixes to synthesize concise intent
+    // Remove conversational filler prefixes
     cleaned = cleaned.replace(/^(please\s+|can\s+you\s+|i\s+want\s+you\s+to\s+|i\s+need\s+you\s+to\s+|task:\s*)/i, '');
     if (cleaned.length > 0) {
       cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
     }
 
-    const words = cleaned.split(/\s+/).filter(Boolean);
-    const totalWordCount = words.length;
-    let synthesizedText = cleaned;
-    let isTruncated = false;
-
-    if (totalWordCount > maxWords) {
-      synthesizedText = words.slice(0, maxWords).join(' ') + '...';
-      isTruncated = true;
-    }
-
     return {
-      title: rawTask || (words.slice(0, 7).join(' ') + (words.length > 7 ? '...' : '')),
-      synthesizedText,
-      fullText: cleaned,
-      wordCount: isTruncated ? maxWords : totalWordCount,
-      totalWordCount,
-      isTruncated
+      title: rawTask || cleaned,
+      fullText: cleaned || rawTask
     };
   }
 
@@ -458,14 +437,13 @@
     }
 
     if (promptCardSynthesizedText) {
-      promptCardSynthesizedText.textContent = synth.synthesizedText;
+      promptCardSynthesizedText.textContent = synth.fullText;
       promptCardSynthesizedText.title = synth.fullText;
     }
 
-    if (promptWordsBadge) {
-      promptWordsBadge.textContent = synth.isTruncated 
-        ? `${synth.wordCount}/${synth.totalWordCount} words`
-        : `${synth.wordCount} words`;
+    const legacyBadge = document.getElementById('prompt-words-badge');
+    if (legacyBadge) {
+      legacyBadge.remove();
     }
 
     if (promptCardStatusDot) {
