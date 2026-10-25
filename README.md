@@ -14,7 +14,7 @@
 
 ---
 
-## 🌟 Why VibeTrace?
+## Why VibeTrace?
 
 When "vibe-coding" with AI agents (such as Antigravity, Cursor, Claude Code, or Copilot), developers face the **Black Box Drift Problem**:
 - Agents write code quickly, but frequently introduce unrequested changes: silent permission shifts, altered environment keys, stripped visual design systems, deleted existing features, or scope creep.
@@ -28,14 +28,14 @@ When "vibe-coding" with AI agents (such as Antigravity, Cursor, Claude Code, or 
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 ### 1. 4-State Dynamic Gradient Trace Cards
 Execution traces in the timeline visually broadcast their lifecycle state using curated CSS gradients:
-- 🟡 **Working (Golden Amber):** Agent initialized the task and is actively inspecting or planning.
-- 🟠 **Editing (Tangerine Orange):** Real-time file mutation active in the workspace with live line delta.
-- 🔵 **Completed (Sapphire Blue):** Task successfully completed with 100% verified fidelity to prompt intent.
-- 🔴 **Difference / Diverged (Crimson Red):** Discrepancies or unrequested modifications detected between prompt and output code.
+- **Working (Golden Amber):** Agent initialized the task and is actively inspecting or planning.
+- **Editing (Tangerine Orange):** Real-time file mutation active in the workspace with live line delta.
+- **Completed (Sapphire Blue):** Task successfully completed with 100% verified fidelity to prompt intent.
+- **Difference / Diverged (Crimson Red):** Discrepancies or unrequested modifications detected between prompt and output code.
 
 ### 2. Independent Prompt-to-Output Drift Guard
 - Evaluates prompt intent vs. actual mechanical code modifications.
@@ -73,7 +73,7 @@ Execution traces in the timeline visually broadcast their lifecycle state using 
 
 ---
 
-## 📂 Project Organization
+## Project Organization
 
 VibeTrace source code is cleanly separated from the Devpost hackathon curriculum:
 
@@ -85,6 +85,9 @@ learn-ai-basics/
 ├── package.json              # Express, Chokidar, simple-git, dotenv
 ├── vibetrace.md              # Live inter-agent communication protocol file
 ├── vibetrace.db              # SQLite persistent telemetry storage
+│
+├── bin/                      # CLI Executables
+│   └── vibetrace.js          # Direct npx executable runner
 │
 ├── public/                   # Frontend Dashboard
 │   ├── index.html            # 3-Pane workbench & logs drawer DOM
@@ -120,7 +123,7 @@ learn-ai-basics/
 
 ---
 
-## 🛠️ Quick Start
+## Quick Start
 
 ### 1. Prerequisites
 - **Node.js 18+** (uses native `fetch` and `node:sqlite`)
@@ -161,26 +164,33 @@ npm start
 npm run dev
 ```
 Open your browser to:
-👉 **`http://localhost:3000`**
+**http://localhost:3000**
 
 ---
 
-## 🤖 Using the `vibetrace` Skill with AI Coding Agents
+## Using the `vibetrace` Skill with AI Coding Agents
 
 VibeTrace includes a specialized **Agent Skill** (`skills/vibetrace/SKILL.md`) compatible with Google Antigravity, Cursor, Claude Code, and Codex.
 
-### 📦 1-Command Skill Installation (Any Project)
+### 1-Command Skill Installation (Any Project)
 To equip your AI agent with VibeTrace in **any existing or new project repository**, simply run:
 ```bash
 npx skills add bilal-extroverted/Vibe-Trace --all -y
 ```
 *(Or add specifically the VibeTrace observability skill: `npx skills add bilal-extroverted/Vibe-Trace vibetrace -y`)*
 
-### ⚙️ What the Agent Does Behind the Scenes
-Once the skill is installed into your project, you don't need to configure anything manually. When you give your AI agent any task:
+### What the Agent Does Behind the Scenes
+Once the skill is installed into your project, you do not need to configure anything manually. When you give your AI agent any task:
 1. **Auto-Daemon Setup:** The agent checks `http://localhost:3000/api/status`. If VibeTrace is not yet running, it automatically boots up the dashboard in the background (`npx -y github:bilal-extroverted/Vibe-Trace &`) watching your project directory.
 2. **Auto-Protocol Initializer:** The agent automatically creates `vibetrace.md` in your project root, logging prompt intent, planned steps, and active file targets.
 3. **Real-Time Telemetry & Drift Prevention:** As the agent edits code, it updates `active_file` and checks off steps. On completion, VibeTrace automatically runs mechanical AST checks and audits prompt-to-diff alignment.
+
+### Zero-Mess Repository Isolation (How Your Project Stays Clean)
+When using VibeTrace with any external codebase:
+- **Only One Skill File Added:** `npx skills add` only extracts the tiny `.agents/skills/vibetrace/SKILL.md` (7 KB). It never clones or copies VibeTrace repository code into your project.
+- **External Global Cache Execution:** When VibeTrace runs via `npx`, npm executes the daemon in memory from your computer's global cache (`~/.npm/_npx/`). Zero `node_modules`, `server/`, or `public/` files are dumped into your project.
+- **Minimal Workspace Footprint:** The only file created in your project root is `vibetrace.md`, a lightweight communication scratchpad between your agent and the dashboard. (Add `vibetrace.md` to `.gitignore` if you prefer not to commit it).
+- **Untouched Dependencies:** Your project's `package.json`, build configurations, and scripts remain 100% untouched.
 
 ### How It Works (Sequence Flow)
 
@@ -241,7 +251,7 @@ updated_at: "2026-10-25T10:05:00.000Z"
 
 ---
 
-## 📡 REST & SSE API Reference
+## REST & SSE API Reference
 
 | Endpoint | Method | Description |
 |---|---|---|
@@ -256,7 +266,7 @@ updated_at: "2026-10-25T10:05:00.000Z"
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
