@@ -247,15 +247,9 @@ ${diffSummary.slice(0, 3500)}`;
 async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', harnessRules = '' }) {
   const startTime = Date.now();
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const configuredModel = (process.env.OPENROUTER_API_MODEL || 'nvidia/nemotron-3.5-lightning:free').trim();
+  const configuredModel = (process.env.OPENROUTER_API_MODEL || '').trim();
 
-  const modelsToTry = [
-    configuredModel,
-    'recursive/flint-v1.0:free',
-    'nvidia/nemotron-3.5-super-vl:free',
-    'xingchen-agi/xing4.0-29b-a4b:free',
-    'nvidia/nemotron-3.5-lightning:free'
-  ].filter((v, i, a) => a.indexOf(v) === i);
+  const modelsToTry = configuredModel ? [configuredModel] : [];
 
   const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
 
@@ -282,7 +276,7 @@ async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', ha
     gitContext,
     watchDir,
     latencyMs: 120,
-    modelUsed: 'heuristic-tracer'
+    modelUsed: configuredModel || 'heuristic-engine'
   });
 }
 

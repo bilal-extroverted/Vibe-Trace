@@ -59,7 +59,7 @@ app.get('/api/protocol', (req, res) => {
 
 // System Status Endpoint
 app.get('/api/status', (req, res) => {
-  const model = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
+  const model = (process.env.OPENROUTER_API_MODEL || '').trim();
   const traces = db.getTraces(WATCH_DIR, 100);
   const projects = db.getProjects();
   const projectName = path.basename(WATCH_DIR) || 'workspace';

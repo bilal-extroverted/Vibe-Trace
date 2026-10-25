@@ -217,19 +217,15 @@ async function generateAiMindMap({ traces = [], watchDir = '.', projectName = 'V
   const heuristicData = analyzeRepositoryTraces(traces, projectName);
 
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const configuredModel = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
+  const configuredModel = (process.env.OPENROUTER_API_MODEL || '').trim();
 
-  const modelsToTry = [
-    configuredModel,
-    'nvidia/nemotron-3.5-lightning:free',
-    'google/gemma-4-26b-a4b-it:free'
-  ];
+  const modelsToTry = configuredModel ? [configuredModel] : [];
 
   if (!apiKey || traces.length === 0) {
     return {
       ...heuristicData,
       source: 'heuristic',
-      modelUsed: 'local-heuristic-engine'
+      modelUsed: configuredModel || 'local-heuristic-engine'
     };
   }
 

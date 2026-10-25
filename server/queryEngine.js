@@ -3,13 +3,9 @@
 
 async function answerQuestion({ question, traceContext, activeDir = '.' }) {
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const configuredModel = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
+  const configuredModel = (process.env.OPENROUTER_API_MODEL || '').trim();
 
-  const modelsToTry = [
-    configuredModel,
-    'nvidia/nemotron-3.5-lightning:free',
-    'google/gemma-4-26b-a4b-it:free'
-  ];
+  const modelsToTry = configuredModel ? [configuredModel] : [];
 
   const systemPrompt = `You are VibeTrace AI, an observability assistant for code traces and AI harness engineering.
 Answer the developer's question specifically and technically using the provided trace context, file diffs, and harness rules.

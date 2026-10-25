@@ -14,9 +14,9 @@
   const liveStatusBadge = document.getElementById('live-status-badge');
   const liveIndicatorText = document.getElementById('live-indicator-text');
   const btnRescan = document.getElementById('btn-rescan');
-  const navModelName = document.getElementById('nav-model-name');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
   const themeIcon = document.getElementById('theme-icon');
+  let currentEnvModel = '';
 
   // Left Pane: Project & Traces Feed
   const paneLeft = document.getElementById('pane-left');
@@ -699,8 +699,12 @@
         leftProjectPath.textContent = data.watchDir || '';
         leftProjectPath.title = data.watchDir || '';
       }
-      if (navModelName && data.model) {
-        navModelName.textContent = data.model.split('/')[1] || data.model;
+      if (data.model) {
+        currentEnvModel = data.model;
+        if (aiModelTag) {
+          aiModelTag.textContent = data.model.split('/')[1] || data.model;
+          aiModelTag.title = `Configured OpenRouter model: ${data.model}`;
+        }
       }
       logTicker(`Harness attached to: ${data.projectName}`);
 
@@ -1260,9 +1264,11 @@
       aiRiskBadge.textContent = `${risk} RISK`;
     }
 
-    // Model Tag
+    // Model Tag (Dynamically derived from trace or configured environment)
     if (aiModelTag) {
-      aiModelTag.textContent = trace.model ? (trace.model.split('/')[1] || trace.model) : 'nemotron-3.5';
+      const activeModel = trace.model || currentEnvModel || '';
+      aiModelTag.textContent = activeModel ? (activeModel.split('/')[1] || activeModel) : 'AI Model';
+      if (activeModel) aiModelTag.title = `Model: ${activeModel}`;
     }
 
     // -----------------------------------------------------------------
