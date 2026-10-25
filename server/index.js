@@ -117,18 +117,7 @@ app.get('/api/traces', (req, res) => {
     const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
     let traces = db.getTraces(folder, 50);
 
-    // Deduplicate traces: ensure only ONE card per task is returned
-    const seenTasks = new Set();
-    traces = traces.filter(t => {
-      const task = (t.agentProtocol?.task || t.title || '').trim().toLowerCase();
-      const norm = task.replace(/[^a-z0-9]/g, '');
-      if (norm) {
-        if (seenTasks.has(norm)) return false;
-        seenTasks.add(norm);
-      }
-      return true;
-    });
-
+    // Prepend active trace if currently running and valid
     if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
       const proto = protocol.read(folder);
       const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
@@ -136,13 +125,8 @@ app.get('/api/traces', (req, res) => {
         // Protocol is completed/idle - invalidate zombie activeTrace immediately
         watcher.activeTrace = null;
       } else {
-        const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (activeTask) {
-          traces = traces.filter(t => {
-            const tTask = (t.agentProtocol?.task || t.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-            return tTask !== activeTask;
-          });
-        }
+        // Deduplicate against active trace id
+        traces = traces.filter(t => t.id !== watcher.activeTrace.id);
         traces = [watcher.activeTrace, ...traces];
       }
     }

@@ -1076,30 +1076,11 @@
       );
     }
 
-    // Deduplicate in list view: If an in-progress active trace exists, hide any past completed traces with the exact same task
-    const activeTask = traces.find(t => t.inProgress || t.status === 'in_progress');
-    if (activeTask) {
-      const activeTaskName = normalizeTaskName(activeTask.agentProtocol?.task || activeTask.title);
-      if (activeTaskName) {
-        filtered = filtered.filter(t => {
-          if (t.id === activeTask.id) return true;
-          const tName = normalizeTaskName(t.agentProtocol?.task || t.title);
-          return tName !== activeTaskName;
-        });
-      }
-    }
-
-    // Deduplicate completed traces: guarantee each task has EXACTLY ONE card in the timeline
-    const seenCompletedTasks = new Set();
+    // Show all execution traces in timeline, filtering only by unique ID
+    const seenTraceIds = new Set();
     filtered = filtered.filter(t => {
-      const isInProgress = Boolean(t.inProgress || t.status === 'in_progress');
-      if (isInProgress) return true;
-      const taskName = normalizeTaskName(t.agentProtocol?.task || t.title);
-      const key = taskName ? taskName.replace(/[^a-z0-9]/g, '') : t.id;
-      if (seenCompletedTasks.has(key)) {
-        return false;
-      }
-      seenCompletedTasks.add(key);
+      if (!t.id || seenTraceIds.has(t.id)) return false;
+      seenTraceIds.add(t.id);
       return true;
     });
 
@@ -1245,9 +1226,13 @@
     const trace = traces.find(t => t.id === id);
     if (!trace) return;
 
-    // Highlight active list row
+    // Highlight active list row and ensure it is visible in the scroll container
     document.querySelectorAll('.trace-item-row').forEach(row => {
-      row.classList.toggle('active', row.dataset.id === id);
+      const isActive = row.dataset.id === id;
+      row.classList.toggle('active', isActive);
+      if (isActive) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     });
 
     // Set active status on middle pane for visual attachment indicator
