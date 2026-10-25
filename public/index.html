@@ -744,26 +744,47 @@
           <div class="mindmap-diagram-section">
             <div class="mindmap-diagram-header">
               <div class="diagram-heading">
-                <span class="section-title">Visual System Mind Map</span>
-                <span class="diagram-hint">Interactive tree topology of repository subsystems and modified files</span>
+                <span class="section-title">System Architecture & Subsystem Topology</span>
+                <span class="diagram-hint">Comprehensive architectural map showing data flows, module roles, and file relationships</span>
               </div>
               <div class="diagram-view-tabs">
-                <button class="view-tab-btn active" data-view="tree" id="tab-view-tree">Interactive Tree</button>
+                <button class="view-tab-btn active" data-view="subsystems" id="tab-view-subsystems">Subsystem Topology</button>
+                <button class="view-tab-btn" data-view="flowchart" id="tab-view-flowchart">Visual Flowchart</button>
                 <button class="view-tab-btn" data-view="mermaid" id="tab-view-mermaid">Mermaid Code</button>
               </div>
             </div>
 
-            <!-- Tree View Container -->
-            <div class="mindmap-tree-wrapper" id="mindmap-tree-wrapper">
-              <div class="mindmap-tree-canvas" id="mindmap-tree-canvas">
-                <!-- Dynamically rendered visual tree -->
+            <!-- Subsystem Topology View Container -->
+            <div class="mindmap-subsystems-wrapper" id="mindmap-subsystems-wrapper">
+              <div class="mindmap-subsystems-canvas" id="mindmap-subsystems-canvas">
+                <!-- Dynamically rendered visual subsystem tiers -->
+              </div>
+            </div>
+
+            <!-- Visual Flowchart SVG Container -->
+            <div class="mindmap-flowchart-wrapper hidden" id="mindmap-flowchart-wrapper">
+              <div class="flowchart-toolbar">
+                <div class="flowchart-search-box">
+                  <input type="text" id="flowchart-filter-input" placeholder="Highlight subsystem or file..." autocomplete="off">
+                </div>
+                <div class="flowchart-zoom-controls">
+                  <button type="button" class="btn-flowchart-zoom" id="btn-zoom-in" title="Zoom in">+</button>
+                  <button type="button" class="btn-flowchart-zoom" id="btn-zoom-out" title="Zoom out">−</button>
+                  <button type="button" class="btn-flowchart-zoom" id="btn-zoom-reset" title="Reset view">↺</button>
+                </div>
+              </div>
+              <div class="flowchart-viewport" id="flowchart-viewport">
+                <div class="flowchart-canvas" id="flowchart-canvas">
+                  <!-- Dynamically rendered SVG architectural graph -->
+                </div>
               </div>
             </div>
 
             <!-- Mermaid Code Container -->
             <div class="mindmap-mermaid-wrapper hidden" id="mindmap-mermaid-wrapper">
               <div class="mermaid-code-actions">
-                <button class="btn-copy-mermaid" id="btn-copy-mermaid">Copy Mermaid Syntax</button>
+                <span class="mermaid-hint">Copy and paste into GitHub issues, PR descriptions, or mermaid.live</span>
+                <button class="btn-copy-mermaid" id="btn-copy-mermaid">Copy Mermaid Flowchart</button>
               </div>
               <pre class="mermaid-code-pre" id="mermaid-code-pre"></pre>
             </div>
@@ -776,7 +797,15 @@
                 <svg class="ui-icon icon-amber" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 <span class="section-title">Architectural Flaw, Risk & Anomaly Scanner</span>
               </div>
-              <span class="flaws-count-badge" id="flaws-badge">0 Issues Detected</span>
+              <div class="flaws-header-right">
+                <div class="flaws-filter-pills" id="flaws-filter-pills">
+                  <button type="button" class="flaw-filter-btn active" data-filter="all">All</button>
+                  <button type="button" class="flaw-filter-btn" data-filter="high">High Risk</button>
+                  <button type="button" class="flaw-filter-btn" data-filter="medium">Medium</button>
+                  <button type="button" class="flaw-filter-btn" data-filter="low">Informational</button>
+                </div>
+                <span class="flaws-count-badge" id="flaws-badge">0 Issues Detected</span>
+              </div>
             </div>
             <div class="mindmap-flaws-grid" id="mindmap-flaws-grid">
               <!-- Dynamically populated flaw cards -->
@@ -798,7 +827,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="diffViewer.js?v=6.5"></script>
-  <script src="app.js?v=6.5"></script>
+  <script src="diffViewer.js?v=6.6"></script>
+  <script src="app.js?v=6.6"></script>
 </body>
 </html>
