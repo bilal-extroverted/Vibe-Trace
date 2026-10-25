@@ -1512,6 +1512,234 @@
     });
   }
 
+  // =========================================================
+  // 13. AI ARCHITECTURE & TRACE MIND MAP MODULE
+  // =========================================================
+  const btnMindMap = document.getElementById('btn-mindmap');
+  const mindMapModal = document.getElementById('mindmap-modal');
+  const btnCloseMindMap = document.getElementById('btn-close-mindmap');
+  const btnRegenerateMindMap = document.getElementById('btn-regenerate-mindmap');
+  const mindMapLoading = document.getElementById('mindmap-loading');
+  const mindMapContent = document.getElementById('mindmap-content');
+  const tabViewTree = document.getElementById('tab-view-tree');
+  const tabViewMermaid = document.getElementById('tab-view-mermaid');
+  const mindMapTreeWrapper = document.getElementById('mindmap-tree-wrapper');
+  const mindMapMermaidWrapper = document.getElementById('mindmap-mermaid-wrapper');
+  const btnCopyMermaid = document.getElementById('btn-copy-mermaid');
+  const mermaidCodePre = document.getElementById('mermaid-code-pre');
+
+  let cachedMindMapData = null;
+
+  function openMindMap() {
+    if (!mindMapModal) return;
+    mindMapModal.classList.remove('hidden');
+    mindMapModal.setAttribute('aria-hidden', 'false');
+    if (!cachedMindMapData) {
+      loadMindMap();
+    } else {
+      renderMindMapUI(cachedMindMapData);
+    }
+  }
+
+  function closeMindMap() {
+    if (!mindMapModal) return;
+    mindMapModal.classList.add('hidden');
+    mindMapModal.setAttribute('aria-hidden', 'true');
+  }
+
+  async function loadMindMap(forceRefresh = false) {
+    if (!mindMapModal) return;
+    if (mindMapLoading) mindMapLoading.classList.remove('hidden');
+    if (mindMapContent) mindMapContent.classList.add('hidden');
+
+    try {
+      const res = await fetch(`/api/mindmap${forceRefresh ? '?refresh=1' : ''}`);
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const data = await res.json();
+      cachedMindMapData = data;
+      renderMindMapUI(data);
+    } catch (err) {
+      console.error('[VibeTrace MindMap Error]:', err);
+      if (mindMapLoading) mindMapLoading.classList.add('hidden');
+      if (mindMapContent) mindMapContent.classList.remove('hidden');
+      const summaryEl = document.getElementById('mindmap-summary-text');
+      if (summaryEl) summaryEl.textContent = 'Failed to load mind map: ' + err.message;
+    }
+  }
+
+  function renderMindMapUI(data) {
+    if (mindMapLoading) mindMapLoading.classList.add('hidden');
+    if (mindMapContent) mindMapContent.classList.remove('hidden');
+
+    const metrics = data.metrics || {};
+    const statTraces = document.getElementById('stat-traces-count');
+    const statSubsystems = document.getElementById('stat-subsystems-count');
+    const statFiles = document.getElementById('stat-files-count');
+    const statFlaws = document.getElementById('stat-flaws-count');
+
+    if (statTraces) statTraces.textContent = metrics.totalTraces || 0;
+    if (statSubsystems) statSubsystems.textContent = metrics.subsystemsCount || (data.subsystems ? data.subsystems.length : 0);
+    if (statFiles) statFiles.textContent = metrics.totalFiles || 0;
+    if (statFlaws) statFlaws.textContent = data.flawsAndRisks ? data.flawsAndRisks.length : 0;
+
+    const summaryText = document.getElementById('mindmap-summary-text');
+    if (summaryText) {
+      summaryText.textContent = data.executiveSummary || 'No summary available.';
+    }
+
+    const sourceTag = document.getElementById('mindmap-source-tag');
+    if (sourceTag) {
+      sourceTag.textContent = data.source === 'openrouter' ? `OpenRouter: ${data.modelUsed}` : `Engine: ${data.modelUsed}`;
+    }
+
+    const modelBadge = document.getElementById('mindmap-model-badge');
+    if (modelBadge) {
+      modelBadge.textContent = data.source === 'openrouter' ? 'AI SYNTHESIZED' : 'HEURISTIC VERIFIED';
+    }
+
+    const flawsBadge = document.getElementById('flaws-badge');
+    const flawsCount = data.flawsAndRisks ? data.flawsAndRisks.length : 0;
+    if (flawsBadge) {
+      flawsBadge.textContent = flawsCount === 0 ? 'No Critical Flaws' : `${flawsCount} Issue${flawsCount === 1 ? '' : 's'} Detected`;
+    }
+
+    // Render Flaws Grid
+    const flawsGrid = document.getElementById('mindmap-flaws-grid');
+    if (flawsGrid) {
+      flawsGrid.innerHTML = '';
+      if (!data.flawsAndRisks || data.flawsAndRisks.length === 0) {
+        flawsGrid.innerHTML = '<div style="color: var(--text-muted); font-size: 11px;">No structural flaws or high-risk regressions detected across traces.</div>';
+      } else {
+        data.flawsAndRisks.forEach(flaw => {
+          const card = document.createElement('div');
+          const severity = (flaw.severity || 'low').toLowerCase();
+          card.className = `flaw-card severity-${severity}`;
+          card.innerHTML = `
+            <div class="flaw-head-row">
+              <span class="flaw-severity-pill">${escapeHtml(severity)}</span>
+              <span class="flaw-subsystem-tag">${escapeHtml(flaw.subsystem || 'System')}</span>
+            </div>
+            <div class="flaw-title">${escapeHtml(flaw.title || 'Risk Notice')}</div>
+            <div class="flaw-detail">${escapeHtml(flaw.detail || '')}</div>
+            ${flaw.remedy ? `<div class="flaw-remedy"><b>Remedy:</b> ${escapeHtml(flaw.remedy)}</div>` : ''}
+          `;
+          flawsGrid.appendChild(card);
+        });
+      }
+    }
+
+    // Render Recommendations
+    const recsList = document.getElementById('mindmap-recs-list');
+    if (recsList) {
+      recsList.innerHTML = '';
+      const recs = data.recommendations || [];
+      if (recs.length === 0) {
+        recsList.innerHTML = '<li style="color: var(--text-muted);">Maintain standard test hygiene and monitor OpenRouter rate limits.</li>';
+      } else {
+        recs.forEach(rec => {
+          const li = document.createElement('li');
+          li.textContent = rec;
+          recsList.appendChild(li);
+        });
+      }
+    }
+
+    // Render Mermaid Code Pre
+    if (mermaidCodePre) {
+      mermaidCodePre.textContent = data.diagramMermaid || 'mindmap\n  root((Repository))';
+    }
+
+    // Render Interactive Visual Tree
+    const treeCanvas = document.getElementById('mindmap-tree-canvas');
+    if (treeCanvas) {
+      treeCanvas.innerHTML = '';
+
+      // Root Box
+      const rootBox = document.createElement('div');
+      rootBox.className = 'tree-root-box';
+      rootBox.innerHTML = `
+        <div class="tree-root-label">${escapeHtml(data.projectName || 'VibeTrace')}</div>
+        <div class="tree-root-sub">${metrics.totalFiles || 0} files · ${metrics.totalTraces || 0} traces</div>
+      `;
+      treeCanvas.appendChild(rootBox);
+
+      // Subsystems Column
+      const subColumn = document.createElement('div');
+      subColumn.className = 'tree-subsystems-column';
+
+      const subsystems = data.subsystems || [];
+      subsystems.forEach(sub => {
+        const subCard = document.createElement('div');
+        subCard.className = 'tree-subsystem-card';
+        if (sub.color) subCard.style.borderLeftColor = sub.color;
+
+        const filesHtml = (sub.files || []).slice(0, 6).map(f => {
+          const base = f.split(/[\/\\]/).pop();
+          return `<span class="tree-file-chip" title="${escapeHtml(f)}">${escapeHtml(base)}</span>`;
+        }).join('');
+
+        subCard.innerHTML = `
+          <div class="tree-subsystem-head">
+            <span class="tree-subsystem-name" style="color: ${sub.color || 'var(--text-primary)'}">${escapeHtml(sub.name)}</span>
+            <span class="tree-subsystem-badge">${sub.fileCount || (sub.files ? sub.files.length : 0)} files</span>
+          </div>
+          <div class="tree-files-list">${filesHtml}</div>
+        `;
+        subColumn.appendChild(subCard);
+      });
+
+      treeCanvas.appendChild(subColumn);
+    }
+  }
+
+  // Bind Mind Map Events
+  if (btnMindMap) {
+    btnMindMap.addEventListener('click', openMindMap);
+  }
+  if (btnCloseMindMap) {
+    btnCloseMindMap.addEventListener('click', closeMindMap);
+  }
+  if (btnRegenerateMindMap) {
+    btnRegenerateMindMap.addEventListener('click', () => loadMindMap(true));
+  }
+  if (mindMapModal) {
+    mindMapModal.addEventListener('click', (e) => {
+      if (e.target === mindMapModal) closeMindMap();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mindMapModal && !mindMapModal.classList.contains('hidden')) {
+      closeMindMap();
+    }
+  });
+
+  if (tabViewTree && tabViewMermaid) {
+    tabViewTree.addEventListener('click', () => {
+      tabViewTree.classList.add('active');
+      tabViewMermaid.classList.remove('active');
+      if (mindMapTreeWrapper) mindMapTreeWrapper.classList.remove('hidden');
+      if (mindMapMermaidWrapper) mindMapMermaidWrapper.classList.add('hidden');
+    });
+    tabViewMermaid.addEventListener('click', () => {
+      tabViewMermaid.classList.add('active');
+      tabViewTree.classList.remove('active');
+      if (mindMapTreeWrapper) mindMapTreeWrapper.classList.add('hidden');
+      if (mindMapMermaidWrapper) mindMapMermaidWrapper.classList.remove('hidden');
+    });
+  }
+
+  if (btnCopyMermaid && mermaidCodePre) {
+    btnCopyMermaid.addEventListener('click', async () => {
+      const code = mermaidCodePre.textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        const orig = btnCopyMermaid.textContent;
+        btnCopyMermaid.textContent = 'Copied!';
+        setTimeout(() => { btnCopyMermaid.textContent = orig; }, 1500);
+      } catch (err) {}
+    });
+  }
+
   // Initialize
   initResizers();
   initTheme();

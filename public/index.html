@@ -6,7 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4.9">
+  <link rel="stylesheet" href="style.css?v=5.0">
 </head>
 <body class="light-theme">
 
@@ -33,6 +33,24 @@
         <span class="pill-dot"></span>
         <span class="pill-text" id="nav-model-name">nemotron-3.5-lightning</span>
       </div>
+
+      <!-- Mind Map Button -->
+      <button id="btn-mindmap" class="pill-btn action-btn mindmap-nav-btn" title="AI Repository Architecture & Trace Mind Map">
+        <span class="pill-icon">
+          <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="9" width="6" height="6" rx="1.5"/>
+            <rect x="16" y="3" width="6" height="5" rx="1.5"/>
+            <rect x="16" y="10" width="6" height="5" rx="1.5"/>
+            <rect x="16" y="17" width="6" height="5" rx="1.5"/>
+            <path d="M8 12h4"/>
+            <path d="M12 5.5v13"/>
+            <path d="M12 5.5h4"/>
+            <path d="M12 12.5h4"/>
+            <path d="M12 19.5h4"/>
+          </svg>
+        </span>
+        <span>Mind Map</span>
+      </button>
 
       <!-- Rescan Button -->
       <button id="btn-rescan" class="pill-btn action-btn" title="Force immediate Git diff rescan">
@@ -514,8 +532,150 @@
     </div>
   </footer>
 
+  <!-- ========================================================
+       AI ARCHITECTURE & TRACE MIND MAP MODAL
+       ======================================================== -->
+  <div id="mindmap-modal" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="mindmap-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mindmap-modal-title">
+      <!-- Modal Header -->
+      <div class="mindmap-modal-header">
+        <div class="mindmap-header-left">
+          <div class="mindmap-header-icon">
+            <svg class="ui-icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="9" width="6" height="6" rx="1.5"/>
+              <rect x="16" y="3" width="6" height="5" rx="1.5"/>
+              <rect x="16" y="10" width="6" height="5" rx="1.5"/>
+              <rect x="16" y="17" width="6" height="5" rx="1.5"/>
+              <path d="M8 12h4"/>
+              <path d="M12 5.5v13"/>
+              <path d="M12 5.5h4"/>
+              <path d="M12 12.5h4"/>
+              <path d="M12 19.5h4"/>
+            </svg>
+          </div>
+          <div>
+            <div class="mindmap-header-title" id="mindmap-modal-title">
+              <span>Repository Architecture & Trace Mind Map</span>
+              <span class="mindmap-ai-badge" id="mindmap-model-badge">AI Powered</span>
+            </div>
+            <div class="mindmap-header-sub">
+              Causal tree diagram, subsystem clustering, and automated flaw detection across all traces
+            </div>
+          </div>
+        </div>
+
+        <div class="mindmap-header-actions">
+          <button id="btn-regenerate-mindmap" class="mindmap-action-btn" title="Re-synthesize mind map with latest traces">
+            <svg class="ui-icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            <span>Regenerate</span>
+          </button>
+          <button id="btn-close-mindmap" class="mindmap-close-btn" title="Close Mind Map">
+            <svg class="ui-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="mindmap-modal-body" id="mindmap-modal-body">
+        <!-- Loading State -->
+        <div id="mindmap-loading" class="mindmap-loading-state hidden">
+          <div class="mindmap-spinner"></div>
+          <div class="mindmap-loading-text">Synthesizing codebase traces and constructing architectural mind map...</div>
+          <div class="mindmap-loading-sub">Analyzing subsystem boundaries, causal diff trees, and inspecting for potential flaws</div>
+        </div>
+
+        <!-- Content State -->
+        <div id="mindmap-content" class="mindmap-content-container">
+          <!-- Overview Stats Metric Strip -->
+          <div class="mindmap-stats-strip">
+            <div class="mindmap-stat-card">
+              <span class="stat-number" id="stat-traces-count">0</span>
+              <span class="stat-label">Traces Analyzed</span>
+            </div>
+            <div class="mindmap-stat-card">
+              <span class="stat-number" id="stat-subsystems-count">0</span>
+              <span class="stat-label">Subsystems Identified</span>
+            </div>
+            <div class="mindmap-stat-card">
+              <span class="stat-number" id="stat-files-count">0</span>
+              <span class="stat-label">Files Touched</span>
+            </div>
+            <div class="mindmap-stat-card stat-card-flaws">
+              <span class="stat-number" id="stat-flaws-count">0</span>
+              <span class="stat-label">Flaws & Risks Flagged</span>
+            </div>
+          </div>
+
+          <!-- Executive Summary Card -->
+          <div class="mindmap-summary-card">
+            <div class="mindmap-section-header">
+              <span class="section-title">Architectural Evolution Overview</span>
+              <span class="section-source" id="mindmap-source-tag">OpenRouter Model</span>
+            </div>
+            <div class="mindmap-summary-text" id="mindmap-summary-text">
+              Loading synthesis...
+            </div>
+          </div>
+
+          <!-- Visual Mind Map Diagram Section -->
+          <div class="mindmap-diagram-section">
+            <div class="mindmap-diagram-header">
+              <div class="diagram-heading">
+                <span class="section-title">Visual System Mind Map</span>
+                <span class="diagram-hint">Interactive tree topology of repository subsystems and modified files</span>
+              </div>
+              <div class="diagram-view-tabs">
+                <button class="view-tab-btn active" data-view="tree" id="tab-view-tree">Interactive Tree</button>
+                <button class="view-tab-btn" data-view="mermaid" id="tab-view-mermaid">Mermaid Code</button>
+              </div>
+            </div>
+
+            <!-- Tree View Container -->
+            <div class="mindmap-tree-wrapper" id="mindmap-tree-wrapper">
+              <div class="mindmap-tree-canvas" id="mindmap-tree-canvas">
+                <!-- Dynamically rendered visual tree -->
+              </div>
+            </div>
+
+            <!-- Mermaid Code Container -->
+            <div class="mindmap-mermaid-wrapper hidden" id="mindmap-mermaid-wrapper">
+              <div class="mermaid-code-actions">
+                <button class="btn-copy-mermaid" id="btn-copy-mermaid">Copy Mermaid Syntax</button>
+              </div>
+              <pre class="mermaid-code-pre" id="mermaid-code-pre"></pre>
+            </div>
+          </div>
+
+          <!-- Flaws, Anomalies & Architectural Risks Section -->
+          <div class="mindmap-flaws-section">
+            <div class="mindmap-section-header">
+              <div class="flaws-header-left">
+                <svg class="ui-icon icon-amber" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span class="section-title">Architectural Flaw, Risk & Anomaly Scanner</span>
+              </div>
+              <span class="flaws-count-badge" id="flaws-badge">0 Issues Detected</span>
+            </div>
+            <div class="mindmap-flaws-grid" id="mindmap-flaws-grid">
+              <!-- Dynamically populated flaw cards -->
+            </div>
+          </div>
+
+          <!-- Actionable Recommendations Card -->
+          <div class="mindmap-recommendations-card">
+            <div class="mindmap-section-header">
+              <span class="section-title">Systemic Recommendations</span>
+            </div>
+            <ul class="mindmap-recs-list" id="mindmap-recs-list">
+              <!-- Dynamically populated recommendations -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="diffViewer.js?v=4.9"></script>
-  <script src="app.js?v=4.9"></script>
+  <script src="diffViewer.js?v=5.0"></script>
+  <script src="app.js?v=5.0"></script>
 </body>
 </html>

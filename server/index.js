@@ -6,6 +6,7 @@ const db = require('./db');
 const protocol = require('./harness/protocol');
 const { analyze } = require('./analyzer');
 const { answerQuestion } = require('./queryEngine');
+const { generateAiMindMap } = require('./mindMapEngine');
 require('dotenv').config();
 
 const app = express();
@@ -192,6 +193,34 @@ app.post('/api/query', async (req, res) => {
     });
 
     res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to generate AI Mind Map analyzing all traces and codebase evolution
+app.all('/api/mindmap', async (req, res) => {
+  try {
+    const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
+    let traces = db.getTraces(folder, 100);
+
+    // If an active in-progress trace exists, include it
+    if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
+      const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase();
+      if (activeTask) {
+        traces = traces.filter(t => (t.agentProtocol?.task || t.title || '').trim().toLowerCase() !== activeTask);
+      }
+      traces = [watcher.activeTrace, ...traces];
+    }
+
+    const projectName = path.basename(folder) || 'VibeTrace';
+    const mindMapData = await generateAiMindMap({
+      traces,
+      watchDir: folder,
+      projectName
+    });
+
+    res.json({ success: true, ...mindMapData });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
