@@ -748,6 +748,28 @@
         w.style.display = allCollapsed ? 'none' : 'block';
       });
     });
+  // Copy Project Path Action
+  const repoPathCopyBtn = document.getElementById('repo-path-copy-btn');
+  const repoPathCopyTag = document.getElementById('repo-path-copy-tag');
+  if (repoPathCopyBtn) {
+    repoPathCopyBtn.addEventListener('click', async () => {
+      const fullPath = (leftProjectPath ? (leftProjectPath.title || leftProjectPath.textContent) : '') || activeProjectPath;
+      if (!fullPath) return;
+
+      try {
+        await navigator.clipboard.writeText(fullPath);
+        if (repoPathCopyTag) {
+          repoPathCopyTag.textContent = 'Copied!';
+          repoPathCopyTag.classList.add('copied');
+          setTimeout(() => {
+            repoPathCopyTag.textContent = 'Copy';
+            repoPathCopyTag.classList.remove('copied');
+          }, 1800);
+        }
+      } catch (err) {
+        console.warn('Path copy failed:', err);
+      }
+    });
   }
 
   // Initialize

@@ -376,54 +376,118 @@ body.resizing {
    WITH HIGHLIGHTED CARD IN VIBRANT GREEN GRADIENT!
    ========================================================= */
 .left-pane-header {
-  padding: 10px 14px 8px;
+  padding: 7px 10px 5px;
   border-bottom: 1px solid var(--border-medium);
   background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .repo-meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2px;
 }
 
 .repo-caption {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
+  text-transform: uppercase;
+  line-height: 1;
 }
 
 .repo-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .git-branch-tag {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 500;
   background: var(--bg-surface-subtle);
   border: 1px solid var(--border-medium);
-  padding: 1px 7px;
+  padding: 1px 6px;
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
 }
 
+/* Copyable Project Path Row — Light, Small & Beautiful */
+.repo-path-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  margin-top: 1px;
+  border-radius: 4px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.repo-path-row:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+}
+
+.repo-path-icon {
+  font-size: 9.5px;
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+
 .repo-path {
   font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--text-faint);
+  font-size: 9.5px;
+  font-weight: 400;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  letter-spacing: -0.01em;
+  transition: color 0.15s ease;
 }
 
-/* Traces Search Box */
+.repo-path-row:hover .repo-path {
+  color: var(--text-primary);
+}
+
+.repo-path-copy-tag {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+}
+
+.repo-path-row:hover .repo-path-copy-tag {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.repo-path-copy-tag.copied {
+  color: var(--color-green, #28B900) !important;
+  border-color: rgba(40, 185, 0, 0.4) !important;
+  background: var(--color-green-soft, #EAF8D7) !important;
+}
+
+/* Traces Search Box — Tight & Compact */
 .traces-search-box {
-  padding: 8px 12px;
+  padding: 5px 8px;
   border-bottom: 1px solid var(--border-medium);
   position: relative;
   display: flex;
@@ -433,19 +497,20 @@ body.resizing {
 
 .traces-search-box .search-icon {
   position: absolute;
-  left: 22px;
-  font-size: 11px;
+  left: 17px;
+  font-size: 10px;
   color: var(--text-muted);
   pointer-events: none;
 }
 
 .traces-search-box input {
   width: 100%;
-  padding: 5px 10px 5px 28px;
+  padding: 3px 8px 3px 22px;
+  height: 24px;
   background: var(--bg-canvas);
   border: 1px solid var(--border-medium);
-  border-radius: 6px;
-  font-size: 11.5px;
+  border-radius: 5px;
+  font-size: 11px;
   color: var(--text-primary);
   outline: none;
   font-family: var(--font-sans);
@@ -458,24 +523,24 @@ body.resizing {
   background: var(--bg-surface);
 }
 
-/* Traces List Subheader */
+/* Traces List Subheader — Tight & Compact */
 .traces-list-header {
-  padding: 8px 14px;
+  padding: 5px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-surface);
 }
 
 .traces-header-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .list-title {
-  font-size: 9.5px;
+  font-size: 8.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
   color: var(--text-muted);
@@ -483,7 +548,7 @@ body.resizing {
 }
 
 .traces-count-tag {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   background: var(--bg-surface-subtle);
   color: var(--text-secondary);
@@ -493,10 +558,10 @@ body.resizing {
 }
 
 .sort-tag {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 500;
   color: var(--text-faint);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 /* Traces Scroll Feed */
