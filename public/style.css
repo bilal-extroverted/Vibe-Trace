@@ -797,163 +797,196 @@ body.dark-theme .pill-btn.action-btn:hover {
    (ANIMATION APPLIES ONLY TO IN-PROGRESS; ALL OTHERS ARE STATIC)
    ========================================================= */
 
-/* 1. Default Selected State: Clean Elevated Card with Symmetrical Outline */
-.trace-item-row.active {
-  animation: none !important;
-  background: var(--bg-surface) !important;
-  border: 1px solid #2563eb !important;
-  box-shadow: 0 0 0 1px #2563eb, 0 2px 8px -1px rgba(37, 99, 235, 0.16) !important;
-  color: var(--text-primary) !important;
-}
-
-.trace-item-row.active::before {
-  display: none !important;
-}
-
 /* =========================================================
-   STATE 3: TASK COMPLETED — CLEAN, POLISHED SAAS CARD
+   STATUS-BASED GRADIENTS FOR CARDS
+   (DYNAMIC GRADIENTS THAT ADAPT SEAMLESSLY ACCORDING TO LIFECYCLE STATUS)
    ========================================================= */
-.trace-item-row.status-completed {
+
+/* ---------------------------------------------------------
+   STATE 3: TASK COMPLETED — SAPPHIRE / ROYAL BLUE GRADIENT
+   --------------------------------------------------------- */
+/* Completed Card: Inactive / Resting State */
+.trace-item-row.status-completed:not(.active) {
   background: var(--bg-surface) !important;
   border: 1px solid var(--border-medium) !important;
   color: var(--text-primary) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   animation: none !important;
 }
 
-.trace-item-row.status-completed:hover {
+.trace-item-row.status-completed:not(.active):hover {
   border-color: var(--border-strong) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 
-.trace-item-row.active.status-completed {
-  background: var(--bg-surface) !important;
-  border: 1px solid #2563eb !important;
-  box-shadow: 0 0 0 1px #2563eb, 0 2px 8px -1px rgba(37, 99, 235, 0.16) !important;
-}
-
-/* Completed Card Typography & Elements */
-.trace-item-row.status-completed .trace-item-time,
-.trace-item-row.active .trace-item-time {
+.trace-item-row.status-completed:not(.active) .trace-item-time {
   color: var(--text-muted) !important;
   font-weight: 500 !important;
 }
 
-.trace-item-row.status-completed .trace-item-title,
-.trace-item-row.active .trace-item-title {
+.trace-item-row.status-completed:not(.active) .trace-item-title {
   color: var(--text-primary) !important;
   font-weight: 500 !important;
 }
 
-.trace-item-row.status-completed .trace-item-files,
-.trace-item-row.active .trace-item-files {
+.trace-item-row.status-completed:not(.active) .trace-item-files {
   color: var(--text-muted) !important;
   font-weight: 400 !important;
 }
 
+/* Completed Card: Selected / Active State — SAPPHIRE / ROYAL BLUE GRADIENT */
+.trace-item-row.active.status-completed,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
+  animation: none !important;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.5), 0 0 10px rgba(59, 130, 246, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.trace-item-row.active.status-completed::before,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress)::before {
+  display: none !important;
+}
+
+/* Active Completed Card Typography & Badges */
+.trace-item-row.active.status-completed .trace-item-time,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-time {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 500 !important;
+}
+
+.trace-item-row.active.status-completed .trace-item-title,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-title {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.trace-item-row.active.status-completed .trace-item-files,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-files {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 400 !important;
+}
+
+.trace-item-row.active.status-completed .trace-item-tag.tag-completed,
+.trace-item-row.active.status-completed .trace-item-tag.tag-agent,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .trace-item-tag {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.trace-item-row.active.status-completed .diff-pill-add,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .diff-pill-add {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.trace-item-row.active.status-completed .diff-pill-del,
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) .diff-pill-del {
+  color: #ffffff !important;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
 /* Dark Mode Overrides for Completed Cards */
-[data-theme="dark"] .trace-item-row.status-completed,
-body.dark-theme .trace-item-row.status-completed {
+[data-theme="dark"] .trace-item-row.status-completed:not(.active),
+body.dark-theme .trace-item-row.status-completed:not(.active) {
   background: #312F30 !important;
   border-color: #444242 !important;
 }
 
-[data-theme="dark"] .trace-item-row.active,
-body.dark-theme .trace-item-row.active {
-  background: #383536 !important;
-  border-color: #60a5fa !important;
-  box-shadow: 0 0 0 1px #60a5fa, 0 2px 8px -1px rgba(96, 165, 250, 0.25) !important;
+[data-theme="dark"] .trace-item-row.active.status-completed,
+[data-theme="dark"] .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress),
+body.dark-theme .trace-item-row.active.status-completed,
+body.dark-theme .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.6) !important;
+  color: #ffffff !important;
 }
 
-[data-theme="dark"] .trace-item-tag.tag-completed,
-[data-theme="dark"] .trace-item-tag.tag-agent,
-body.dark-theme .trace-item-tag.tag-completed,
-body.dark-theme .trace-item-tag.tag-agent {
+[data-theme="dark"] .trace-item-row.status-completed:not(.active) .trace-item-tag.tag-completed,
+[data-theme="dark"] .trace-item-row.status-completed:not(.active) .trace-item-tag.tag-agent,
+body.dark-theme .trace-item-row.status-completed:not(.active) .trace-item-tag.tag-completed,
+body.dark-theme .trace-item-row.status-completed:not(.active) .trace-item-tag.tag-agent {
   background: rgba(197, 212, 202, 0.15) !important;
   color: #C5D4CA !important;
   border-color: rgba(197, 212, 202, 0.35) !important;
 }
 
-/* =========================================================
-   STATE 1: TASK STARTED / WORKING — WARM YELLOW / AMBER
-   (Calm, steady indicator showing agent active before file changes)
-   ========================================================= */
-.trace-item-row.is-working,
-.trace-item-row.status-working {
-  background: #fefce8 !important;
-  border: 1px solid #eab308 !important;
-  box-shadow: 0 0 0 1px #eab308, 0 2px 8px -1px rgba(234, 179, 8, 0.2) !important;
+/* ---------------------------------------------------------
+   STATE 1: TASK STARTED / WORKING — WARM YELLOW / AMBER GRADIENT
+   --------------------------------------------------------- */
+/* Working Card: Inactive / Resting State */
+.trace-item-row.is-working:not(.active),
+.trace-item-row.status-working:not(.active) {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%) !important;
+  border: 1px solid #fde047 !important;
+  box-shadow: 0 1px 4px rgba(234, 179, 8, 0.15) !important;
   color: var(--text-primary) !important;
   animation: none !important;
 }
 
-.trace-item-row.is-working::before,
-.trace-item-row.status-working::before {
+.trace-item-row.is-working:not(.active)::before,
+.trace-item-row.status-working:not(.active)::before {
   display: none !important;
 }
 
-[data-theme="dark"] .trace-item-row.is-working,
-[data-theme="dark"] .trace-item-row.status-working,
-body.dark-theme .trace-item-row.is-working,
-body.dark-theme .trace-item-row.status-working {
-  background: rgba(234, 179, 8, 0.12) !important;
-  border-color: #d97706 !important;
-  box-shadow: 0 0 0 1px #d97706, 0 2px 8px -1px rgba(217, 119, 6, 0.25) !important;
-  color: #fef3c7 !important;
-}
-
-.trace-item-row.is-working .trace-item-time,
-.trace-item-row.status-working .trace-item-time {
+.trace-item-row.is-working:not(.active) .trace-item-time,
+.trace-item-row.status-working:not(.active) .trace-item-time {
   color: #92400e !important;
   font-weight: 500 !important;
 }
 
-.trace-item-row.is-working .trace-item-title,
-.trace-item-row.status-working .trace-item-title {
+.trace-item-row.is-working:not(.active) .trace-item-title,
+.trace-item-row.status-working:not(.active) .trace-item-title {
   color: #78350f !important;
   font-weight: 500 !important;
   font-size: 9.5px !important;
 }
 
-[data-theme="dark"] .trace-item-row.is-working .trace-item-title,
-[data-theme="dark"] .trace-item-row.status-working .trace-item-title,
-body.dark-theme .trace-item-row.is-working .trace-item-title,
-body.dark-theme .trace-item-row.status-working .trace-item-title {
-  color: #fef3c7 !important;
-}
-
-.trace-item-row.is-working .trace-item-files,
-.trace-item-row.status-working .trace-item-files {
+.trace-item-row.is-working:not(.active) .trace-item-files,
+.trace-item-row.status-working:not(.active) .trace-item-files {
   color: #92400e !important;
   font-weight: 400 !important;
 }
 
-.trace-item-tag.tag-working {
-  background: var(--yellow-100, #FEF9C3) !important;
-  color: var(--yellow-800, #854D0E) !important;
-  border: 1px solid var(--yellow-200, #FEF08A) !important;
-  font-weight: 500 !important;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.trace-item-row.is-working:not(.active) .trace-item-tag.tag-working,
+.trace-item-row.status-working:not(.active) .trace-item-tag.tag-working {
+  background: #fef3c7 !important;
+  color: #854d0e !important;
+  border: 1px solid #fde68a !important;
 }
 
-[data-theme="dark"] .trace-item-tag.tag-working {
-  background: rgba(245, 158, 11, 0.15) !important;
-  color: #fbbf24 !important;
-  border-color: rgba(245, 158, 11, 0.35) !important;
+.trace-item-row.is-working:not(.active) .trace-item-tag.tag-working .pill-amber-dot,
+.trace-item-row.status-working:not(.active) .trace-item-tag.tag-working .pill-amber-dot {
+  background: #f59e0b !important;
+  box-shadow: 0 0 4px #f59e0b !important;
 }
 
-.pill-amber-dot,
-.working-amber-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 4px #f59e0b;
-  flex-shrink: 0;
+.trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-dot,
+.trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-dot {
+  color: #d97706 !important;
 }
 
-.diff-pill-working {
+.trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-label,
+.trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-label {
+  color: #92400e !important;
+}
+
+.trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-name,
+.trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-name {
+  color: #78350f !important;
+  background: #ffffff !important;
+  border: 1px solid #fde68a !important;
+}
+
+.trace-item-row.is-working:not(.active) .diff-pill-working,
+.trace-item-row.status-working:not(.active) .diff-pill-working {
   color: #b45309;
   background: #fef3c7;
   border: 1px solid #fde68a;
@@ -963,44 +996,138 @@ body.dark-theme .trace-item-row.status-working .trace-item-title {
   font-weight: 500;
 }
 
-.trace-item-row.is-working .trace-item-active-file .active-file-dot,
-.trace-item-row.status-working .trace-item-active-file .active-file-dot {
-  color: #d97706 !important;
+/* Working Card: Selected / Active State — WARM GOLDEN AMBER GRADIENT */
+.trace-item-row.active.is-working,
+.trace-item-row.active.status-working {
+  animation: none !important;
+  background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 4px 16px -2px rgba(217, 119, 6, 0.5), 0 0 10px rgba(245, 158, 11, 0.25) !important;
+  color: #ffffff !important;
 }
 
-.trace-item-row.is-working .trace-item-active-file .active-file-label,
-.trace-item-row.status-working .trace-item-active-file .active-file-label {
-  color: #92400e !important;
+.trace-item-row.active.is-working::before,
+.trace-item-row.active.status-working::before {
+  display: none !important;
 }
 
-.trace-item-row.is-working .trace-item-active-file .active-file-name,
-.trace-item-row.status-working .trace-item-active-file .active-file-name {
-  color: #78350f !important;
-  background: #fef3c7 !important;
-  border: 1px solid #fde68a !important;
+.trace-item-row.active.is-working .trace-item-time,
+.trace-item-row.active.status-working .trace-item-time {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500 !important;
 }
 
-[data-theme="dark"] .trace-item-row.is-working .trace-item-active-file .active-file-dot,
-[data-theme="dark"] .trace-item-row.status-working .trace-item-active-file .active-file-dot,
-body.dark-theme .trace-item-row.is-working .trace-item-active-file .active-file-dot,
-body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-file-dot {
-  color: #fbbf24 !important;
+.trace-item-row.active.is-working .trace-item-title,
+.trace-item-row.active.status-working .trace-item-title {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  font-size: 9.5px !important;
 }
 
-[data-theme="dark"] .trace-item-row.is-working .trace-item-active-file .active-file-label,
-[data-theme="dark"] .trace-item-row.status-working .trace-item-active-file .active-file-label,
-body.dark-theme .trace-item-row.is-working .trace-item-active-file .active-file-label,
-body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-file-label {
+.trace-item-row.active.is-working .trace-item-files,
+.trace-item-row.active.status-working .trace-item-files {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 400 !important;
+}
+
+.trace-item-row.active.is-working .trace-item-tag.tag-working,
+.trace-item-row.active.status-working .trace-item-tag.tag-working {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  font-weight: 500 !important;
+}
+
+.trace-item-row.active.is-working .trace-item-tag.tag-working .pill-amber-dot,
+.trace-item-row.active.status-working .trace-item-tag.tag-working .pill-amber-dot {
+  background: #ffffff !important;
+  box-shadow: 0 0 5px #ffffff !important;
+}
+
+.trace-item-row.active.is-working .trace-item-active-file .active-file-dot,
+.trace-item-row.active.status-working .trace-item-active-file .active-file-dot {
+  color: #ffffff !important;
+}
+
+.trace-item-row.active.is-working .trace-item-active-file .active-file-label,
+.trace-item-row.active.status-working .trace-item-active-file .active-file-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.trace-item-row.active.is-working .trace-item-active-file .active-file-name,
+.trace-item-row.active.status-working .trace-item-active-file .active-file-name {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.trace-item-row.active.is-working .diff-pill-working,
+.trace-item-row.active.status-working .diff-pill-working {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 8.5px;
+  font-weight: 500;
+}
+
+/* Dark Mode Overrides for Working Cards */
+[data-theme="dark"] .trace-item-row.is-working:not(.active),
+[data-theme="dark"] .trace-item-row.status-working:not(.active),
+body.dark-theme .trace-item-row.is-working:not(.active),
+body.dark-theme .trace-item-row.status-working:not(.active) {
+  background: rgba(234, 179, 8, 0.12) !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 0 0 1px #d97706, 0 2px 8px -1px rgba(217, 119, 6, 0.25) !important;
   color: #fef3c7 !important;
 }
 
-[data-theme="dark"] .trace-item-row.is-working .trace-item-active-file .active-file-name,
-[data-theme="dark"] .trace-item-row.status-working .trace-item-active-file .active-file-name,
-body.dark-theme .trace-item-row.is-working .trace-item-active-file .active-file-name,
-body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-file-name {
+[data-theme="dark"] .trace-item-row.is-working:not(.active) .trace-item-title,
+[data-theme="dark"] .trace-item-row.status-working:not(.active) .trace-item-title,
+body.dark-theme .trace-item-row.is-working:not(.active) .trace-item-title,
+body.dark-theme .trace-item-row.status-working:not(.active) .trace-item-title {
+  color: #fef3c7 !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working:not(.active) .trace-item-time,
+[data-theme="dark"] .trace-item-row.status-working:not(.active) .trace-item-time,
+body.dark-theme .trace-item-row.is-working:not(.active) .trace-item-time,
+body.dark-theme .trace-item-row.status-working:not(.active) .trace-item-time {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-dot,
+[data-theme="dark"] .trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-dot,
+body.dark-theme .trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-dot,
+body.dark-theme .trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-dot {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-label,
+[data-theme="dark"] .trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-label,
+body.dark-theme .trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-label,
+body.dark-theme .trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-label {
+  color: #fef3c7 !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-name,
+[data-theme="dark"] .trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-name,
+body.dark-theme .trace-item-row.is-working:not(.active) .trace-item-active-file .active-file-name,
+body.dark-theme .trace-item-row.status-working:not(.active) .trace-item-active-file .active-file-name {
   color: #fbbf24 !important;
   background: rgba(245, 158, 11, 0.2) !important;
   border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.is-working,
+[data-theme="dark"] .trace-item-row.active.status-working,
+body.dark-theme .trace-item-row.active.is-working,
+body.dark-theme .trace-item-row.active.status-working {
+  background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #d97706 100%) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 16px -2px rgba(217, 119, 6, 0.6) !important;
+  color: #ffffff !important;
 }
 
 /* =========================================================
@@ -1008,7 +1135,11 @@ body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-f
    (Triggers when agent writes/mutates files in real time)
    ========================================================= */
 .trace-item-row.is-changing,
-.trace-item-row.status-changing {
+.trace-item-row.status-changing,
+.trace-item-row.is-editing,
+.trace-item-row.status-editing,
+.trace-item-row.active.is-changing,
+.trace-item-row.active.is-editing {
   background: linear-gradient(125deg, #14532d 0%, #16a34a 25%, #4ade80 50%, #22c55e 75%, #15803d 100%) !important;
   background-size: 260% 260% !important;
   animation: liveWorkingMesh 3.2s ease infinite, liveWorkingPulse 2s ease-in-out infinite !important;
@@ -1021,7 +1152,11 @@ body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-f
 
 /* Moving Light Beam Ray Across The Changing Card */
 .trace-item-row.is-changing::before,
-.trace-item-row.status-changing::before {
+.trace-item-row.status-changing::before,
+.trace-item-row.is-editing::before,
+.trace-item-row.status-editing::before,
+.trace-item-row.active.is-changing::before,
+.trace-item-row.active.is-editing::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1054,21 +1189,33 @@ body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-f
 }
 
 .trace-item-row.is-changing .trace-item-time,
-.trace-item-row.status-changing .trace-item-time {
+.trace-item-row.status-changing .trace-item-time,
+.trace-item-row.is-editing .trace-item-time,
+.trace-item-row.status-editing .trace-item-time,
+.trace-item-row.active.is-changing .trace-item-time,
+.trace-item-row.active.is-editing .trace-item-time {
   color: rgba(255, 255, 255, 0.9) !important;
   font-weight: 400 !important;
 }
 
 .trace-item-row.is-changing .trace-item-title,
-.trace-item-row.status-changing .trace-item-title {
+.trace-item-row.status-changing .trace-item-title,
+.trace-item-row.is-editing .trace-item-title,
+.trace-item-row.status-editing .trace-item-title,
+.trace-item-row.active.is-changing .trace-item-title,
+.trace-item-row.active.is-editing .trace-item-title {
   color: #ffffff !important;
-  font-weight: 400 !important;
+  font-weight: 500 !important;
   font-size: 9.5px !important;
   line-height: 1.25;
 }
 
 .trace-item-row.is-changing .trace-item-files,
-.trace-item-row.status-changing .trace-item-files {
+.trace-item-row.status-changing .trace-item-files,
+.trace-item-row.is-editing .trace-item-files,
+.trace-item-row.status-editing .trace-item-files,
+.trace-item-row.active.is-changing .trace-item-files,
+.trace-item-row.active.is-editing .trace-item-files {
   color: rgba(255, 255, 255, 0.9) !important;
   font-weight: 400 !important;
 }
