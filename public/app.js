@@ -614,9 +614,9 @@
       let activeItem = traces.find(t => t.id === 'trace-live-active' || t.inProgress);
       if (activeItem) {
         // Dynamic in-place mutation of the existing trace card!
-        activeItem.substatus = isChanging ? 'changing' : 'working';
+        activeItem.substatus = isChanging ? 'editing' : 'working';
         activeItem.changing = isChanging;
-        activeItem.changeType = isChanging ? 'CHANGING' : 'WORKING';
+        activeItem.changeType = isChanging ? 'EDITING' : 'WORKING';
         if (data.task) activeItem.title = data.task;
         if (activeFile) {
           activeItem.activeFile = activeFile;
@@ -637,7 +637,7 @@
           id: 'trace-live-active',
           inProgress: true,
           status: 'in_progress',
-          substatus: isChanging ? 'changing' : 'working',
+          substatus: isChanging ? 'editing' : 'working',
           changing: isChanging,
           title: activeTaskName,
           timestamp: formatTraceTime(latestProtocol?.started_at || new Date().toISOString()),
@@ -650,7 +650,7 @@
           }],
           additions: 0,
           deletions: 0,
-          changeType: isChanging ? 'CHANGING' : 'WORKING',
+          changeType: isChanging ? 'EDITING' : 'WORKING',
           agentProtocol: latestProtocol
         };
         traces.unshift(activeItem);
@@ -885,19 +885,19 @@
           </div>
         `;
       } else if (isChanging) {
-        // STATE 2: FILES MUTATING / CHANGING (LIVING ANIMATED GRADIENT MESH)
-        rowItem.className = `trace-item-row in-progress is-changing status-changing ${trace.id === selectedTraceId ? 'active' : ''}`;
+        // STATE 2: FILES MUTATING / EDITING (LIVING ANIMATED GRADIENT MESH)
+        rowItem.className = `trace-item-row in-progress is-changing is-editing status-changing status-editing ${trace.id === selectedTraceId ? 'active' : ''}`;
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
-            <span class="trace-item-tag tag-changing">
-              <span class="live-dot-pulse"></span> CHANGING
+            <span class="trace-item-tag tag-changing tag-editing">
+              <span class="live-dot-pulse"></span> EDITING
             </span>
           </div>
           <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
           <div class="trace-item-active-file" title="${escapeHtml(activeFileName)}">
             <span class="active-file-dot"></span>
-            <span class="active-file-label">Changing:</span>
+            <span class="active-file-label">Editing:</span>
             <code class="active-file-name">${escapeHtml(activeFileName)}</code>
           </div>
           <div class="trace-item-footer">
@@ -909,32 +909,12 @@
           <div class="trace-progress-line-track"><div class="trace-progress-line-bar"></div></div>
         `;
       } else {
-        // STATE 3: TASK COMPLETED (SAPPHIRE BLUE, CRISP, PERMANENT)
-        let tagLabel = 'COMPLETED';
-        let tagClass = 'tag-completed';
-        let statusType = 'completed';
+        // STATE 3: TASK COMPLETED (CLEAN ELEVATED CARD, PERMANENT)
+        // All completed traces MUST have the COMPLETED tag (never ARCHITECTURAL or category labels)
+        const tagLabel = 'COMPLETED';
+        const tagClass = 'tag-completed';
 
-        if (trace.changeType && !trace.changeType.toLowerCase().includes('mutation')) {
-          const ct = trace.changeType.toLowerCase();
-          if (ct.includes('architectural') || ct.includes('refactor')) {
-            statusType = 'architectural';
-            tagClass = 'tag-architectural';
-          } else {
-            statusType = 'completed';
-            tagClass = 'tag-completed';
-          }
-          tagLabel = trace.changeType.toUpperCase().replace(/\s*\(.*\)/, '').slice(0, 14);
-        } else if (isAgentTask) {
-          tagLabel = 'COMPLETED';
-          tagClass = 'tag-completed';
-          statusType = 'completed';
-        } else {
-          statusType = 'completed';
-          tagClass = 'tag-completed';
-          tagLabel = 'COMPLETED';
-        }
-
-        rowItem.className = `trace-item-row status-completed status-${statusType} ${trace.id === selectedTraceId ? 'active' : ''}`;
+        rowItem.className = `trace-item-row status-completed ${trace.id === selectedTraceId ? 'active' : ''}`;
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
@@ -1023,12 +1003,11 @@
         middleAgentBadge.className = 'middle-meta-badge tag-working';
         middleAgentBadge.innerHTML = '<span class="pill-amber-dot"></span> Working';
       } else if (isChanging) {
-        middleAgentBadge.className = 'middle-meta-badge tag-changing';
-        middleAgentBadge.innerHTML = '<span class="live-dot-pulse"></span> Changing Files';
+        middleAgentBadge.className = 'middle-meta-badge tag-changing tag-editing';
+        middleAgentBadge.innerHTML = '<span class="live-dot-pulse"></span> Editing Files';
       } else {
-        const isAgent = Boolean(trace.agentProtocol?.task);
         middleAgentBadge.className = 'middle-meta-badge tag-completed';
-        middleAgentBadge.textContent = isAgent ? 'Completed Task' : (trace.changeType || 'Code Change');
+        middleAgentBadge.textContent = 'Completed Task';
       }
     }
 

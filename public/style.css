@@ -798,9 +798,9 @@ body.dark-theme .pill-btn.action-btn:hover {
 
 .trace-item-tag.tag-completed,
 .trace-item-tag.tag-agent {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-  border: 1px solid #bfdbfe !important;
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0 !important;
   font-weight: 500 !important;
 }
 
@@ -822,10 +822,12 @@ body.dark-theme .trace-item-row.active.status-completed {
 }
 
 [data-theme="dark"] .trace-item-tag.tag-completed,
-[data-theme="dark"] .trace-item-tag.tag-agent {
-  background: rgba(37, 99, 235, 0.15) !important;
-  color: #93c5fd !important;
-  border-color: rgba(37, 99, 235, 0.35) !important;
+[data-theme="dark"] .trace-item-tag.tag-agent,
+body.dark-theme .trace-item-tag.tag-completed,
+body.dark-theme .trace-item-tag.tag-agent {
+  background: rgba(197, 212, 202, 0.15) !important;
+  color: #C5D4CA !important;
+  border-color: rgba(197, 212, 202, 0.35) !important;
 }
 
 /* =========================================================
@@ -1030,7 +1032,8 @@ body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-f
   font-weight: 400 !important;
 }
 
-.trace-item-tag.tag-changing {
+.trace-item-tag.tag-changing,
+.trace-item-tag.tag-editing {
   background: rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -1054,8 +1057,9 @@ body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-f
   50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px #ffffff; }
 }
 
-/* Changing Trace When NOT Actively Selected: Light Soft Surface (No solid dark green) */
-.trace-item-row.is-changing:not(.active) {
+/* Changing / Editing Trace When NOT Actively Selected: Light Soft Surface (No solid dark green) */
+.trace-item-row.is-changing:not(.active),
+.trace-item-row.is-editing:not(.active) {
   background: #f0fdf4 !important;
   border: 1.5px solid #22c55e !important;
   box-shadow: 0 1px 4px rgba(34, 197, 94, 0.15) !important;
@@ -1063,25 +1067,31 @@ body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-f
   animation: none !important;
 }
 
-.trace-item-row.is-changing:not(.active)::before {
+.trace-item-row.is-changing:not(.active)::before,
+.trace-item-row.is-editing:not(.active)::before {
   display: none !important;
 }
 
-.trace-item-row.is-changing:not(.active) .trace-item-time {
+.trace-item-row.is-changing:not(.active) .trace-item-time,
+.trace-item-row.is-editing:not(.active) .trace-item-time {
   color: #15803d !important;
 }
 
-.trace-item-row.is-changing:not(.active) .trace-item-title {
+.trace-item-row.is-changing:not(.active) .trace-item-title,
+.trace-item-row.is-editing:not(.active) .trace-item-title {
   color: #166534 !important;
 }
 
-.trace-item-row.is-changing:not(.active) .trace-item-tag.tag-changing {
+.trace-item-row.is-changing:not(.active) .trace-item-tag.tag-changing,
+.trace-item-row.is-changing:not(.active) .trace-item-tag.tag-editing,
+.trace-item-row.is-editing:not(.active) .trace-item-tag.tag-editing {
   background: #dcfce7 !important;
   color: #15803d !important;
   border-color: #86efac !important;
 }
 
-.trace-item-row.is-changing:not(.active) .live-dot-pulse {
+.trace-item-row.is-changing:not(.active) .live-dot-pulse,
+.trace-item-row.is-editing:not(.active) .live-dot-pulse {
   background: #16a34a !important;
   box-shadow: 0 0 6px #16a34a !important;
 }
@@ -1268,7 +1278,8 @@ body.dark-theme .middle-meta-badge.tag-working {
   border-color: rgba(245, 158, 11, 0.35);
 }
 
-.middle-meta-badge.tag-changing {
+.middle-meta-badge.tag-changing,
+.middle-meta-badge.tag-editing {
   background: #dcfce7;
   color: #15803d;
   border-color: #86efac;
@@ -1276,24 +1287,26 @@ body.dark-theme .middle-meta-badge.tag-working {
 }
 
 [data-theme="dark"] .middle-meta-badge.tag-changing,
-body.dark-theme .middle-meta-badge.tag-changing {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-  border-color: rgba(34, 197, 94, 0.35);
+[data-theme="dark"] .middle-meta-badge.tag-editing,
+body.dark-theme .middle-meta-badge.tag-changing,
+body.dark-theme .middle-meta-badge.tag-editing {
+  background: rgba(197, 212, 202, 0.15);
+  color: #C5D4CA;
+  border-color: rgba(197, 212, 202, 0.35);
 }
 
 .middle-meta-badge.tag-completed {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
   font-weight: 500;
 }
 
 [data-theme="dark"] .middle-meta-badge.tag-completed,
 body.dark-theme .middle-meta-badge.tag-completed {
-  background: rgba(37, 99, 235, 0.15);
-  color: #93c5fd;
-  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(197, 212, 202, 0.15);
+  color: #C5D4CA;
+  border-color: rgba(197, 212, 202, 0.35);
 }
 
 .middle-actions-row {
