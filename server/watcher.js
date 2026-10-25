@@ -238,6 +238,13 @@ class WorkspaceWatcher {
         message: `Agent modifying ${activeFileName} (${this.pendingChangedFiles.size} in batch)${taskLabel}...`
       });
 
+      sse.broadcast({
+        type: 'log',
+        category: 'mutation',
+        level: 'editing',
+        message: `Observed modification in ${relPath} (${this.pendingChangedFiles.size} files in batch)`
+      });
+
       // Clear existing sliding timer
       clearTimeout(this.debounceTimer);
 
@@ -407,6 +414,13 @@ class WorkspaceWatcher {
         task: analysis.agentProtocol?.task || analysis.title,
         traceId: analysis.id,
         message: `Trace Created: ${analysis.agentProtocol?.task || analysis.title}`
+      });
+
+      sse.broadcast({
+        type: 'log',
+        category: 'trace',
+        level: 'success',
+        message: `Trace captured: "${analysis.agentProtocol?.task || analysis.title}" (+${analysis.additions} / -${analysis.deletions}) — Saved to SQLite`
       });
     } catch (err) {
       console.error('[VibeTrace Watcher Error in processBatch]:', err);

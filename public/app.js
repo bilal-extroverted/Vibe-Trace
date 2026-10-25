@@ -130,10 +130,18 @@
   const rightMetaAdd = document.getElementById('right-meta-add');
   const rightMetaDel = document.getElementById('right-meta-del');
 
-  // Footer Status & Ticker
+  // Footer Status & Activity Logs Drawer
   const footerLeftStatus = document.getElementById('footer-left-status') || document.querySelector('.footer-left');
   const footerStatusLabel = document.getElementById('footer-status-label');
+  const footerTickerContainer = document.getElementById('footer-ticker-container');
   const footerTickerMsg = document.getElementById('footer-ticker-msg');
+  const btnToggleLogsDrawer = document.getElementById('btn-toggle-logs-drawer');
+  const logsCountBadge = document.getElementById('logs-count-badge');
+  const logsDrawer = document.getElementById('logs-drawer');
+  const logsDrawerBody = document.getElementById('logs-drawer-body');
+  const btnClearLogs = document.getElementById('btn-clear-logs');
+  const btnCloseLogsDrawer = document.getElementById('btn-close-logs-drawer');
+  const liveLogs = [];
 
   // Resizers
   const resizerLeft = document.getElementById('resizer-left');
@@ -301,10 +309,16 @@
               populateRightPane(targetTrace);
             }
           }
+        } else if (payload.type === 'log') {
+          logTicker(payload.message, payload.category || 'SERVER', payload.level || 'info');
         }
       } catch (err) {
         console.error('SSE Error:', err);
       }
+    };
+
+    evtSource.onopen = function () {
+      logTicker('SSE telemetry stream connected (live bidirectional link)', 'SSE', 'success');
     };
 
     evtSource.onerror = function () {
@@ -768,13 +782,26 @@
     }
   }
 
-  // 5. Status Management
+  // 5. Status & Observability Logs Management
   function setTopBarStatus(type, badgeText, detailText) {
     if (footerLeftStatus) {
       footerLeftStatus.className = `footer-left status-${type}`;
     }
     if (footerStatusLabel) {
       footerStatusLabel.textContent = badgeText;
+    }
+    if (detailText) {
+      const catMap = {
+        working: 'AGENT',
+        writing: 'MUTATION',
+        editing: 'MUTATION',
+        analyzing: 'AI',
+        completed: 'TRACE',
+        difference: 'DRIFT',
+        diverged: 'DRIFT',
+        idle: 'HARNESS'
+      };
+      logTicker(detailText, catMap[type] || 'STATUS', type);
     }
   }
 
@@ -784,8 +811,11 @@
     const isWorking = status === 'working' || data.substatus === 'working';
 
     if (isWorking || isChanging) {
-      setTopBarStatus('working', isChanging ? 'AGENT WRITING' : 'AGENT WORKING', data.task || data.message || (isChanging ? 'Modifying codebase...' : 'Working on task...'));
-      logTicker(data.message || (isChanging ? 'Agent writing files...' : 'Agent working on task...'));
+      const statusType = isChanging ? 'writing' : 'working';
+      const label = isChanging ? 'EDITING FILES' : 'AGENT WORKING';
+      const msg = data.message || (isChanging ? `Agent modifying ${data.active_file || data.lastFile || 'files'}...` : `Agent working on task: ${data.task || ''}`);
+      setTopBarStatus(statusType, label, msg);
+
       const activeFile = data.active_file || data.lastFile || 'vibetrace.md';
       if (rightActiveFilePath) rightActiveFilePath.textContent = activeFile;
       if (data.file_action && rightFileActionDesc) rightFileActionDesc.textContent = data.file_action;
@@ -847,24 +877,72 @@
       // ALWAYS automatically select the active in-progress trace
       selectTrace(activeItem.id);
     } else if (status === 'completed') {
-      setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
-      logTicker(`Task Completed: ${data.task || ''}`);
+      setTopBarStatus('completed', 'TASK COMPLETED', `Task completed: ${data.task || 'Agent signaled task completion'}`);
     } else if (status === 'analyzing') {
-      setTopBarStatus('analyzing', 'AI SYNTHESIZING', 'OpenRouter model analyzing code impact...');
-      logTicker(data.message || 'Validating syntax & synthesizing impact...');
+      setTopBarStatus('analyzing', 'AI SYNTHESIZING', data.message || 'OpenRouter model evaluating prompt-to-output alignment & impact...');
     } else if (status === 'trace_created') {
-      setTopBarStatus('completed', 'TRACE CREATED', data.task || 'Trace saved to SQLite');
-      logTicker(`Trace saved to SQLite: ${data.task || ''}`);
+      setTopBarStatus('completed', 'TRACE CAPTURED', data.message || `Trace saved to SQLite: ${data.task || ''}`);
+    } else if (status === 'difference' || status === 'diverged') {
+      setTopBarStatus('difference', 'DIFFERENCE DETECTED', data.message || 'Prompt-output divergence observed.');
     } else if (status === 'idle') {
-      setTopBarStatus('idle', 'HARNESS READY', 'Standing by for agent task');
-      logTicker(data.message || 'Watching local repository...');
+      setTopBarStatus('idle', 'HARNESS ACTIVE', data.message || 'Harness active — standing by for coding agent activity');
     }
   }
 
-  function logTicker(msg) {
+  function logTicker(msg, category = 'SYSTEM', level = 'info') {
+    if (!msg) return;
+    const time = new Date().toLocaleTimeString();
+
+    // 1. Update footer ticker text
     if (footerTickerMsg) {
-      const time = new Date().toLocaleTimeString();
       footerTickerMsg.textContent = `[${time}] ${msg}`;
+      footerTickerMsg.title = `[${time}] ${msg}`;
+    }
+
+    // 2. Add to liveLogs store
+    const entry = {
+      id: Date.now() + Math.random(),
+      time,
+      category: String(category).toLowerCase(),
+      level: String(level).toLowerCase(),
+      msg
+    };
+    liveLogs.push(entry);
+
+    if (liveLogs.length > 250) liveLogs.shift();
+
+    // 3. Update count badge
+    if (logsCountBadge) {
+      logsCountBadge.textContent = liveLogs.length;
+    }
+
+    // 4. Append to logs drawer DOM
+    if (logsDrawerBody) {
+      const row = document.createElement('div');
+      row.className = `log-entry-row level-${entry.level}`;
+      const catClass = `cat-${entry.category.replace(/[^a-z0-9]/g, '')}`;
+      row.innerHTML = `
+        <span class="log-time">[${entry.time}]</span>
+        <span class="log-cat-pill ${catClass}">${escapeHtml(entry.category)}</span>
+        <span class="log-msg">${escapeHtml(entry.msg)}</span>
+      `;
+      logsDrawerBody.appendChild(row);
+
+      // Auto-scroll to bottom
+      logsDrawerBody.scrollTop = logsDrawerBody.scrollHeight;
+    }
+  }
+
+  function toggleLogsDrawer() {
+    if (!logsDrawer) return;
+    const isHidden = logsDrawer.classList.contains('hidden');
+    if (isHidden) {
+      logsDrawer.classList.remove('hidden');
+      logsDrawer.setAttribute('aria-hidden', 'false');
+      if (logsDrawerBody) logsDrawerBody.scrollTop = logsDrawerBody.scrollHeight;
+    } else {
+      logsDrawer.classList.add('hidden');
+      logsDrawer.setAttribute('aria-hidden', 'true');
     }
   }
 
@@ -1274,8 +1352,31 @@
     // Render syntax diffs in Middle Pane
     renderDiffsContent(trace);
 
-    // Populate Right Pane (Dual Isolated Summaries & Impact Visualization)
+    // Populate Right Pane (Dual Isolated Perspectives & Visual Impact)
     populateRightPane(trace);
+
+    // Update footer status & activity ticker to reflect the selected trace
+    if (trace.inProgress) {
+      const isChanging = Boolean(trace.changing || trace.substatus === 'changing');
+      const stType = isChanging ? 'writing' : 'working';
+      const stLabel = isChanging ? 'EDITING FILES' : 'AGENT WORKING';
+      const stMsg = isChanging
+        ? `Live Agent: Modifying ${trace.activeFile || 'files'} for task: "${trace.title}"`
+        : `Live Agent: Working on task: "${trace.title}"`;
+      setTopBarStatus(stType, stLabel, stMsg);
+    } else {
+      const hasDiff = Boolean(
+        trace.driftAnalysis?.hasDifference ||
+        trace.driftAnalysis?.hasSignificantIssue ||
+        trace.status === 'diverged' ||
+        trace.status === 'difference'
+      );
+      if (hasDiff) {
+        setTopBarStatus('difference', 'DIFFERENCE DETECTED', `Selected Trace: Divergence observed on "${trace.agentProtocol?.task || trace.title}"`);
+      } else {
+        setTopBarStatus('completed', 'TRACE CAPTURED', `Selected Trace: "${trace.agentProtocol?.task || trace.title}" (+${trace.additions || 0} / -${trace.deletions || 0})`);
+      }
+    }
   }
 
   // 11. Render File Tabs in Middle Pane
@@ -2055,6 +2156,12 @@
         const orig = btnCopyMermaid.textContent;
         btnCopyMermaid.textContent = 'Copied!';
         setTimeout(() => { btnCopyMermaid.textContent = orig; }, 1500);
+      } catch (e) {
+        console.warn('Failed to copy mermaid code:', e);
+      }
+    });
+  }
+
   // Agent Prompt Entry Composer Form
   const formAgentPrompt = document.getElementById('form-agent-prompt');
   const agentPromptInput = document.getElementById('agent-prompt-input');
@@ -2107,10 +2214,35 @@
     });
   }
 
+  // Logs Drawer Event Listeners
+  if (btnToggleLogsDrawer) {
+    btnToggleLogsDrawer.addEventListener('click', toggleLogsDrawer);
+  }
+  if (footerTickerContainer) {
+    footerTickerContainer.addEventListener('click', toggleLogsDrawer);
+  }
+  if (btnCloseLogsDrawer) {
+    btnCloseLogsDrawer.addEventListener('click', () => {
+      if (logsDrawer) {
+        logsDrawer.classList.add('hidden');
+        logsDrawer.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+  if (btnClearLogs) {
+    btnClearLogs.addEventListener('click', () => {
+      liveLogs.length = 0;
+      if (logsDrawerBody) logsDrawerBody.innerHTML = '';
+      if (logsCountBadge) logsCountBadge.textContent = '0';
+      logTicker('Live activity logs cleared', 'SYSTEM', 'info');
+    });
+  }
+
   // Initialize
   initResizers();
   initTheme();
   initAgentPromptComposer();
+  logTicker('VibeTrace Observability Harness active — monitoring workspace mutations', 'HARNESS', 'info');
   fetchStatus();
   fetchTraces();
   initSSE();

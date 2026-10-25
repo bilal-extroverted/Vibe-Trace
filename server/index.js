@@ -280,6 +280,13 @@ app.post('/api/analyze-drift', async (req, res) => {
       driftAnalysis
     });
 
+    sse.broadcast({
+      type: 'log',
+      category: 'drift',
+      level: 'info',
+      message: `Drift Guard re-audited trace: Score ${driftAnalysis.alignmentScore}%, Risk: ${driftAnalysis.riskLevel}`
+    });
+
     res.json({ success: true, traceId: trace.id, driftAnalysis });
   } catch (err) {
     console.error('[API /api/analyze-drift] Error:', err);
@@ -354,6 +361,13 @@ updated_at: "${nowIso}"
       active_file: 'vibetrace.md',
       file_action: 'Task initiated from user prompt',
       message: `Prompt accepted: ${cleanPrompt}`
+    });
+
+    sse.broadcast({
+      type: 'log',
+      category: 'prompt',
+      level: 'working',
+      message: `Prompt accepted: "${cleanPrompt}" -> Active task created`
     });
 
     res.json({
