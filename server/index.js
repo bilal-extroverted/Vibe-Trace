@@ -400,18 +400,37 @@ updated_at: "${nowIso}"
   }
 });
 
+// Global process resilience handlers
+process.on('uncaughtException', (err) => {
+  console.error('[VibeTrace Server UncaughtException]', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[VibeTrace Server UnhandledRejection]', reason);
+});
+
 // Start watcher on startup
 watcher.start(WATCH_DIR, recordEvent);
 
+// Keep event loop active
+if (process.stdin.isTTY === false) {
+  try {
+    process.stdin.resume();
+  } catch (e) {}
+}
+
 // Start server
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`\n=================================================`);
     console.log(`  VibeTrace AI Observability Online`);
     console.log(`  Web Dashboard:  http://localhost:${PORT}`);
     console.log(`  Live Watching:  ${WATCH_DIR}`);
     console.log(`  Persistent DB:  ${path.resolve(__dirname, '../vibetrace.db')}`);
     console.log(`=================================================\n`);
+  });
+
+  server.on('error', (err) => {
+    console.error('[VibeTrace Server Listen Error]', err);
   });
 }
 
