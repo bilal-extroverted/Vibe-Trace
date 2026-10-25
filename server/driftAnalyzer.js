@@ -199,7 +199,7 @@ function runHeuristicDriftAudit(prompt, diffs = [], agentProtocol = {}) {
   if (!hasDifference) {
     return {
       hasDifference: false,
-      alignmentScore: 98,
+      alignmentScore: 100,
       riskLevel: 'LOW',
       hasSignificantIssue: false,
       alertLevel: 'NONE',

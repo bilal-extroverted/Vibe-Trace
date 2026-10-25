@@ -496,14 +496,14 @@
     // Fallback if driftData is missing or not yet generated
     const drift = driftData || {
       hasDifference: false,
-      alignmentScore: 98,
+      alignmentScore: 100,
       riskLevel: 'LOW',
       hasSignificantIssue: false,
       alertLevel: 'NONE',
       alertTitle: '',
       alertMessage: 'Output is faithfully aligned with user prompt.',
       promptIntent: promptText,
-      actualExecution: `Applied modifications across ${trace?.files?.length || 1} file(s).`,
+      actualExecution: `Applied focused modifications across ${trace?.files?.length || 1} file(s) with intact constraints.`,
       differenceAnalysis: 'The executed code accurately addresses the declared prompt intent. Systemic boundaries maintained.',
       discrepancies: [],
       unrequestedChanges: [],
@@ -540,10 +540,15 @@
       driftRiskBadge.textContent = `${risk} RISK`;
     }
 
-    // Significant Issue Alert Banner
+    // Significant Issue Alert Banner — STRICT COLOR ACCURACY (Zero Red on Aligned)
     if (driftAlertBanner) {
+      const beacon = document.getElementById('drift-alert-beacon');
       if (drift.hasSignificantIssue || drift.riskLevel === 'HIGH' || drift.riskLevel === 'CRITICAL') {
         driftAlertBanner.className = 'drift-alert-banner alert-critical';
+        if (beacon) {
+          beacon.className = 'alert-pulse-beacon beacon-critical';
+          beacon.innerHTML = '';
+        }
         if (driftAlertTitle) driftAlertTitle.textContent = drift.alertTitle || 'SIGNIFICANT DIVERGENCE DETECTED';
         if (driftAlertTag) driftAlertTag.textContent = `${(drift.riskLevel || 'CRITICAL').toUpperCase()} ALERT`;
         if (driftAlertMessage) {
@@ -551,14 +556,28 @@
         }
       } else if (drift.hasDifference) {
         driftAlertBanner.className = 'drift-alert-banner alert-warning';
+        if (beacon) {
+          beacon.className = 'alert-pulse-beacon beacon-warning';
+          beacon.innerHTML = '<svg class="ui-icon" style="width:10px;height:10px;color:#d97706;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+        }
         if (driftAlertTitle) driftAlertTitle.textContent = drift.alertTitle || 'Scope Discrepancy Observed';
         if (driftAlertTag) driftAlertTag.textContent = 'NOTICE';
         if (driftAlertMessage) driftAlertMessage.textContent = drift.alertMessage || 'Minor variance between prompt and output.';
       } else {
         driftAlertBanner.className = 'drift-alert-banner alert-success';
+        if (beacon) {
+          beacon.className = 'alert-pulse-beacon beacon-success';
+          beacon.innerHTML = '<svg class="ui-icon" style="width:10px;height:10px;color:#16a34a;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+        }
         if (driftAlertTitle) driftAlertTitle.textContent = 'PROMPT & OUTPUT FULLY ALIGNED';
         if (driftAlertTag) driftAlertTag.textContent = 'VERIFIED';
         if (driftAlertMessage) driftAlertMessage.textContent = 'No unrequested modifications or discrepancies detected. Code strictly matches declared prompt.';
+
+        // Reconcile Middle Pane Impact Risk to avoid false "HIGH RISK" alarm
+        if (middleImpactRisk) {
+          middleImpactRisk.className = 'impact-risk-chip risk-low';
+          middleImpactRisk.textContent = 'LOW RISK';
+        }
       }
     }
 
@@ -583,7 +602,7 @@
       driftDifferenceText.textContent = drift.differenceAnalysis || 'Output aligns with declared requirements.';
     }
 
-    // Discrepancies List (Contextual colors: green check for clean, red bullet for discrepancy)
+    // Discrepancies List (Contextual icons: Green SVG check for clean, bold Red bullet for true discrepancy)
     if (driftDiscrepanciesList) {
       driftDiscrepanciesList.innerHTML = '';
       const items = [];
@@ -600,13 +619,13 @@
       if (items.length === 0) {
         const li = document.createElement('li');
         li.className = 'item-clean';
-        li.textContent = 'No unrequested deviations or missing requirements detected.';
+        li.innerHTML = '<svg class="ui-icon" style="width:12px;height:12px;color:#16a34a;flex-shrink:0;margin-top:2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>No unrequested deviations or missing requirements detected.</span>';
         driftDiscrepanciesList.appendChild(li);
       } else {
         items.forEach(item => {
           const li = document.createElement('li');
           li.className = 'item-discrepancy';
-          li.textContent = item;
+          li.innerHTML = '<span class="discrepancy-bullet">•</span><span>' + escapeHtml(item) + '</span>';
           driftDiscrepanciesList.appendChild(li);
         });
       }
@@ -625,7 +644,7 @@
       driftRiskText.textContent = drift.riskAssessment || 'Systemic boundaries consistent.';
     }
 
-    // Remedy (Only display when there is a divergence to remedy)
+    // Remedy (Only display when there is a true divergence to remedy)
     const driftRemedyBlock = document.getElementById('drift-remedy-block');
     if (driftRemedyBlock) {
       if (drift.hasDifference && drift.suggestedRemedy) {
@@ -1217,7 +1236,11 @@
       middleTraceImpactBanner.style.display = 'block';
     }
     if (middleImpactRisk) {
-      const risk = (synth.riskLevel || 'LOW').toUpperCase();
+      // Harmonize risk with driftAnalysis to prevent contradictory risk alarms across panes
+      const drift = trace.driftAnalysis;
+      const risk = (drift && !drift.hasDifference && drift.riskLevel === 'LOW')
+        ? 'LOW'
+        : ((drift && drift.riskLevel) ? drift.riskLevel : (synth.riskLevel || 'LOW')).toUpperCase();
       middleImpactRisk.className = `impact-risk-chip risk-${risk.toLowerCase()}`;
       middleImpactRisk.textContent = `${risk} RISK`;
     }
