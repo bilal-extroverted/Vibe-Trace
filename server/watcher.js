@@ -24,14 +24,31 @@ class WorkspaceWatcher {
 
   ensureActiveTrace(proto = null, changedFile = null, isChanging = false) {
     if (!proto) proto = protocol.read(this.watchDir);
-    const activeFile = proto.active_file || proto.current_file || changedFile || (this.pendingChangedFiles.size > 0 ? Array.from(this.pendingChangedFiles)[0] : 'vibetrace.md');
-    const fileAction = proto.file_action || proto.current_action || (changedFile ? `Modifying ${changedFile}` : 'Executing task steps...');
+    const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
+
+    // If protocol is completed or idle and no files are actively changing, activeTrace must be null!
+    if (!isProtoActive && !isChanging) {
+      if (this.activeTrace) {
+        this.activeTrace = null;
+        sse.broadcast({
+          type: 'trace_completed',
+          id: 'trace-live-active'
+        });
+      }
+      return null;
+    }
+
+    // Ground truth: actively modified file takes precedence over stale protocol metadata
+    const activeFile = changedFile || (this.pendingChangedFiles.size > 0 ? Array.from(this.pendingChangedFiles)[0] : (proto.active_file || 'vibetrace.md'));
+    const fileAction = (changedFile ? `Modifying ${changedFile}` : null) || proto.file_action || proto.current_action || 'Executing task steps...';
     const fileSummary = proto.file_summary || proto.intent || proto.task || 'Active modifications underway';
 
     const files = Array.from(new Set([activeFile, ...Array.from(this.pendingChangedFiles)])).filter(Boolean);
 
+    let taskTitle = (isProtoActive ? (proto.task || proto.intent) : null) || `Modifying ${activeFile}`;
+
     let formattedTime = new Date().toTimeString().slice(0, 8);
-    if (proto.started_at) {
+    if (isProtoActive && proto.started_at) {
       try {
         const d = new Date(proto.started_at);
         if (!isNaN(d.getTime())) {
@@ -52,7 +69,7 @@ class WorkspaceWatcher {
       status: 'in_progress',
       substatus: isChanging ? 'changing' : 'working',
       changing: isChanging,
-      title: proto.task || proto.intent || 'Active Agent Task',
+      title: taskTitle,
       timestamp: formattedTime,
       activeFile: activeFile,
       fileAction: fileAction,
@@ -64,14 +81,15 @@ class WorkspaceWatcher {
       changeType: isChanging ? 'CHANGING' : 'WORKING',
       agentProtocol: {
         ...proto,
+        task: taskTitle,
         active_file: activeFile,
         file_action: fileAction,
         file_summary: fileSummary,
-        intent: proto.intent || proto.task || 'Active task'
+        intent: proto.intent || taskTitle
       },
       synthesis: {
         overview: fileSummary,
-        summary: isChanging ? `Agent is actively modifying ${activeFile}: ${fileAction}` : `Agent working on task: ${proto.task || proto.intent}`,
+        summary: isChanging ? `Agent is actively modifying ${activeFile}: ${fileAction}` : `Agent working on task: ${taskTitle}`,
         riskLevel: 'LOW',
         whatChanged: [
           `Active File: ${activeFile}`,
@@ -99,7 +117,7 @@ class WorkspaceWatcher {
         alertLevel: 'NONE',
         alertTitle: '',
         alertMessage: isChanging ? 'Live file modifications aligned with declared task.' : 'Task initialized in alignment with declared prompt.',
-        promptIntent: proto.task || proto.intent || 'Active Agent Task',
+        promptIntent: taskTitle,
         actualExecution: isChanging ? `Modifying ${activeFile}: ${fileAction}` : 'Planning task steps and inspecting workspace',
         differenceAnalysis: 'Live execution is actively adhering to prompt intent without detected divergence.',
         discrepancies: [],
@@ -129,10 +147,13 @@ class WorkspaceWatcher {
     // Ensure vibetrace.md exists
     protocol.ensureExists(this.watchDir);
 
-    // Check if initial protocol state is in_progress
+    // Check if initial protocol state is active
     const initialProto = protocol.read(this.watchDir);
-    if (initialProto.status === 'in_progress') {
+    const isInitialActive = Boolean(initialProto && (initialProto.status === 'in_progress' || initialProto.status === 'working' || initialProto.status === 'started' || initialProto.status === 'editing'));
+    if (isInitialActive) {
       this.ensureActiveTrace(initialProto);
+    } else {
+      this.activeTrace = null;
     }
 
     if (this.watcher) {
@@ -175,7 +196,9 @@ class WorkspaceWatcher {
           protocol: proto
         });
 
-        if (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started') {
+        const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
+
+        if (isProtoActive) {
           const isChanging = this.pendingChangedFiles.size > 0;
           this.ensureActiveTrace(proto, null, isChanging);
           sse.broadcast({
@@ -189,12 +212,17 @@ class WorkspaceWatcher {
             filesCount: this.pendingChangedFiles.size,
             message: `Agent ${isChanging ? 'changing files' : 'working on task'}: ${proto.task || proto.intent}`
           });
-        } else if (proto.status === 'completed') {
-          // Agent explicitly signaled completion! Trigger batch immediately
-          console.log(`[VibeTrace Protocol] Agent signaled completion for: "${proto.task}". Processing trace...`);
-          if (this.activeTrace) {
-            this.activeTrace.substatus = 'completing';
-          }
+        } else if (proto.status === 'completed' || proto.status === 'idle') {
+          // Agent explicitly signaled completion!
+          console.log(`[VibeTrace Protocol] Agent signaled ${proto.status} for: "${proto.task}".`);
+          
+          // Clear activeTrace immediately so UI does not get stuck in EDITING state!
+          this.activeTrace = null;
+          sse.broadcast({
+            type: 'trace_completed',
+            id: 'trace-live-active'
+          });
+
           sse.broadcast({
             type: 'agent_status',
             status: 'completed',
@@ -219,12 +247,12 @@ class WorkspaceWatcher {
 
       // Check current protocol task
       const currentProto = protocol.read(this.watchDir);
-      if (currentProto.status === 'in_progress') {
-        this.ensureActiveTrace(currentProto, relPath, true);
-      }
+      const isProtoActive = Boolean(currentProto && (currentProto.status === 'in_progress' || currentProto.status === 'working' || currentProto.status === 'started' || currentProto.status === 'editing'));
 
-      const activeFileName = currentProto.active_file || relPath;
-      const taskLabel = currentProto.task ? ` (${currentProto.task})` : '';
+      this.ensureActiveTrace(currentProto, relPath, true);
+
+      const activeFileName = relPath;
+      const taskLabel = isProtoActive && currentProto.task ? ` (${currentProto.task})` : '';
 
       // Notify frontend that agent is actively writing files
       sse.broadcast({
@@ -234,7 +262,7 @@ class WorkspaceWatcher {
         filesCount: this.pendingChangedFiles.size,
         lastFile: relPath,
         active_file: activeFileName,
-        file_action: currentProto.file_action || `Modifying ${relPath}`,
+        file_action: (isProtoActive ? currentProto.file_action : null) || `Modifying ${relPath}`,
         message: `Agent modifying ${activeFileName} (${this.pendingChangedFiles.size} in batch)${taskLabel}...`
       });
 
@@ -252,13 +280,13 @@ class WorkspaceWatcher {
       const timeSinceFirstChange = now - this.firstChangeTimestamp;
       if (timeSinceFirstChange > 4000) {
         console.log(`[VibeTrace Watcher] Max wait threshold reached (${timeSinceFirstChange}ms), processing batch...`);
-        this.processBatch(currentProto.task || null);
+        this.processBatch(isProtoActive ? (currentProto.task || null) : null);
         return;
       }
 
       // Sliding window debounce (1500ms of inactivity required to confirm agent is done writing)
       this.debounceTimer = setTimeout(() => {
-        this.processBatch(currentProto.task || null);
+        this.processBatch(isProtoActive ? (currentProto.task || null) : null);
       }, 1500);
     };
 
@@ -284,6 +312,16 @@ class WorkspaceWatcher {
     if (files.length === 0) {
       diffs = await gitService.getDiffs();
       if (!diffs || diffs.length === 0) {
+        // No uncommitted changes and no files! Clean up activeTrace!
+        const currentProto = protocol.read(this.watchDir);
+        const isProtoActive = Boolean(currentProto && (currentProto.status === 'in_progress' || currentProto.status === 'working' || currentProto.status === 'started' || currentProto.status === 'editing'));
+        if (!isProtoActive) {
+          this.activeTrace = null;
+          sse.broadcast({
+            type: 'trace_completed',
+            id: 'trace-live-active'
+          });
+        }
         this.isProcessing = false;
         return;
       }
@@ -321,6 +359,15 @@ class WorkspaceWatcher {
       const diffHash = crypto.createHash('md5').update(`${diffContent}::${explicitPrompt || ''}`).digest('hex');
       if (diffHash === this.lastAnalyzedDiffHash) {
         console.log('[VibeTrace Watcher] Diff content and task identical to previous analysis. Skipping redundant trace creation.');
+        const currentProto = protocol.read(this.watchDir);
+        const isProtoActive = Boolean(currentProto && (currentProto.status === 'in_progress' || currentProto.status === 'working' || currentProto.status === 'started' || currentProto.status === 'editing'));
+        if (!isProtoActive) {
+          this.activeTrace = null;
+          sse.broadcast({
+            type: 'trace_completed',
+            id: 'trace-live-active'
+          });
+        }
         sse.broadcast({
           type: 'agent_status',
           status: 'idle',
@@ -335,9 +382,13 @@ class WorkspaceWatcher {
       // 3. Read harness, skills context, and vibetrace.md protocol
       const harnessRules = harnessContext.read(this.watchDir);
       const proto = protocol.read(this.watchDir);
+      const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
 
       // 4. Infer prompt intent from vibetrace.md protocol or commit
-      let prompt = explicitPrompt || proto.task || proto.intent;
+      let prompt = explicitPrompt;
+      if (!prompt && isProtoActive) {
+        prompt = proto.task || proto.intent;
+      }
       if (!prompt) {
         if (recentCommits.length > 0 && recentCommits[0].message) {
           prompt = `Git Activity: ${recentCommits[0].message}`;
@@ -359,8 +410,8 @@ class WorkspaceWatcher {
       // Attach protocol context
       analysis.agentProtocol = {
         agent: proto.agent || 'Coding Agent',
-        task: proto.task || prompt,
-        intent: proto.intent || prompt,
+        task: (isProtoActive ? proto.task : null) || prompt,
+        intent: (isProtoActive ? proto.intent : null) || prompt,
         status: proto.status || 'completed',
         activeFile: proto.active_file || (files.length > 0 ? files[0] : null),
         fileAction: proto.file_action || null,
@@ -397,7 +448,8 @@ class WorkspaceWatcher {
       });
 
       const currentProto = protocol.read(this.watchDir);
-      if (currentProto.status !== 'in_progress') {
+      const isCurrentActive = Boolean(currentProto && (currentProto.status === 'in_progress' || currentProto.status === 'working' || currentProto.status === 'started' || currentProto.status === 'editing'));
+      if (!isCurrentActive) {
         this.activeTrace = null;
         sse.broadcast({
           type: 'trace_completed',
@@ -424,6 +476,15 @@ class WorkspaceWatcher {
       });
     } catch (err) {
       console.error('[VibeTrace Watcher Error in processBatch]:', err);
+      const currentProto = protocol.read(this.watchDir);
+      const isCurrentActive = Boolean(currentProto && (currentProto.status === 'in_progress' || currentProto.status === 'working' || currentProto.status === 'started' || currentProto.status === 'editing'));
+      if (!isCurrentActive) {
+        this.activeTrace = null;
+        sse.broadcast({
+          type: 'trace_completed',
+          id: 'trace-live-active'
+        });
+      }
       sse.broadcast({
         type: 'agent_status',
         status: 'idle',

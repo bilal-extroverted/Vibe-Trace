@@ -1,26 +1,27 @@
 ---
 status: completed
-task: "Overhaul architectural mind map with rich informational fidelity, interactive subsystem inspection, and polished UI/UX"
+task: "Fix trace desynchronization: eliminate zombie in-progress traces, prevent stale task pollution, and fix watcher lifecycle"
 agent: "Antigravity AI"
-active_file: "public/app.js"
-file_action: "Completed comprehensive overhaul of architectural mind map backend engine and frontend UI/UX"
-file_summary: "Transformed shallow mind map into deep 5-tier architectural topology with expandable file rosters, live churn metrics, interactive SVG flowchart with zoom/pan/search, and actionable flaw scanner"
-started_at: "2026-10-25T11:39:00.000Z"
-updated_at: "2026-10-25T11:54:00.000Z"
+active_file: "server/watcher.js"
+file_action: "Completed comprehensive overhaul of watcher activeTrace lifecycle, API endpoint validation, and title attribution"
+file_summary: "Eliminated zombie active traces stuck in EDITING state on refresh, fixed active file ground truth, and ensured completed tasks are cleanly dissociated from new mutations"
+started_at: "2026-10-25T12:24:00.000Z"
+completed_at: "2026-10-25T12:28:00.000Z"
+updated_at: "2026-10-25T12:28:00.000Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Upgrade the Architectural Mind Map feature from a basic, low-information diagram into a high-fidelity, highly informative architectural map with real file relationships, subsystem boundaries, data flow edges, detailed risk/flaw diagnostics, and a modern, polished UI/UX with zoom, pan, interactive node filtering, and copy controls.
+> Resolve trace lifecycle desynchronization where previous completed tasks remained stuck in EDITING state upon URL refresh, ensure actively changed files take precedence over stale protocol metadata, eliminate zombie active traces on early exits or completed protocol states, and accurately attribute titles and tasks in SQLite.
 
 ## Execution Plan & Steps
-- [x] Step 1: Analyze current mindMapEngine.js and inspect what the mind map currently renders and why it is less informational or misleading
-- [x] Step 2: Overhaul server/mindMapEngine.js to extract true architectural relationships, module imports/calls, subsystem taxonomy, and rich metrics
-- [x] Step 3: Polish the frontend modal UI/UX in public/index.html and public/style.css with modern typography, controls (zoom, pan, copy Mermaid), and subsystem drilldown cards
-- [x] Step 4: Enhance public/app.js mind map rendering with interactive node selection, rich file rosters with roles and churn, and dynamic flaw insights
-- [x] Step 5: Test and verify the mind map endpoint and UI rendering
-- [x] Step 6: Mark task completed in vibetrace.md
+- [x] Step 1: Update vibetrace.md to actively signal current troubleshooting and lifecycle fix task
+- [x] Step 2: Overhaul server/watcher.js activeTrace lifecycle, prioritize changedFile over stale metadata, and auto-clean activeTrace on completion/inactivity
+- [x] Step 3: Enhance server/index.js /api/traces and /api/events to validate and invalidate zombie active traces before returning to client
+- [x] Step 4: Fix server/analyzer.js fallback title attribution to preserve declared prompt over generic label
+- [x] Step 5: Reconcile SQLite database traces: update pastel UI trace b054f17428f5a84c5b34d5f4 and add completed mind map trace 3bfb946
+- [x] Step 6: Validate with tests, restart server, verify HTTP endpoints and UI traces feed, and mark completed
 
 ## Inter-Agent & Harness Communication Notes
-- Successfully completed: 8-subsystem taxonomy mapped across 5 tiers, real-time flaw scanner flags actual rate-limit exposure and mutation concentration without misleading claims, vector SVG flowchart with zoom/filter controls, and expandable file rosters.
+- Root cause resolved: WorkspaceWatcher now clears activeTrace on completion, idle state, or clean git working tree; actively changed files are ground truth; server/index.js /api/traces checks protocol status before serving active traces; analyzer.js retains declared task title; and historical traces in SQLite have been cleanly reconciled.

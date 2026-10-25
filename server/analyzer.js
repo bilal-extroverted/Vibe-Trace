@@ -141,7 +141,14 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '
     riskLevel: aiResponse?.riskLevel || (harnessReport.status === 'FAIL' ? 'High' : (harnessReport.status === 'WARN' ? 'Medium' : 'Low'))
   };
 
-  const title = aiResponse?.title || `${changeType} (${files.length} file${files.length === 1 ? '' : 's'})`;
+  let title = aiResponse?.title;
+  if (!title) {
+    if (prompt && !prompt.startsWith('Code modifications across') && !prompt.startsWith('Git Activity:')) {
+      title = prompt;
+    } else {
+      title = `${changeType} (${files.length} file${files.length === 1 ? '' : 's'})`;
+    }
+  }
 
   return {
     id: traceId,

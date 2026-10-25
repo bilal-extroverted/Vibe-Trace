@@ -37,9 +37,14 @@ app.get('/api/events', (req, res) => {
   const proto = protocol.read(WATCH_DIR);
   res.write(`data: ${JSON.stringify({ type: 'protocol_update', protocol: proto })}\n\n`);
 
-  // If there is an active in-progress trace, push it immediately
+  // If there is an active in-progress trace, verify protocol status before pushing
   if (watcher.activeTrace) {
-    res.write(`data: ${JSON.stringify({ type: 'trace_active', trace: watcher.activeTrace })}\n\n`);
+    const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
+    if (!isProtoActive) {
+      watcher.activeTrace = null;
+    } else {
+      res.write(`data: ${JSON.stringify({ type: 'trace_active', trace: watcher.activeTrace })}\n\n`);
+    }
   }
 
   // Send persistent historical traces from SQLite
@@ -53,6 +58,10 @@ app.get('/api/events', (req, res) => {
 app.get('/api/protocol', (req, res) => {
   try {
     const proto = protocol.read(WATCH_DIR);
+    const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
+    if (!isProtoActive) {
+      watcher.activeTrace = null;
+    }
     res.json({ protocol: proto, activeTrace: watcher.activeTrace });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -66,6 +75,10 @@ app.get('/api/status', (req, res) => {
   const projects = db.getProjects();
   const projectName = path.basename(WATCH_DIR) || 'workspace';
   const proto = protocol.read(WATCH_DIR);
+  const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
+  if (!isProtoActive) {
+    watcher.activeTrace = null;
+  }
 
   res.json({
     status: 'active',
@@ -109,14 +122,21 @@ app.get('/api/traces', (req, res) => {
     });
 
     if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
-      const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (activeTask) {
-        traces = traces.filter(t => {
-          const tTask = (t.agentProtocol?.task || t.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-          return tTask !== activeTask;
-        });
+      const proto = protocol.read(folder);
+      const isProtoActive = Boolean(proto && (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started' || proto.status === 'editing'));
+      if (!isProtoActive) {
+        // Protocol is completed/idle - invalidate zombie activeTrace immediately
+        watcher.activeTrace = null;
+      } else {
+        const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (activeTask) {
+          traces = traces.filter(t => {
+            const tTask = (t.agentProtocol?.task || t.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            return tTask !== activeTask;
+          });
+        }
+        traces = [watcher.activeTrace, ...traces];
       }
-      traces = [watcher.activeTrace, ...traces];
     }
     res.json({ traces });
   } catch (err) {
