@@ -94,22 +94,25 @@ app.get('/api/traces', (req, res) => {
     const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
     let traces = db.getTraces(folder, 50);
 
-    // Deduplicate traces by task + timestamp + additions + deletions
-    const seen = new Set();
+    // Deduplicate traces: ensure only ONE card per task is returned
+    const seenTasks = new Set();
     traces = traces.filter(t => {
       const task = (t.agentProtocol?.task || t.title || '').trim().toLowerCase();
-      const time = (t.timestamp || '').slice(0, 19);
-      const key = `${task}::${time}::${t.additions || 0}::${t.deletions || 0}`;
-      if (seen.has(key) || seen.has(t.id)) return false;
-      seen.add(key);
-      seen.add(t.id);
+      const norm = task.replace(/[^a-z0-9]/g, '');
+      if (norm) {
+        if (seenTasks.has(norm)) return false;
+        seenTasks.add(norm);
+      }
       return true;
     });
 
     if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
-      const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase();
+      const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
       if (activeTask) {
-        traces = traces.filter(t => (t.agentProtocol?.task || t.title || '').trim().toLowerCase() !== activeTask);
+        traces = traces.filter(t => {
+          const tTask = (t.agentProtocol?.task || t.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+          return tTask !== activeTask;
+        });
       }
       traces = [watcher.activeTrace, ...traces];
     }

@@ -762,14 +762,12 @@
 
   // 8. Add Trace to List
   function addTrace(trace) {
-    // Prevent duplicate entries in memory
+    // Prevent duplicate task cards in memory — keep only latest trace for each task
+    const newName = normalizeTaskName(trace.agentProtocol?.task || trace.title);
     traces = traces.filter(t => {
       if (t.id === trace.id) return false;
       const tName = normalizeTaskName(t.agentProtocol?.task || t.title);
-      const newName = normalizeTaskName(trace.agentProtocol?.task || trace.title);
-      const sameTime = formatTraceTime(t.timestamp) === formatTraceTime(trace.timestamp);
-      const sameDiff = (t.additions === trace.additions) && (t.deletions === trace.deletions);
-      if (tName && newName && tName === newName && sameTime && sameDiff) return false;
+      if (newName && tName && newName === tName) return false;
       return true;
     });
     traces.unshift(trace);
@@ -777,7 +775,7 @@
     selectTrace(trace.id);
   }
 
-  // 9. Render Left Pane: Chronological Traces Feed (BORDERLESS ROWS, NO CARDS!)
+  // 9. Render Left Pane: Chronological Traces Feed
   function formatTraceTime(ts) {
     if (!ts) return '--:--:--';
     if (typeof ts === 'string' && ts.includes(' ') && ts.split(' ')[1]) {
@@ -795,7 +793,7 @@
     return String(ts).slice(0, 8);
   }
 
-  // 9. Render Left Pane: Chronological Traces Feed (Concise, Small, Non-Bold)
+  // 9. Render Left Pane: Chronological Traces Feed (Clean, Single Card Per Task)
   function renderTracesList() {
     if (tracesCountTag) tracesCountTag.textContent = traces.length;
 
@@ -823,20 +821,17 @@
       }
     }
 
-    // Deduplicate completed traces: filter out identical traces (same task/title, timestamp, additions, deletions, or ID)
-    const seenCompletedKeys = new Set();
+    // Deduplicate completed traces: guarantee each task has EXACTLY ONE card in the timeline
+    const seenCompletedTasks = new Set();
     filtered = filtered.filter(t => {
       const isInProgress = Boolean(t.inProgress || t.status === 'in_progress');
       if (isInProgress) return true;
-      if (seenCompletedKeys.has(t.id)) return false;
       const taskName = normalizeTaskName(t.agentProtocol?.task || t.title);
-      const timeStr = formatTraceTime(t.timestamp);
-      const key = `${taskName}::${timeStr}::${t.additions || 0}::${t.deletions || 0}`;
-      if (seenCompletedKeys.has(key)) {
+      const key = taskName ? taskName.replace(/[^a-z0-9]/g, '') : t.id;
+      if (seenCompletedTasks.has(key)) {
         return false;
       }
-      seenCompletedKeys.add(key);
-      seenCompletedKeys.add(t.id);
+      seenCompletedTasks.add(key);
       return true;
     });
 

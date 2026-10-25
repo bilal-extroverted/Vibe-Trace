@@ -79,17 +79,37 @@ class Database {
     this.cleanDuplicateTraces();
   }
 
-  // Deduplicate existing duplicate rows in SQLite
+  // Deduplicate existing duplicate rows in SQLite by task name
   cleanDuplicateTraces() {
     try {
-      this.db.exec(`
-        DELETE FROM traces
-        WHERE id NOT IN (
-          SELECT MIN(id)
-          FROM traces
-          GROUP BY title, timestamp, additions, deletions
-        )
-      `);
+      const rows = this.db.prepare('SELECT id, title, agent_protocol_json, created_at FROM traces ORDER BY created_at DESC').all();
+      const seen = new Set();
+      const toDelete = [];
+
+      for (const r of rows) {
+        let task = '';
+        try {
+          const proto = JSON.parse(r.agent_protocol_json || '{}');
+          task = proto.task || proto.intent || '';
+        } catch (e) {}
+        if (!task) task = r.title || '';
+        const norm = task.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!norm) continue;
+        if (seen.has(norm)) {
+          toDelete.push(r.id);
+        } else {
+          seen.add(norm);
+        }
+      }
+
+      if (toDelete.length > 0) {
+        const del = this.db.prepare('DELETE FROM traces WHERE id = ?');
+        const delDiffs = this.db.prepare('DELETE FROM diffs WHERE trace_id = ?');
+        for (const id of toDelete) {
+          del.run(id);
+          delDiffs.run(id);
+        }
+      }
     } catch (e) {
       console.warn('[DB Deduplication]', e.message);
     }
@@ -176,6 +196,7 @@ class Database {
       }
     }
 
+    this.cleanDuplicateTraces();
     return trace;
   }
 
