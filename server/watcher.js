@@ -29,12 +29,22 @@ class WorkspaceWatcher {
 
     const files = Array.from(new Set([activeFile, ...Array.from(this.pendingChangedFiles)])).filter(Boolean);
 
+    let formattedTime = new Date().toTimeString().slice(0, 8);
+    if (proto.started_at) {
+      try {
+        const d = new Date(proto.started_at);
+        if (!isNaN(d.getTime())) {
+          formattedTime = d.toTimeString().slice(0, 8);
+        }
+      } catch (e) {}
+    }
+
     this.activeTrace = {
       id: 'trace-live-active',
       inProgress: true,
       status: 'in_progress',
       title: proto.task || proto.intent || 'Active Agent Task',
-      timestamp: proto.started_at ? (proto.started_at.includes('T') ? proto.started_at.split('T')[1].slice(0, 8) : proto.started_at) : new Date().toLocaleTimeString(),
+      timestamp: formattedTime,
       activeFile: activeFile,
       fileAction: fileAction,
       fileSummary: fileSummary,
@@ -313,11 +323,17 @@ class WorkspaceWatcher {
         fileSummary: proto.file_summary || null
       };
 
-      this.activeTrace = null;
-      sse.broadcast({
-        type: 'trace_completed',
-        id: 'trace-live-active'
-      });
+      const currentProto = protocol.read(this.watchDir);
+      if (currentProto.status !== 'in_progress') {
+        this.activeTrace = null;
+        sse.broadcast({
+          type: 'trace_completed',
+          id: 'trace-live-active'
+        });
+      } else {
+        // Keep active trace alive and broadcast fresh state
+        this.ensureActiveTrace(currentProto);
+      }
 
       // Persist permanently to SQLite database
       const db = require('./db');

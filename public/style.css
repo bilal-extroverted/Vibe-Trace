@@ -710,11 +710,11 @@ body.resizing {
   display: none !important;
 }
 
-/* 2. COMPLETED / AGENT TASK: Lush Apple/Leaf Green Gradient (STATIC) */
+/* 2. COMPLETED / AGENT TASK: Obsidian / Dark Charcoal Slate Gradient (STATIC) */
 .trace-item-row.active.status-completed,
 .trace-item-row.active:not(.in-progress):not(.status-architectural):not(.status-mutation) {
-  background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%) !important;
-  box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4) !important;
+  background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%) !important;
+  box-shadow: 0 4px 12px -2px rgba(24, 24, 27, 0.45) !important;
 }
 
 /* 3. ARCHITECTURAL / REFACTOR: Sapphire / Royal Blue Gradient (STATIC) */
@@ -723,7 +723,7 @@ body.resizing {
   box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.4) !important;
 }
 
-/* 4. CODE MUTATION: Obsidian / Dark Charcoal Slate Gradient (STATIC) */
+/* 4. CODE MUTATION: Deep Slate / Indigo Navy Gradient (STATIC) */
 .trace-item-row.active.status-mutation {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
   box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.45) !important;
@@ -861,6 +861,56 @@ body.resizing {
 @keyframes liveBeaconPulse {
   0%, 100% { transform: scale(0.9); opacity: 0.8; }
   50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px #ffffff; }
+}
+
+/* In-Progress Trace When NOT Actively Selected: Light Soft Surface (No solid dark green) */
+.trace-item-row.in-progress:not(.active) {
+  background: #f0fdf4 !important;
+  border: 1.5px solid #22c55e !important;
+  box-shadow: 0 1px 4px rgba(34, 197, 94, 0.15) !important;
+  color: var(--text-primary) !important;
+  animation: none !important;
+}
+
+.trace-item-row.in-progress:not(.active)::before {
+  display: none !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-time {
+  color: #15803d !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-title {
+  color: #166534 !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-tag.tag-in-progress {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border-color: #86efac !important;
+}
+
+.trace-item-row.in-progress:not(.active) .live-dot-pulse {
+  background: #16a34a !important;
+  box-shadow: 0 0 6px #16a34a !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-active-file .active-file-dot {
+  color: #16a34a !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-active-file .active-file-label {
+  color: #15803d !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-active-file .active-file-name {
+  background: #ffffff !important;
+  color: #166534 !important;
+  border-color: #bbf7d0 !important;
+}
+
+.trace-item-row.in-progress:not(.active) .trace-item-files {
+  color: #15803d !important;
 }
 
 .trace-item-active-file {

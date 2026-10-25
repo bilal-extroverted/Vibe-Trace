@@ -366,21 +366,35 @@
 
   function handleAgentStatus(data) {
     const status = data.status;
-    if (status === 'working') {
-      setTopBarStatus('working', 'AGENT WORKING', data.task || data.message || 'Modifying codebase...');
+    if (status === 'working' || status === 'writing') {
+      setTopBarStatus('working', status === 'writing' ? 'AGENT WRITING' : 'AGENT WORKING', data.task || data.message || 'Modifying codebase...');
       logTicker(data.message || 'Agent active...');
-    } else if (status === 'writing') {
       const activeFile = data.active_file || data.lastFile || 'workspace';
-      setTopBarStatus('working', 'AGENT WRITING', data.message || `Writing to ${activeFile}...`);
-      logTicker(data.message || `Modifying ${activeFile}...`);
-      if (rightActiveFilePath) {
-        rightActiveFilePath.textContent = activeFile;
-      }
-      if (data.file_action && rightFileActionDesc) {
-        rightFileActionDesc.textContent = data.file_action;
-      }
-      if (rightActiveFileCard) {
-        rightActiveFileCard.classList.add('is-live');
+      if (rightActiveFilePath) rightActiveFilePath.textContent = activeFile;
+      if (data.file_action && rightFileActionDesc) rightFileActionDesc.textContent = data.file_action;
+      if (rightActiveFileCard) rightActiveFileCard.classList.add('is-live');
+
+      // Guarantee in-progress card is present in traces list when agent is working
+      const activeIdx = traces.findIndex(t => t.id === 'trace-live-active' || t.inProgress);
+      if (activeIdx < 0) {
+        const activeItem = {
+          id: 'trace-live-active',
+          inProgress: true,
+          status: 'in_progress',
+          title: data.task || latestProtocol?.task || 'Active Agent Task',
+          timestamp: formatTraceTime(latestProtocol?.started_at || new Date().toISOString()),
+          activeFile: activeFile,
+          files: [activeFile],
+          additions: 0,
+          deletions: 0,
+          changeType: 'WORKING',
+          agentProtocol: latestProtocol
+        };
+        traces.unshift(activeItem);
+        renderTracesList();
+      } else {
+        traces[activeIdx].activeFile = activeFile;
+        renderTracesList();
       }
     } else if (status === 'completed') {
       setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
