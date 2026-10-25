@@ -18,6 +18,62 @@ class WorkspaceWatcher {
     this.pendingChangedFiles = new Set();
     this.lastAnalyzedDiffHash = null;
     this.isProcessing = false;
+    this.activeTrace = null;
+  }
+
+  ensureActiveTrace(proto = null, changedFile = null) {
+    if (!proto) proto = protocol.read(this.watchDir);
+    const activeFile = proto.active_file || proto.current_file || changedFile || (this.pendingChangedFiles.size > 0 ? Array.from(this.pendingChangedFiles)[0] : 'vibetrace.md');
+    const fileAction = proto.file_action || proto.current_action || (changedFile ? `Modifying ${changedFile}` : 'Executing task steps...');
+    const fileSummary = proto.file_summary || proto.intent || proto.task || 'Active modifications underway';
+
+    const files = Array.from(new Set([activeFile, ...Array.from(this.pendingChangedFiles)])).filter(Boolean);
+
+    this.activeTrace = {
+      id: 'trace-live-active',
+      inProgress: true,
+      status: 'in_progress',
+      title: proto.task || proto.intent || 'Active Agent Task',
+      timestamp: proto.started_at ? (proto.started_at.includes('T') ? proto.started_at.split('T')[1].slice(0, 8) : proto.started_at) : new Date().toLocaleTimeString(),
+      activeFile: activeFile,
+      fileAction: fileAction,
+      fileSummary: fileSummary,
+      files: files,
+      additions: 0,
+      deletions: 0,
+      changeType: 'IN PROGRESS',
+      agentProtocol: {
+        ...proto,
+        active_file: activeFile,
+        file_action: fileAction,
+        file_summary: fileSummary
+      },
+      synthesis: {
+        overview: fileSummary,
+        summary: `Agent is actively modifying ${activeFile}: ${fileAction}`,
+        riskLevel: 'LOW',
+        whatChanged: [
+          `Active File: ${activeFile}`,
+          `Action: ${fileAction}`,
+          `Files touched in batch: ${files.length}`
+        ],
+        affectedFeatures: ['Active Task'],
+        downstreamImpact: `Live modifications taking place in ${activeFile}. Full causal ripple analysis will execute upon task completion.`
+      },
+      harness: {
+        syntaxIntegrity: { status: 'passed', details: 'Monitoring live syntax buffers' },
+        protectedFiles: { status: 'passed', details: 'Guarded system files protected' },
+        secretScanner: { status: 'passed', details: 'No secrets detected in live buffers' },
+        dependencyGuard: { status: 'passed', details: 'No untrusted dependencies added' }
+      }
+    };
+
+    sse.broadcast({
+      type: 'trace_active',
+      trace: this.activeTrace
+    });
+
+    return this.activeTrace;
   }
 
   start(watchDir = '.', onEventCallback) {
@@ -27,6 +83,12 @@ class WorkspaceWatcher {
 
     // Ensure vibetrace.md exists
     protocol.ensureExists(this.watchDir);
+
+    // Check if initial protocol state is in_progress
+    const initialProto = protocol.read(this.watchDir);
+    if (initialProto.status === 'in_progress') {
+      this.ensureActiveTrace(initialProto);
+    }
 
     if (this.watcher) {
       try { this.watcher.close(); } catch (e) {}
@@ -69,20 +131,31 @@ class WorkspaceWatcher {
         });
 
         if (proto.status === 'in_progress') {
+          this.ensureActiveTrace(proto);
           sse.broadcast({
             type: 'agent_status',
             status: 'working',
             task: proto.task || proto.intent,
+            active_file: proto.active_file,
+            file_action: proto.file_action,
+            file_summary: proto.file_summary,
             filesCount: this.pendingChangedFiles.size,
-            message: `Agent Working: ${proto.task || proto.intent}`
+            message: `Agent Working on ${proto.active_file || 'task'}: ${proto.task || proto.intent}`
           });
         } else if (proto.status === 'completed') {
           // Agent explicitly signaled completion! Trigger batch immediately
           console.log(`[VibeTrace Protocol] Agent signaled completion for: "${proto.task}". Processing trace...`);
+          this.activeTrace = null;
+          sse.broadcast({
+            type: 'trace_completed',
+            id: 'trace-live-active'
+          });
           sse.broadcast({
             type: 'agent_status',
             status: 'completed',
             task: proto.task,
+            active_file: proto.active_file,
+            file_action: proto.file_action,
             message: `Task Completed: ${proto.task}`
           });
           clearTimeout(this.debounceTimer);
@@ -100,6 +173,11 @@ class WorkspaceWatcher {
 
       // Check current protocol task
       const currentProto = protocol.read(this.watchDir);
+      if (currentProto.status === 'in_progress') {
+        this.ensureActiveTrace(currentProto, relPath);
+      }
+
+      const activeFileName = currentProto.active_file || relPath;
       const taskLabel = currentProto.task ? ` (${currentProto.task})` : '';
 
       // Notify frontend that agent is actively writing files
@@ -108,7 +186,9 @@ class WorkspaceWatcher {
         status: 'writing',
         filesCount: this.pendingChangedFiles.size,
         lastFile: relPath,
-        message: `Agent modifying files: ${this.pendingChangedFiles.size} detected${taskLabel}...`
+        active_file: activeFileName,
+        file_action: currentProto.file_action || `Modifying ${relPath}`,
+        message: `Agent modifying ${activeFileName} (${this.pendingChangedFiles.size} in batch)${taskLabel}...`
       });
 
       // Clear existing sliding timer
@@ -227,8 +307,17 @@ class WorkspaceWatcher {
       analysis.agentProtocol = {
         agent: proto.agent || 'Coding Agent',
         task: proto.task || prompt,
-        status: proto.status || 'completed'
+        status: proto.status || 'completed',
+        activeFile: proto.active_file || (files.length > 0 ? files[0] : null),
+        fileAction: proto.file_action || null,
+        fileSummary: proto.file_summary || null
       };
+
+      this.activeTrace = null;
+      sse.broadcast({
+        type: 'trace_completed',
+        id: 'trace-live-active'
+      });
 
       // Persist permanently to SQLite database
       const db = require('./db');

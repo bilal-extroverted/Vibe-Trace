@@ -237,6 +237,37 @@
           <span class="agent-status-pill status-idle" id="proto-status-tag">IDLE</span>
         </div>
 
+        <!-- LIVE ACTIVE FILE & MUTATION STATUS CARD -->
+        <div class="active-file-mutation-card" id="right-active-file-card">
+          <div class="active-file-card-header">
+            <div class="active-file-badge">
+              <span class="live-indicator-dot" id="right-live-dot"></span>
+              <span class="active-file-status-label" id="right-file-status-label">ACTIVE FILE MUTATION</span>
+            </div>
+            <span class="active-file-action-tag" id="right-file-action-tag">Modifying</span>
+          </div>
+
+          <div class="active-file-path-row" id="active-file-click-copy">
+            <span class="active-file-icon">📄</span>
+            <code class="active-file-path" id="right-active-file-path">vibetrace.md</code>
+            <button type="button" class="active-file-copy-btn" id="btn-copy-active-file" title="Copy active file path">Copy</button>
+          </div>
+
+          <div class="active-file-detail-block">
+            <span class="active-file-caption">WHAT IS HAPPENING IN THIS FILE</span>
+            <div class="active-file-action-desc" id="right-file-action-desc">
+              Waiting for coding agent to begin work...
+            </div>
+          </div>
+
+          <div class="active-file-detail-block">
+            <span class="active-file-caption">LIVE FILE & TASK SUMMARY</span>
+            <div class="active-file-summary-desc" id="right-file-summary-desc">
+              vibetrace.md protocol connected. Live mutation updates will be reflected in real time.
+            </div>
+          </div>
+        </div>
+
         <div class="declared-task-banner">
           <span class="banner-label">DECLARED TASK INTENT:</span>
           <div class="declared-task-text" id="proto-task-intent">Waiting for coding agent instruction...</div>

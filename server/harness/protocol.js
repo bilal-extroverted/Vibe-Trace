@@ -71,7 +71,11 @@ updated_at: "${new Date().toISOString()}"
       agent: '',
       started_at: '',
       completed_at: '',
-      updated_at: ''
+      updated_at: '',
+      active_file: '',
+      file_action: '',
+      file_summary: '',
+      file_action_type: 'modifying'
     };
 
     let body = content;
@@ -103,6 +107,25 @@ updated_at: "${new Date().toISOString()}"
       intent = intentMatch[1].trim().replace(/^>\s*/gm, '');
     }
 
+    // Parse Active File & Mutation Section (e.g. ## Current File Status or ## Active File & Live Mutation)
+    let mdActiveFile = '';
+    let mdFileAction = '';
+    let mdFileSummary = '';
+    const fileStatusMatch = body.match(/## (?:Current File Status|Active File & Live Mutation|Live File Status|Live File Mutation)\s*([\s\S]*?)(?=##|$)/i);
+    if (fileStatusMatch) {
+      const sectionText = fileStatusMatch[1];
+      const fileM = sectionText.match(/(?:Active File|Current File|File):\s*`?([^`\r\n]+)`?/i);
+      if (fileM) mdActiveFile = fileM[1].trim();
+      const actionM = sectionText.match(/(?:What is Happening|Action|Activity):\s*([^\r\n]+)/i);
+      if (actionM) mdFileAction = actionM[1].trim();
+      const summaryM = sectionText.match(/(?:Live Summary|File Summary|Summary):\s*([^\r\n]+)/i);
+      if (summaryM) mdFileSummary = summaryM[1].trim();
+    }
+
+    const activeFile = meta.active_file || meta.current_file || mdActiveFile || '';
+    const fileAction = meta.file_action || meta.current_action || mdFileAction || '';
+    const fileSummary = meta.file_summary || mdFileSummary || '';
+
     // Parse Checklist Steps
     const steps = [];
     const stepLines = body.match(/-\s*\[([ xX])\]\s*(.+)/g) || [];
@@ -125,6 +148,11 @@ updated_at: "${new Date().toISOString()}"
 
     return {
       ...meta,
+      active_file: activeFile,
+      current_file: activeFile,
+      file_action: fileAction,
+      current_action: fileAction,
+      file_summary: fileSummary,
       intent: intent || meta.task || 'Active task',
       steps,
       notes,

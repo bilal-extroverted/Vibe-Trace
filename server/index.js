@@ -34,6 +34,11 @@ app.get('/api/events', (req, res) => {
   const proto = protocol.read(WATCH_DIR);
   res.write(`data: ${JSON.stringify({ type: 'protocol_update', protocol: proto })}\n\n`);
 
+  // If there is an active in-progress trace, push it immediately
+  if (watcher.activeTrace) {
+    res.write(`data: ${JSON.stringify({ type: 'trace_active', trace: watcher.activeTrace })}\n\n`);
+  }
+
   // Send persistent historical traces from SQLite
   const traces = db.getTraces(WATCH_DIR, 50);
   if (traces.length > 0) {
@@ -45,7 +50,7 @@ app.get('/api/events', (req, res) => {
 app.get('/api/protocol', (req, res) => {
   try {
     const proto = protocol.read(WATCH_DIR);
-    res.json({ protocol: proto });
+    res.json({ protocol: proto, activeTrace: watcher.activeTrace });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -57,6 +62,7 @@ app.get('/api/status', (req, res) => {
   const traces = db.getTraces(WATCH_DIR, 100);
   const projects = db.getProjects();
   const projectName = path.basename(WATCH_DIR) || 'workspace';
+  const proto = protocol.read(WATCH_DIR);
 
   res.json({
     status: 'active',
@@ -65,7 +71,9 @@ app.get('/api/status', (req, res) => {
     eventsCount: traces.length,
     projectsCount: projects.length,
     openRouterConfigured: Boolean((process.env.OPENROUTER_API_KEY || '').trim()),
-    model
+    model,
+    activeTrace: watcher.activeTrace,
+    activeFile: watcher.activeTrace ? watcher.activeTrace.activeFile : (proto.active_file || null)
   });
 });
 
@@ -83,7 +91,10 @@ app.get('/api/projects', (req, res) => {
 app.get('/api/traces', (req, res) => {
   try {
     const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
-    const traces = db.getTraces(folder, 50);
+    let traces = db.getTraces(folder, 50);
+    if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
+      traces = [watcher.activeTrace, ...traces];
+    }
     res.json({ traces });
   } catch (err) {
     res.status(500).json({ error: err.message });

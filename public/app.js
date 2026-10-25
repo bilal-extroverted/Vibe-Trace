@@ -60,6 +60,17 @@
   const protoStepsList = document.getElementById('proto-steps-list');
   const protoNotesText = document.getElementById('proto-notes-text');
 
+  // Live Active File Card Elements (Right Pane)
+  const rightActiveFileCard = document.getElementById('right-active-file-card');
+  const rightFileStatusLabel = document.getElementById('right-file-status-label');
+  const rightFileActionTag = document.getElementById('right-file-action-tag');
+  const rightActiveFilePath = document.getElementById('right-active-file-path');
+  const btnCopyActiveFile = document.getElementById('btn-copy-active-file');
+  const activeFileClickCopy = document.getElementById('active-file-click-copy');
+  const rightFileActionDesc = document.getElementById('right-file-action-desc');
+  const rightFileSummaryDesc = document.getElementById('right-file-summary-desc');
+  let latestProtocol = null;
+
   // Mechanical Harness Section
   const harnessOverallStatus = document.getElementById('harness-overall-status');
   const harnessAdviceText = document.getElementById('harness-advice-text');
@@ -193,6 +204,10 @@
         const payload = JSON.parse(e.data);
         if (payload.type === 'protocol_update') {
           renderProtocol(payload.protocol);
+        } else if (payload.type === 'trace_active') {
+          handleActiveTrace(payload.trace);
+        } else if (payload.type === 'trace_completed') {
+          handleTraceCompleted(payload.id);
         } else if (payload.type === 'history') {
           traces = payload.traces || [];
           renderTracesList();
@@ -201,6 +216,8 @@
           }
         } else if (payload.type === 'trace') {
           logTicker(`Trace captured: ${payload.trace.title}`);
+          // Remove active in-progress placeholder trace since permanent trace is now saved
+          traces = traces.filter(t => t.id !== 'trace-live-active' && !t.inProgress);
           addTrace(payload.trace);
           setTopBarStatus('completed', 'TRACE CREATED', payload.trace.agentProtocol?.task || payload.trace.title);
         } else if (payload.type === 'agent_status') {
@@ -216,14 +233,80 @@
     };
   }
 
+  function handleActiveTrace(activeTrace) {
+    if (!activeTrace) return;
+    const existingIdx = traces.findIndex(t => t.id === activeTrace.id || t.inProgress);
+    if (existingIdx >= 0) {
+      traces[existingIdx] = activeTrace;
+    } else {
+      traces.unshift(activeTrace);
+    }
+    renderTracesList();
+
+    // If no trace is selected or the active trace was already selected, update panes
+    if (!selectedTraceId || selectedTraceId === activeTrace.id || selectedTraceId === 'trace-live-active') {
+      selectTrace(activeTrace.id);
+    }
+
+    if (activeTrace.agentProtocol) {
+      renderProtocol(activeTrace.agentProtocol);
+    }
+  }
+
+  function handleTraceCompleted(id) {
+    traces = traces.filter(t => t.id !== id && !t.inProgress);
+    renderTracesList();
+  }
+
   // 4. Render Agent Protocol from `vibetrace.md`
   function renderProtocol(proto) {
     if (!proto) return;
+    latestProtocol = proto;
 
     const status = (proto.status || 'idle').toLowerCase();
     if (protoStatusTag) {
       protoStatusTag.className = `agent-status-pill status-${status}`;
       protoStatusTag.textContent = status === 'in_progress' ? 'IN PROGRESS' : status.toUpperCase();
+    }
+
+    // Populate Right Pane Live Active File Card
+    if (rightActiveFileCard) {
+      const activeFile = proto.active_file || proto.current_file || 'vibetrace.md';
+      const fileAction = proto.file_action || proto.current_action || (status === 'in_progress' ? 'Executing declared plan steps...' : 'Waiting for agent instructions');
+      const fileSummary = proto.file_summary || proto.intent || proto.task || 'vibetrace.md protocol connected';
+
+      if (rightActiveFilePath) rightActiveFilePath.textContent = activeFile;
+      if (rightFileActionDesc) rightFileActionDesc.textContent = fileAction;
+      if (rightFileSummaryDesc) rightFileSummaryDesc.textContent = fileSummary;
+
+      if (status === 'in_progress') {
+        rightActiveFileCard.classList.add('is-live');
+        if (rightFileStatusLabel) rightFileStatusLabel.textContent = 'ACTIVE FILE MUTATION';
+        if (rightFileActionTag) {
+          rightFileActionTag.textContent = proto.file_action_type || 'Modifying';
+          rightFileActionTag.style.background = '#ecfdf5';
+          rightFileActionTag.style.color = '#047857';
+          rightFileActionTag.style.borderColor = '#a7f3d0';
+        }
+      } else if (status === 'completed') {
+        rightActiveFileCard.classList.remove('is-live');
+        if (rightFileStatusLabel) rightFileStatusLabel.textContent = 'TASK COMPLETED';
+        if (rightFileActionTag) {
+          rightFileActionTag.textContent = 'Verified';
+          rightFileActionTag.style.background = '#f1f5f9';
+          rightFileActionTag.style.color = '#475569';
+          rightFileActionTag.style.borderColor = '#cbd5e1';
+        }
+      } else {
+        rightActiveFileCard.classList.remove('is-live');
+        if (rightFileStatusLabel) rightFileStatusLabel.textContent = 'STANDBY';
+        if (rightFileActionTag) {
+          rightFileActionTag.textContent = 'Idle';
+          rightFileActionTag.style.background = 'var(--bg-surface-subtle)';
+          rightFileActionTag.style.color = 'var(--text-muted)';
+          rightFileActionTag.style.borderColor = 'var(--border-medium)';
+        }
+      }
     }
 
     if (protoTaskIntent) {
@@ -275,6 +358,19 @@
     if (status === 'working') {
       setTopBarStatus('working', 'AGENT WORKING', data.task || data.message || 'Modifying codebase...');
       logTicker(data.message || 'Agent active...');
+    } else if (status === 'writing') {
+      const activeFile = data.active_file || data.lastFile || 'workspace';
+      setTopBarStatus('working', 'AGENT WRITING', data.message || `Writing to ${activeFile}...`);
+      logTicker(data.message || `Modifying ${activeFile}...`);
+      if (rightActiveFilePath) {
+        rightActiveFilePath.textContent = activeFile;
+      }
+      if (data.file_action && rightFileActionDesc) {
+        rightFileActionDesc.textContent = data.file_action;
+      }
+      if (rightActiveFileCard) {
+        rightActiveFileCard.classList.add('is-live');
+      }
     } else if (status === 'completed') {
       setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
       logTicker(`Task Completed: ${data.task || ''}`);
@@ -375,34 +471,60 @@
     tracesScrollList.innerHTML = '';
 
     filtered.forEach(trace => {
+      const isInProgress = Boolean(trace.inProgress || trace.status === 'in_progress');
       const rowItem = document.createElement('div');
-      rowItem.className = `trace-item-row ${trace.id === selectedTraceId ? 'active' : ''}`;
+      rowItem.className = `trace-item-row ${trace.id === selectedTraceId ? 'active' : ''} ${isInProgress ? 'in-progress' : ''}`;
       rowItem.dataset.id = trace.id;
 
-      const timeStr = trace.timestamp ? trace.timestamp.split(' ')[1] || trace.timestamp : '--:--:--';
+      const timeStr = trace.timestamp ? (trace.timestamp.includes(' ') ? trace.timestamp.split(' ')[1] : trace.timestamp) : '--:--:--';
       const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
       const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
       const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
 
       const taskDisplayName = trace.agentProtocol?.task || trace.title || 'Code Changes';
       const isAgentTask = Boolean(trace.agentProtocol?.task);
+      const activeFileName = trace.activeFile || (trace.files && trace.files[0]) || (latestProtocol && latestProtocol.active_file) || 'vibetrace.md';
 
-      rowItem.innerHTML = `
-        <div class="trace-item-header">
-          <span class="trace-item-time">${timeStr}</span>
-          <span class="trace-item-tag ${isAgentTask ? 'tag-agent' : ''}">
-            ${isAgentTask ? 'AGENT TASK' : (trace.changeType || 'CODE MUTATION')}
-          </span>
-        </div>
-        <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
-        <div class="trace-item-footer">
-          <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
-          <div class="trace-diff-pills">
-            <span class="diff-pill-add">${addStr}</span>
-            <span class="diff-pill-del">${delStr}</span>
+      if (isInProgress) {
+        rowItem.innerHTML = `
+          <div class="trace-item-header">
+            <span class="trace-item-time">${timeStr}</span>
+            <span class="trace-item-tag tag-in-progress">
+              <span class="live-dot-pulse"></span> IN PROGRESS
+            </span>
           </div>
-        </div>
-      `;
+          <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
+          <div class="trace-item-active-file" title="${escapeHtml(activeFileName)}">
+            <span class="active-file-dot">●</span>
+            <span class="active-file-label">Changing:</span>
+            <code class="active-file-name">${escapeHtml(activeFileName)}</code>
+          </div>
+          <div class="trace-item-footer">
+            <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'} in progress</span>
+            <div class="trace-diff-pills">
+              <span class="diff-pill-add">LIVE</span>
+            </div>
+          </div>
+          <div class="trace-progress-line-track"><div class="trace-progress-line-bar"></div></div>
+        `;
+      } else {
+        rowItem.innerHTML = `
+          <div class="trace-item-header">
+            <span class="trace-item-time">${timeStr}</span>
+            <span class="trace-item-tag ${isAgentTask ? 'tag-agent' : ''}">
+              ${isAgentTask ? 'AGENT TASK' : (trace.changeType || 'CODE MUTATION')}
+            </span>
+          </div>
+          <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
+          <div class="trace-item-footer">
+            <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
+            <div class="trace-diff-pills">
+              <span class="diff-pill-add">${addStr}</span>
+              <span class="diff-pill-del">${delStr}</span>
+            </div>
+          </div>
+        `;
+      }
 
       rowItem.addEventListener('click', () => selectTrace(trace.id));
       tracesScrollList.appendChild(rowItem);
@@ -425,23 +547,32 @@
     // Populate Middle Pane
     if (emptyDiffState) emptyDiffState.classList.add('hidden');
     if (middleTraceTitle) {
-      middleTraceTitle.textContent = trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes';
+      middleTraceTitle.textContent = (trace.inProgress ? '● [IN PROGRESS] ' : '') + (trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes');
     }
 
     const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
     if (middleFilesSummary) {
-      middleFilesSummary.textContent = `${fileCount} file${fileCount === 1 ? '' : 's'} modified`;
+      if (trace.inProgress) {
+        middleFilesSummary.textContent = `Active file: ${trace.activeFile || 'workspace'} (${fileCount} in progress)`;
+      } else {
+        middleFilesSummary.textContent = `${fileCount} file${fileCount === 1 ? '' : 's'} modified`;
+      }
     }
     if (middleDiffAdd) {
-      middleDiffAdd.textContent = `+${trace.additions || 0}`;
+      middleDiffAdd.textContent = trace.inProgress ? 'LIVE' : `+${trace.additions || 0}`;
     }
     if (middleDiffDel) {
-      middleDiffDel.textContent = `-${trace.deletions || 0}`;
+      middleDiffDel.textContent = trace.inProgress ? 'MUTATION' : `-${trace.deletions || 0}`;
     }
     if (middleAgentBadge) {
-      const isAgent = Boolean(trace.agentProtocol?.task);
-      middleAgentBadge.className = `middle-meta-badge ${isAgent ? 'tag-agent' : ''}`;
-      middleAgentBadge.textContent = isAgent ? 'Agent Task' : (trace.changeType || 'Code Change');
+      if (trace.inProgress) {
+        middleAgentBadge.className = 'middle-meta-badge tag-agent';
+        middleAgentBadge.textContent = 'In Progress';
+      } else {
+        const isAgent = Boolean(trace.agentProtocol?.task);
+        middleAgentBadge.className = `middle-meta-badge ${isAgent ? 'tag-agent' : ''}`;
+        middleAgentBadge.textContent = isAgent ? 'Agent Task' : (trace.changeType || 'Code Change');
+      }
     }
 
     // Populate Right Pane Coordinates (Relocated from Middle Pane)
@@ -521,16 +652,53 @@
     const heroStatRisk = document.getElementById('hero-stat-risk');
 
     if (heroStatDelta) {
-      const add = trace.additions != null ? trace.additions : 0;
-      const del = trace.deletions != null ? trace.deletions : 0;
-      heroStatDelta.textContent = `+${add} / -${del}`;
+      if (trace.inProgress) {
+        heroStatDelta.textContent = 'LIVE';
+      } else {
+        const add = trace.additions != null ? trace.additions : 0;
+        const del = trace.deletions != null ? trace.deletions : 0;
+        heroStatDelta.textContent = `+${add} / -${del}`;
+      }
     }
     if (heroStatFiles) {
       const cnt = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
-      heroStatFiles.textContent = `${cnt} file${cnt === 1 ? '' : 's'}`;
+      heroStatFiles.textContent = trace.inProgress ? `${cnt} active` : `${cnt} file${cnt === 1 ? '' : 's'}`;
     }
     if (heroStatRisk) {
-      heroStatRisk.textContent = (synth.riskLevel || 'LOW').toUpperCase();
+      heroStatRisk.textContent = trace.inProgress ? 'IN PROGRESS' : (synth.riskLevel || 'LOW').toUpperCase();
+    }
+
+    // Populate Right Pane Live Active File Mutation Card
+    if (rightActiveFileCard) {
+      if (trace.inProgress) {
+        rightActiveFileCard.classList.add('is-live');
+        if (rightFileStatusLabel) rightFileStatusLabel.textContent = 'ACTIVE FILE MUTATION';
+        if (rightFileActionTag) {
+          rightFileActionTag.textContent = trace.agentProtocol?.file_action_type || 'Modifying';
+          rightFileActionTag.style.background = '#ecfdf5';
+          rightFileActionTag.style.color = '#047857';
+          rightFileActionTag.style.borderColor = '#a7f3d0';
+        }
+        if (rightActiveFilePath) rightActiveFilePath.textContent = trace.activeFile || 'vibetrace.md';
+        if (rightFileActionDesc) rightFileActionDesc.textContent = trace.fileAction || 'Agent actively writing code to workspace...';
+        if (rightFileSummaryDesc) rightFileSummaryDesc.textContent = trace.fileSummary || trace.synthesis?.summary || 'Live modifications taking place in codebase.';
+      } else {
+        rightActiveFileCard.classList.remove('is-live');
+        const activeFile = trace.agentProtocol?.activeFile || (trace.files && trace.files[0]) || 'vibetrace.md';
+        const fileAction = trace.agentProtocol?.fileAction || trace.summary || `Code modifications across ${trace.files?.length || 1} file(s)`;
+        const fileSummary = trace.agentProtocol?.fileSummary || trace.synthesis?.overview || trace.summary || 'Trace recorded in SQLite.';
+
+        if (rightFileStatusLabel) rightFileStatusLabel.textContent = 'CAPTURED MUTATION';
+        if (rightFileActionTag) {
+          rightFileActionTag.textContent = 'Captured';
+          rightFileActionTag.style.background = '#f1f5f9';
+          rightFileActionTag.style.color = '#475569';
+          rightFileActionTag.style.borderColor = '#cbd5e1';
+        }
+        if (rightActiveFilePath) rightActiveFilePath.textContent = activeFile;
+        if (rightFileActionDesc) rightFileActionDesc.textContent = fileAction;
+        if (rightFileSummaryDesc) rightFileSummaryDesc.textContent = fileSummary;
+      }
     }
 
     // Plain-English Summary
@@ -589,8 +757,13 @@
     if (agentProto && agentProto.task) {
       if (protoTaskIntent) protoTaskIntent.textContent = agentProto.task;
       if (protoStatusTag) {
-        protoStatusTag.className = 'agent-status-pill status-completed';
-        protoStatusTag.textContent = 'COMPLETED';
+        if (trace.inProgress) {
+          protoStatusTag.className = 'agent-status-pill status-in_progress';
+          protoStatusTag.textContent = 'IN PROGRESS';
+        } else {
+          protoStatusTag.className = 'agent-status-pill status-completed';
+          protoStatusTag.textContent = 'COMPLETED';
+        }
       }
     }
 
@@ -769,6 +942,36 @@
       } catch (err) {
         console.warn('Path copy failed:', err);
       }
+    });
+  }
+
+  // Copy Active File Path in Right Pane
+  if (btnCopyActiveFile && rightActiveFilePath) {
+    btnCopyActiveFile.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const pathText = rightActiveFilePath.textContent.trim();
+      if (!pathText) return;
+      try {
+        await navigator.clipboard.writeText(pathText);
+        const original = btnCopyActiveFile.textContent;
+        btnCopyActiveFile.textContent = 'Copied!';
+        setTimeout(() => { btnCopyActiveFile.textContent = original; }, 1600);
+      } catch (e) {}
+    });
+  }
+
+  if (activeFileClickCopy && rightActiveFilePath) {
+    activeFileClickCopy.addEventListener('click', async () => {
+      const pathText = rightActiveFilePath.textContent.trim();
+      if (!pathText) return;
+      try {
+        await navigator.clipboard.writeText(pathText);
+        if (btnCopyActiveFile) {
+          const original = btnCopyActiveFile.textContent;
+          btnCopyActiveFile.textContent = 'Copied!';
+          setTimeout(() => { btnCopyActiveFile.textContent = original; }, 1600);
+        }
+      } catch (e) {}
     });
   }
 

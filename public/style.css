@@ -666,6 +666,126 @@ body.resizing {
   color: #dc2626;
 }
 
+/* In-Progress Trace Card with Minimal Line Animation & Active File Badge */
+.trace-item-row.in-progress {
+  position: relative;
+  overflow: hidden;
+  border-left: 2.5px solid var(--accent);
+  background: var(--bg-surface);
+}
+
+.trace-item-tag.tag-in-progress {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.live-dot-pulse {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+  animation: pulseDotGlow 1.4s ease-in-out infinite;
+}
+
+.trace-item-active-file {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trace-item-active-file .active-file-dot {
+  font-size: 8px;
+  color: var(--accent);
+}
+
+.trace-item-active-file .active-file-label {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.trace-item-active-file .active-file-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-surface-subtle);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sleek Minimal Line Animation along the bottom of the card */
+.trace-progress-line-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(40, 185, 0, 0.12);
+  overflow: hidden;
+  border-bottom-left-radius: var(--radius-item);
+  border-bottom-right-radius: var(--radius-item);
+}
+
+.trace-progress-line-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), #10b981, transparent);
+  animation: liveLineShimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes liveLineShimmer {
+  0% { left: -35%; width: 30%; opacity: 0.5; }
+  50% { left: 35%; width: 50%; opacity: 1; }
+  100% { left: 100%; width: 30%; opacity: 0.5; }
+}
+
+@keyframes pulseDotGlow {
+  0%, 100% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0); }
+}
+
+/* When in-progress trace is actively selected */
+.trace-item-row.active.in-progress {
+  border-left-color: #ffffff;
+}
+
+.trace-item-row.active .trace-item-active-file .active-file-dot {
+  color: #ffffff;
+}
+
+.trace-item-row.active .trace-item-active-file .active-file-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.trace-item-row.active .trace-item-active-file .active-file-name {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.trace-item-row.active .trace-progress-line-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.trace-item-row.active .trace-progress-line-bar {
+  background: linear-gradient(90deg, transparent, #ffffff, #a7f3d0, transparent);
+}
+
 /* =========================================================
    HIGHLIGHTED CARD IN FIRST PANE (LUSH GREEN GRADIENT REPLICA)
    AS SPECIFIED BY USER ("the highlighted card in the first pane
@@ -1352,6 +1472,153 @@ body.resizing {
 .agent-status-pill.status-idle {
   background: var(--bg-surface-subtle);
   color: var(--text-muted);
+}
+
+/* =========================================================
+   LIVE ACTIVE FILE & MUTATION STATUS CARD (RIGHT PANE)
+   ========================================================= */
+.active-file-mutation-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.active-file-mutation-card.is-live {
+  border-color: rgba(40, 185, 0, 0.4);
+  box-shadow: 0 1px 4px rgba(40, 185, 0, 0.08);
+}
+
+.active-file-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.active-file-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.live-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  animation: pulseDotGlow 1.4s ease-in-out infinite;
+}
+
+.active-file-status-label {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.active-file-action-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.active-file-path-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.active-file-path-row:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+}
+
+.active-file-icon {
+  font-size: 11px;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.active-file-path {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.active-file-copy-btn {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.active-file-copy-btn:hover {
+  background: var(--color-black-ctrl);
+  color: #ffffff;
+  border-color: var(--color-black-ctrl);
+}
+
+.active-file-detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.active-file-caption {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.active-file-action-desc {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.35;
+  background: var(--bg-surface-subtle);
+  padding: 5px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.active-file-summary-desc {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  padding: 1px 2px;
 }
 
 .declared-task-banner {
