@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const gitService = require('./gitService');
 const harnessContext = require('./harnessContext');
+const protocol = require('./harness/protocol');
 const { analyze } = require('./analyzer');
 const sse = require('./sse');
 
@@ -24,6 +25,9 @@ class WorkspaceWatcher {
     this.onEventCallback = onEventCallback;
     gitService.setCwd(this.watchDir);
 
+    // Ensure vibetrace.md exists
+    protocol.ensureExists(this.watchDir);
+
     if (this.watcher) {
       try { this.watcher.close(); } catch (e) {}
     }
@@ -36,6 +40,7 @@ class WorkspaceWatcher {
         '**/node_modules/**',
         '**/package-lock.json',
         '**/.git/**',
+        '**/vibetrace.db*',
         '**/devpost/checklist.md'    // avoid self-triggering on progress ticks
       ],
       persistent: true,
@@ -50,7 +55,35 @@ class WorkspaceWatcher {
     });
 
     const handleChange = (filepath, eventType) => {
-      const relPath = path.relative(this.watchDir, filepath);
+      const relPath = path.relative(this.watchDir, filepath).replace(/\\/g, '/');
+
+      // Special handling for vibetrace.md (Agent-Harness Communication Protocol)
+      if (relPath === 'vibetrace.md') {
+        const proto = protocol.read(this.watchDir);
+        console.log(`[VibeTrace Protocol] Agent updated status: ${proto.status} — "${proto.task}"`);
+        
+        // Broadcast protocol update to dashboard
+        sse.broadcast({
+          type: 'protocol_update',
+          protocol: proto
+        });
+
+        if (proto.status === 'in_progress') {
+          sse.broadcast({
+            type: 'agent_status',
+            status: 'writing',
+            filesCount: this.pendingChangedFiles.size,
+            message: `Agent started task: ${proto.task || proto.intent}`
+          });
+        } else if (proto.status === 'completed') {
+          // Agent explicitly signaled completion! Trigger batch immediately
+          console.log(`[VibeTrace Protocol] Agent signaled completion for: "${proto.task}". Processing trace...`);
+          clearTimeout(this.debounceTimer);
+          setTimeout(() => this.processBatch(proto.task || proto.intent), 300);
+        }
+        return;
+      }
+
       this.pendingChangedFiles.add(relPath);
 
       const now = Date.now();
@@ -58,13 +91,17 @@ class WorkspaceWatcher {
         this.firstChangeTimestamp = now;
       }
 
+      // Check current protocol task
+      const currentProto = protocol.read(this.watchDir);
+      const taskLabel = currentProto.task ? ` (${currentProto.task})` : '';
+
       // Notify frontend that agent is actively writing files
       sse.broadcast({
         type: 'agent_status',
         status: 'writing',
         filesCount: this.pendingChangedFiles.size,
         lastFile: relPath,
-        message: `Agent writing code: ${this.pendingChangedFiles.size} file(s) modified...`
+        message: `Agent modifying files: ${this.pendingChangedFiles.size} detected${taskLabel}...`
       });
 
       // Clear existing sliding timer
@@ -74,13 +111,13 @@ class WorkspaceWatcher {
       const timeSinceFirstChange = now - this.firstChangeTimestamp;
       if (timeSinceFirstChange > 4000) {
         console.log(`[VibeTrace Watcher] Max wait threshold reached (${timeSinceFirstChange}ms), processing batch...`);
-        this.processBatch();
+        this.processBatch(currentProto.task || null);
         return;
       }
 
       // Sliding window debounce (1500ms of inactivity required to confirm agent is done writing)
       this.debounceTimer = setTimeout(() => {
-        this.processBatch();
+        this.processBatch(currentProto.task || null);
       }, 1500);
     };
 
@@ -91,7 +128,7 @@ class WorkspaceWatcher {
       .on('error', err => console.error('[Watcher Error]', err));
   }
 
-  async processBatch() {
+  async processBatch(explicitPrompt = null) {
     if (this.isProcessing) return;
     this.isProcessing = true;
 
@@ -135,11 +172,14 @@ class WorkspaceWatcher {
         }));
       }
 
+      // Filter out vibetrace.md and database files from code diffs
+      diffs = diffs.filter(d => d.file !== 'vibetrace.md' && !d.file.startsWith('vibetrace.db'));
+
       // 2. Check if diff has actually changed since last trace (deduplication)
       const diffContent = diffs.map(d => `${d.file}:${d.content}`).join('\n');
-      const diffHash = crypto.createHash('md5').update(diffContent).digest('hex');
+      const diffHash = crypto.createHash('md5').update(`${diffContent}::${explicitPrompt || ''}`).digest('hex');
 
-      if (diffHash === this.lastAnalyzedDiffHash) {
+      if (diffHash === this.lastAnalyzedDiffHash && !explicitPrompt) {
         console.log('[VibeTrace Watcher] Diff content identical to previous analysis. Skipping redundant LLM call.');
         sse.broadcast({
           type: 'agent_status',
@@ -152,19 +192,22 @@ class WorkspaceWatcher {
 
       this.lastAnalyzedDiffHash = diffHash;
 
-      // 3. Read harness and skills context
+      // 3. Read harness, skills context, and vibetrace.md protocol
       const harnessRules = harnessContext.read(this.watchDir);
+      const proto = protocol.read(this.watchDir);
 
-      // 4. Infer prompt intent from commit or touched files
-      let prompt = '';
-      if (recentCommits.length > 0 && recentCommits[0].message) {
-        prompt = `Git Activity: ${recentCommits[0].message}`;
-      } else {
-        prompt = `Code modifications across ${files.slice(0, 3).join(', ')}`;
+      // 4. Infer prompt intent from vibetrace.md protocol or commit
+      let prompt = explicitPrompt || proto.task || proto.intent;
+      if (!prompt) {
+        if (recentCommits.length > 0 && recentCommits[0].message) {
+          prompt = `Git Activity: ${recentCommits[0].message}`;
+        } else {
+          prompt = `Code modifications across ${files.slice(0, 3).join(', ')}`;
+        }
       }
 
       // 5. Run causal analysis & trace generation
-      console.log(`[VibeTrace Watcher] Analyzing code changes across ${files.length} file(s)...`);
+      console.log(`[VibeTrace Watcher] Analyzing code changes across ${files.length} file(s) for task: "${prompt}"...`);
       const analysis = await analyze({
         prompt,
         diffs,
@@ -172,6 +215,13 @@ class WorkspaceWatcher {
         watchDir: this.watchDir,
         harnessRules
       });
+
+      // Attach protocol context
+      analysis.agentProtocol = {
+        agent: proto.agent || 'Coding Agent',
+        task: proto.task || prompt,
+        status: proto.status || 'completed'
+      };
 
       // Persist permanently to SQLite database
       const db = require('./db');
@@ -209,4 +259,3 @@ class WorkspaceWatcher {
 }
 
 module.exports = new WorkspaceWatcher();
-

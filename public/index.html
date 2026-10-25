@@ -19,14 +19,13 @@
         <span class="brand-name">VibeTrace</span>
       </div>
 
-      <!-- Active Project Selector Pill -->
-      <div class="project-pill" id="btn-open-projects-modal" title="Click to switch or connect project">
+      <!-- Active Project Info -->
+      <div class="project-pill" title="Currently observed workspace">
         <span class="folder-ico">📁</span>
-        <span class="project-active-name" id="nav-project-name">learn-ai-basics</span>
-        <span class="switch-badge">Switch</span>
+        <span class="project-active-name" id="nav-project-name">workspace</span>
       </div>
 
-      <!-- Live Watcher Status Indicator -->
+      <!-- Live Agent & Watcher Status Indicator -->
       <div class="live-status-pill" id="live-indicator-pill">
         <span class="status-pulse-dot"></span>
         <span class="status-label" id="live-indicator-text">Watching Live</span>
@@ -36,9 +35,6 @@
     <div class="nav-right">
       <button id="btn-rescan" class="btn btn-secondary btn-sm" title="Force immediate Git diff scan">
         ↻ Rescan Diffs
-      </button>
-      <button id="btn-open-connect" class="btn btn-primary btn-sm" title="Connect another folder or project">
-        + Connect Project
       </button>
       <div class="model-badge" title="AI Model configured in .env">
         <span class="model-dot"></span>
@@ -63,8 +59,8 @@
           <span class="card-caption">CURRENT PROJECT</span>
           <span class="git-badge" id="left-git-branch">main</span>
         </div>
-        <div class="project-card-title" id="left-project-name">learn-ai-basics</div>
-        <div class="project-card-path" id="left-project-path" title="">c:\...\learn-ai-basics</div>
+        <div class="project-card-title" id="left-project-name">workspace</div>
+        <div class="project-card-path" id="left-project-path" title="">c:\...</div>
       </div>
 
       <!-- Search & Filter Bar -->
@@ -124,7 +120,28 @@
          ======================================================== -->
     <aside class="pane pane-right" id="pane-right">
 
-      <!-- Section A: Real AI Harness Engineering Audit -->
+      <!-- Section A: Live Agent Protocol & Guidance (vibetrace.md) -->
+      <div class="protocol-card" id="protocol-card">
+        <div class="protocol-card-header">
+          <div class="protocol-header-title">
+            <span class="protocol-icon">⚡</span>
+            <span>AGENT HARNESS GUIDANCE</span>
+          </div>
+          <span class="protocol-status-tag" id="proto-status-tag">IDLE</span>
+        </div>
+        <div class="protocol-task-intent" id="proto-task-intent">
+          Waiting for coding agent instruction...
+        </div>
+        <div class="protocol-steps-list" id="proto-steps-list">
+          <!-- Steps from vibetrace.md injected here -->
+        </div>
+        <div class="protocol-notes-box" id="proto-notes-box">
+          <span class="notes-caption">Inter-Agent Channel:</span>
+          <span id="proto-notes-text">vibetrace.md protocol connected</span>
+        </div>
+      </div>
+
+      <!-- Section B: Real AI Harness Engineering Audit -->
       <div class="harness-audit-card" id="harness-audit-card">
         <div class="harness-card-header">
           <div class="harness-header-title">
@@ -171,7 +188,7 @@
         </div>
       </div>
 
-      <!-- Section B: Interactive AI Query Engine -->
+      <!-- Section C: Interactive AI Query Engine -->
       <div class="ai-query-box-card">
         <div class="query-card-header">
           <span class="sparkle-ico">◈</span>
@@ -199,7 +216,7 @@
         </div>
       </div>
 
-      <!-- Section C: Plain English Summary & Architectural Impact -->
+      <!-- Section D: Plain English Summary & Architectural Impact -->
       <div class="info-card">
         <div class="info-card-section">
           <h4>PLAIN ENGLISH SUMMARY</h4>
@@ -256,39 +273,6 @@
       <span>Database: <b>vibetrace.db</b></span>
     </div>
   </footer>
-
-  <!-- Project Onboarding & Switch Modal -->
-  <div class="modal-backdrop hidden" id="modal-project">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="modal-icon">📁</span>
-          <div>
-            <h3>Connect Project Repository</h3>
-            <p>Select a folder to observe live code changes and harness execution</p>
-          </div>
-        </div>
-        <button id="btn-close-modal" class="btn-close-modal">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="modal-input-path">Local Repository Path:</label>
-          <div class="input-with-button">
-            <input type="text" id="modal-input-path" placeholder="e.g. C:\Users\Username\Projects\my-app" spellcheck="false">
-            <button id="modal-btn-connect" class="btn btn-primary">Connect & Observe</button>
-          </div>
-        </div>
-
-        <div class="recent-projects-section">
-          <h4>RECENTLY OBSERVED PROJECTS (SAVED IN SQLITE)</h4>
-          <div class="recent-projects-list" id="recent-projects-list">
-            <!-- Project cards rendered here -->
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Scripts -->
   <script src="diffViewer.js"></script>

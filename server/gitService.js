@@ -52,38 +52,56 @@ class GitService {
     const diffOutput = await this.execGit('diff HEAD');
     const fallbackDiff = diffOutput || await this.execGit('diff');
     
-    if (!fallbackDiff) {
-      // Check untracked or modified files from status
-      const status = await this.execGit('status --porcelain');
-      if (!status) return [];
-      
-      const files = status.split('\n').map(l => l.trim().split(/\s+/)[1]).filter(Boolean);
-      return files.slice(0, 10).map(file => {
-        try {
-          const fullPath = path.join(this.cwd, file);
-          if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-            const content = fs.readFileSync(fullPath, 'utf8').slice(0, 500);
-            return {
-              file,
-              status: 'modified',
-              content: content.split('\n').map(l => `+ ${l}`).join('\n')
-            };
-          }
-        } catch (e) {}
-        return { file, status: 'untracked', content: `+ [File created or modified]: ${file}` };
-      });
+    // Parse git diff output into per-file chunks
+    if (fallbackDiff) {
+      return this.parseDiffChunks(fallbackDiff);
     }
 
-    // Parse git diff output into per-file chunks
+    // Check untracked or modified files from status
+    const status = await this.execGit('status --porcelain');
+    if (status) {
+      const files = status.split('\n').map(l => l.trim().split(/\s+/)[1]).filter(Boolean);
+      if (files.length > 0) {
+        return files.slice(0, 10).map(file => {
+          try {
+            const fullPath = path.join(this.cwd, file);
+            if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+              const content = fs.readFileSync(fullPath, 'utf8').slice(0, 500);
+              return {
+                file,
+                status: 'modified',
+                content: content.split('\n').map(l => `+ ${l}`).join('\n')
+              };
+            }
+          } catch (e) {}
+          return { file, status: 'untracked', content: `+ [File created or modified]: ${file}` };
+        });
+      }
+    }
+
+    // Fallback: Check diff from most recent commit HEAD~1 HEAD if working directory is clean
+    const recentCommitDiff = await this.execGit('diff HEAD~1 HEAD');
+    if (recentCommitDiff) {
+      return this.parseDiffChunks(recentCommitDiff);
+    }
+
+    return [];
+  }
+
+  parseDiffChunks(rawDiff) {
     const fileDiffs = [];
-    const chunks = fallbackDiff.split('diff --git ');
+    // Only split at the start of lines to avoid matching code strings
+    const chunks = rawDiff.split(/^diff --git /m);
     
     for (const chunk of chunks) {
       if (!chunk.trim()) continue;
       const lines = chunk.split('\n');
-      const header = lines[0] || '';
-      const match = header.match(/a\/(.+?)\s+b\/(.+)/);
-      const filename = match ? match[2] : header.split(' ')[0];
+      const header = (lines[0] || '').replace(/\r$/, '').trim();
+      const match = header.match(/^a\/(.+?)\s+b\/(.+)$/);
+      let filename = match ? match[2].trim() : (header.split(' ')[0] || '').trim();
+      filename = filename.replace(/^"|"$/g, ''); // strip quotes if any
+
+      if (!filename || filename.length < 2 || filename.includes(');')) continue;
 
       const diffBody = lines.filter(l => l.startsWith('+') || l.startsWith('-') || l.startsWith('@')).join('\n');
       fileDiffs.push({

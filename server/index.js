@@ -3,6 +3,7 @@ const path = require('path');
 const sse = require('./sse');
 const watcher = require('./watcher');
 const db = require('./db');
+const protocol = require('./harness/protocol');
 const { analyze } = require('./analyzer');
 const { answerQuestion } = require('./queryEngine');
 require('dotenv').config();
@@ -14,8 +15,9 @@ let WATCH_DIR = path.resolve(process.env.WATCH_DIR || '.');
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Register initial project in SQLite
+// Register initial project in SQLite and ensure vibetrace.md exists
 db.upsertProject(WATCH_DIR);
+protocol.ensureExists(WATCH_DIR);
 
 // Helper to record and broadcast trace
 function recordEvent(event) {
@@ -27,10 +29,25 @@ function recordEvent(event) {
 // SSE Telemetry Stream Endpoint
 app.get('/api/events', (req, res) => {
   sse.subscribe(req, res);
+
+  // Send current vibetrace.md protocol state
+  const proto = protocol.read(WATCH_DIR);
+  res.write(`data: ${JSON.stringify({ type: 'protocol_update', protocol: proto })}\n\n`);
+
   // Send persistent historical traces from SQLite
   const traces = db.getTraces(WATCH_DIR, 50);
   if (traces.length > 0) {
     res.write(`data: ${JSON.stringify({ type: 'history', traces })}\n\n`);
+  }
+});
+
+// Endpoint to get current vibetrace.md protocol state
+app.get('/api/protocol', (req, res) => {
+  try {
+    const proto = protocol.read(WATCH_DIR);
+    res.json({ protocol: proto });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

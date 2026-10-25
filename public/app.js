@@ -1,5 +1,5 @@
 // VibeTrace Dashboard Client Controller
-// Pure Functional AI Observability, Persistent SQLite Storage & Harness Audit
+// Pure Functional AI Observability, Persistent SQLite Storage & vibetrace.md Protocol
 
 (function () {
   let traces = [];
@@ -10,11 +10,9 @@
 
   // DOM Elements - Top Header
   const navProjectName = document.getElementById('nav-project-name');
-  const btnOpenProjectsModal = document.getElementById('btn-open-projects-modal');
   const liveIndicatorPill = document.getElementById('live-indicator-pill');
   const liveIndicatorText = document.getElementById('live-indicator-text');
   const btnRescan = document.getElementById('btn-rescan');
-  const btnOpenConnect = document.getElementById('btn-open-connect');
   const navModelName = document.getElementById('nav-model-name');
   const btnThemeToggle = document.getElementById('btn-theme-toggle');
   const themeIcon = document.getElementById('theme-icon');
@@ -35,6 +33,12 @@
   const fileTabsScroll = document.getElementById('file-tabs-scroll');
   const diffsContainer = document.getElementById('diffs-container');
   const emptyDiffState = document.getElementById('empty-diff-state');
+
+  // Right Pane: Live Agent Protocol (vibetrace.md)
+  const protoStatusTag = document.getElementById('proto-status-tag');
+  const protoTaskIntent = document.getElementById('proto-task-intent');
+  const protoStepsList = document.getElementById('proto-steps-list');
+  const protoNotesText = document.getElementById('proto-notes-text');
 
   // Right Pane: AI Harness Engineering Audit
   const harnessOverallStatus = document.getElementById('harness-overall-status');
@@ -64,13 +68,6 @@
   const footerStatusLabel = document.getElementById('footer-status-label');
   const footerTickerMsg = document.getElementById('footer-ticker-msg');
 
-  // Modal: Project Connect & Onboarding
-  const modalProject = document.getElementById('modal-project');
-  const btnCloseModal = document.getElementById('btn-close-modal');
-  const modalInputPath = document.getElementById('modal-input-path');
-  const modalBtnConnect = document.getElementById('modal-btn-connect');
-  const recentProjectsList = document.getElementById('recent-projects-list');
-
   // 1. Theme Management (Light / Dark)
   function initTheme() {
     const saved = localStorage.getItem('vibetrace_theme') || 'light';
@@ -97,7 +94,9 @@
     evtSource.onmessage = function (e) {
       try {
         const payload = JSON.parse(e.data);
-        if (payload.type === 'history') {
+        if (payload.type === 'protocol_update') {
+          renderProtocol(payload.protocol);
+        } else if (payload.type === 'history') {
           traces = payload.traces || [];
           renderTracesList();
           if (traces.length > 0 && !selectedTraceId) {
@@ -119,9 +118,53 @@
     };
   }
 
+  // 3. Render Agent Protocol Card from `vibetrace.md`
+  function renderProtocol(proto) {
+    if (!proto) return;
+
+    const status = (proto.status || 'idle').toLowerCase();
+    if (protoStatusTag) {
+      protoStatusTag.className = `protocol-status-tag ${status}`;
+      protoStatusTag.textContent = status === 'in_progress' ? 'IN PROGRESS' : status.toUpperCase();
+    }
+
+    if (protoTaskIntent) {
+      protoTaskIntent.textContent = proto.task || proto.intent || 'Waiting for coding agent instruction...';
+    }
+
+    if (protoStepsList) {
+      protoStepsList.innerHTML = '';
+      const steps = proto.steps || [];
+      if (steps.length === 0) {
+        protoStepsList.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">No steps listed in vibetrace.md</span>';
+      } else {
+        steps.forEach(s => {
+          const row = document.createElement('div');
+          row.className = `proto-step-row ${s.done ? 'done' : ''}`;
+          row.innerHTML = `
+            <span class="proto-step-checkbox">${s.done ? '☑' : '☐'}</span>
+            <span>${s.text}</span>
+          `;
+          protoStepsList.appendChild(row);
+        });
+      }
+    }
+
+    if (protoNotesText) {
+      protoNotesText.textContent = proto.notes || 'vibetrace.md protocol connected';
+    }
+
+    // Reflect in Top Live Status Indicator
+    if (status === 'in_progress') {
+      setLiveIndicator('writing', `Agent in progress: ${proto.task ? proto.task.slice(0, 30) : 'Coding'}...`);
+    } else if (status === 'completed') {
+      setLiveIndicator('live', 'Agent Completed Task');
+    }
+  }
+
   function handleAgentStatus(data) {
     if (data.status === 'writing') {
-      setLiveIndicator('writing', `Agent active (${data.filesCount} files)...`);
+      setLiveIndicator('writing', `Agent active (${data.filesCount || 1} files)...`);
       logTicker(data.message || 'Agent actively modifying code...');
     } else if (data.status === 'analyzing') {
       setLiveIndicator('analyzing', 'Stabilized: Analyzing diffs...');
@@ -149,11 +192,15 @@
     }
   }
 
-  // 3. Fetch Initial System Status & Project Info
+  // 4. Fetch System Status & Protocol
   async function fetchStatus() {
     try {
-      const res = await fetch('/api/status');
-      const data = await res.json();
+      const [resStatus, resProto] = await Promise.all([
+        fetch('/api/status'),
+        fetch('/api/protocol')
+      ]);
+
+      const data = await resStatus.json();
       activeProjectPath = data.watchDir || '';
 
       if (navProjectName) navProjectName.textContent = data.projectName || 'workspace';
@@ -162,87 +209,21 @@
         leftProjectPath.textContent = data.watchDir || '';
         leftProjectPath.title = data.watchDir || '';
       }
-      if (modalInputPath) modalInputPath.value = data.watchDir || '';
       if (navModelName && data.model) {
         navModelName.textContent = data.model.split('/')[1] || data.model;
       }
       logTicker(`Connected to project: ${data.projectName} (${data.watchDir})`);
+
+      const protoData = await resProto.json();
+      if (protoData && protoData.protocol) {
+        renderProtocol(protoData.protocol);
+      }
     } catch (e) {
       console.warn('Failed to fetch status:', e);
     }
   }
 
-  // 4. Load Recent Projects from SQLite
-  async function loadRecentProjects() {
-    try {
-      const res = await fetch('/api/projects');
-      const data = await res.json();
-      const list = data.projects || [];
-
-      if (recentProjectsList) {
-        recentProjectsList.innerHTML = '';
-        list.forEach(proj => {
-          const row = document.createElement('div');
-          row.className = 'recent-project-row';
-          const isCurrent = proj.path.toLowerCase() === activeProjectPath.toLowerCase();
-
-          row.innerHTML = `
-            <div class="recent-proj-info">
-              <span class="recent-proj-name">${proj.name}</span>
-              <span class="recent-proj-path">${proj.path}</span>
-            </div>
-            ${isCurrent ? '<span class="recent-proj-badge">Active</span>' : '<span class="recent-proj-badge">Select</span>'}
-          `;
-
-          row.addEventListener('click', () => {
-            connectToProject(proj.path);
-            closeProjectModal();
-          });
-          recentProjectsList.appendChild(row);
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  // 5. Connect / Switch Project Folder
-  async function connectToProject(newPath) {
-    if (!newPath) return;
-
-    modalBtnConnect.disabled = true;
-    modalBtnConnect.textContent = 'Connecting...';
-
-    try {
-      const res = await fetch('/api/watch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: newPath })
-      });
-      const data = await res.json();
-      if (data.success) {
-        activeProjectPath = data.watchDir;
-        navProjectName.textContent = data.projectName;
-        leftProjectName.textContent = data.projectName;
-        leftProjectPath.textContent = data.watchDir;
-        leftProjectPath.title = data.watchDir;
-
-        traces = data.traces || [];
-        selectedTraceId = null;
-        renderTracesList();
-        if (traces.length > 0) selectTrace(traces[0].id);
-
-        logTicker(`Switched watcher to: ${data.watchDir}`);
-      }
-    } catch (err) {
-      logTicker(`Failed to connect folder: ${err.message}`);
-    } finally {
-      modalBtnConnect.disabled = false;
-      modalBtnConnect.textContent = 'Connect & Observe';
-    }
-  }
-
-  // 6. Force Immediate Rescan
+  // 5. Force Immediate Rescan
   async function rescanRepo() {
     btnRescan.textContent = '... Scanning';
     try {
@@ -255,14 +236,14 @@
     }
   }
 
-  // 7. Add Trace to List
+  // 6. Add Trace to List
   function addTrace(trace) {
     traces.unshift(trace);
     renderTracesList();
     selectTrace(trace.id);
   }
 
-  // 8. Render Left Pane: Traces List
+  // 7. Render Left Pane: Traces List
   function renderTracesList() {
     tracesCountTag.textContent = traces.length;
 
@@ -298,9 +279,9 @@
       card.innerHTML = `
         <div class="trace-item-top">
           <span class="trace-item-time">${timeStr}</span>
-          <span class="trace-item-type">${trace.changeType || 'Code Mutation'}</span>
+          <span class="trace-item-type">${trace.agentProtocol?.task ? 'Agent Task' : (trace.changeType || 'Code Mutation')}</span>
         </div>
-        <div class="trace-item-title">${trace.title || 'Code Changes'}</div>
+        <div class="trace-item-title">${trace.agentProtocol?.task || trace.title || 'Code Changes'}</div>
         <div class="trace-item-bottom">
           <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
           <div class="trace-diff-pills">
@@ -315,7 +296,7 @@
     });
   }
 
-  // 9. Select Trace
+  // 8. Select Trace
   function selectTrace(id) {
     selectedTraceId = id;
     selectedFileFilter = 'all';
@@ -330,7 +311,7 @@
 
     // Populate Middle Pane
     emptyDiffState.classList.add('hidden');
-    middleTraceTitle.textContent = trace.title || trace.changeType || 'Code Changes';
+    middleTraceTitle.textContent = trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes';
     middleTraceId.textContent = trace.id ? trace.id.slice(0, 8) : '--';
     middleTraceTime.textContent = trace.timestamp || '';
 
@@ -344,7 +325,7 @@
     populateRightPane(trace);
   }
 
-  // 10. Render File Tabs in Middle Pane
+  // 9. Render File Tabs in Middle Pane
   function renderFileTabs(trace) {
     fileTabsScroll.innerHTML = '';
     const diffs = trace.diffs || [];
@@ -384,7 +365,7 @@
     });
   }
 
-  // 11. Render Diffs in Middle Pane
+  // 10. Render Diffs in Middle Pane
   function renderDiffsContent(trace) {
     const diffs = trace.diffs || [];
     if (window.diffViewer) {
@@ -392,7 +373,7 @@
     }
   }
 
-  // 12. Populate Right Pane (Harness, Summary, Impact, Telemetry)
+  // 11. Populate Right Pane (Harness, Summary, Impact, Telemetry)
   function populateRightPane(trace) {
     // A. Real AI Harness Engineering Audit
     const harness = trace.harness || {};
@@ -449,7 +430,7 @@
     rightMetaDel.textContent = `-${trace.deletions || 0}`;
   }
 
-  // 13. Submit Question to AI Query Engine
+  // 12. Submit Question to AI Query Engine
   async function submitQuery(customQuestion = null) {
     const question = customQuestion || aiQueryInput.value.trim();
     if (!question) return;
@@ -482,37 +463,7 @@
     }
   }
 
-  // 14. Modal Dialog Handlers
-  function openProjectModal() {
-    loadRecentProjects();
-    modalProject.classList.remove('hidden');
-  }
-
-  function closeProjectModal() {
-    modalProject.classList.add('hidden');
-  }
-
   // Event Listeners
-  if (btnOpenProjectsModal) btnOpenProjectsModal.addEventListener('click', openProjectModal);
-  if (btnOpenConnect) btnOpenConnect.addEventListener('click', openProjectModal);
-  if (btnCloseModal) btnCloseModal.addEventListener('click', closeProjectModal);
-
-  if (modalBtnConnect) {
-    modalBtnConnect.addEventListener('click', () => {
-      const p = modalInputPath.value.trim();
-      if (p) {
-        connectToProject(p);
-        closeProjectModal();
-      }
-    });
-  }
-
-  if (modalProject) {
-    modalProject.addEventListener('click', (e) => {
-      if (e.target === modalProject) closeProjectModal();
-    });
-  }
-
   if (btnRescan) btnRescan.addEventListener('click', rescanRepo);
   if (btnRunQuery) btnRunQuery.addEventListener('click', () => submitQuery());
   if (btnCloseQueryAnswer) btnCloseQueryAnswer.addEventListener('click', () => queryAnswerCard.classList.add('hidden'));

@@ -40,6 +40,7 @@ class Database {
         model TEXT,
         harness_status TEXT,
         harness_report_json TEXT,
+        agent_protocol_json TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -65,6 +66,11 @@ class Database {
       CREATE INDEX IF NOT EXISTS idx_traces_project ON traces(project_path);
       CREATE INDEX IF NOT EXISTS idx_diffs_trace ON diffs(trace_id);
     `);
+
+    // Ensure migration for existing DBs
+    try {
+      this.db.exec('ALTER TABLE traces ADD COLUMN agent_protocol_json TEXT');
+    } catch (e) {}
   }
 
   // Upsert project
@@ -107,8 +113,9 @@ class Database {
         id, project_path, timestamp, change_type, title,
         summary, architectural_impact, subsystems_json,
         git_branch, git_commit, additions, deletions,
-        latency, model, harness_status, harness_report_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        latency, model, harness_status, harness_report_json,
+        agent_protocol_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertTrace.run(
@@ -127,7 +134,8 @@ class Database {
       trace.latency || '0.24s',
       trace.model || 'local',
       trace.harness?.status || 'PASS',
-      JSON.stringify(trace.harness || {})
+      JSON.stringify(trace.harness || {}),
+      JSON.stringify(trace.agentProtocol || {})
     );
 
     // Insert diffs
@@ -176,8 +184,10 @@ class Database {
 
     let subsystems = [];
     let harness = {};
+    let agentProtocol = null;
     try { subsystems = JSON.parse(row.subsystems_json || '[]'); } catch (e) {}
     try { harness = JSON.parse(row.harness_report_json || '{}'); } catch (e) {}
+    try { agentProtocol = JSON.parse(row.agent_protocol_json || '{}'); } catch (e) {}
 
     return {
       id: row.id,
@@ -197,6 +207,7 @@ class Database {
         commit: row.git_commit
       },
       harness,
+      agentProtocol,
       diffs
     };
   }
