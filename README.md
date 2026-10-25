@@ -1,4 +1,7 @@
 # VibeTrace ⚡
+
+<img width="1376" height="768" alt="VibeTrace" src="https://github.com/user-attachments/assets/7961ab0b-1907-4cc7-839e-7acb67c5f652" />
+
 ### Real-Time Observability Harness & Prompt-to-Execution Drift Guard for AI Coding Agents
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
