@@ -926,7 +926,7 @@ body.dark-theme .pill-btn.action-btn:hover {
 
 /* Completed Card: Selected / Active State — SAPPHIRE / ROYAL BLUE GRADIENT */
 .trace-item-row.active.status-completed,
-.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress):not(.is-difference):not(.status-difference):not(.has-difference):not(.status-diverged) {
   --card-connector-color: #2563eb;
   overflow: visible !important;
   animation: none !important;
@@ -937,7 +937,7 @@ body.dark-theme .pill-btn.action-btn:hover {
 }
 
 .trace-item-row.active.status-completed::before,
-.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress)::before {
+.trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress):not(.is-difference):not(.status-difference):not(.has-difference):not(.status-diverged)::before {
   display: none !important;
 }
 
@@ -993,9 +993,9 @@ body.dark-theme .trace-item-row.status-completed:not(.active) {
 }
 
 [data-theme="dark"] .trace-item-row.active.status-completed,
-[data-theme="dark"] .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress),
+[data-theme="dark"] .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress):not(.is-difference):not(.status-difference):not(.has-difference):not(.status-diverged),
 body.dark-theme .trace-item-row.active.status-completed,
-body.dark-theme .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress) {
+body.dark-theme .trace-item-row.active:not(.is-working):not(.status-working):not(.is-changing):not(.status-changing):not(.is-editing):not(.status-editing):not(.in-progress):not(.is-difference):not(.status-difference):not(.has-difference):not(.status-diverged) {
   background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%) !important;
   border-color: rgba(255, 255, 255, 0.35) !important;
   box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.6) !important;
