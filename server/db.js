@@ -71,6 +71,9 @@ class Database {
     try {
       this.db.exec('ALTER TABLE traces ADD COLUMN agent_protocol_json TEXT');
     } catch (e) {}
+    try {
+      this.db.exec('ALTER TABLE traces ADD COLUMN synthesis_json TEXT');
+    } catch (e) {}
   }
 
   // Upsert project
@@ -114,8 +117,8 @@ class Database {
         summary, architectural_impact, subsystems_json,
         git_branch, git_commit, additions, deletions,
         latency, model, harness_status, harness_report_json,
-        agent_protocol_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        agent_protocol_json, synthesis_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertTrace.run(
@@ -135,7 +138,8 @@ class Database {
       trace.model || 'local',
       trace.harness?.status || 'PASS',
       JSON.stringify(trace.harness || {}),
-      JSON.stringify(trace.agentProtocol || {})
+      JSON.stringify(trace.agentProtocol || {}),
+      JSON.stringify(trace.synthesis || {})
     );
 
     // Insert diffs
@@ -185,9 +189,24 @@ class Database {
     let subsystems = [];
     let harness = {};
     let agentProtocol = null;
+    let synthesis = {};
     try { subsystems = JSON.parse(row.subsystems_json || '[]'); } catch (e) {}
     try { harness = JSON.parse(row.harness_report_json || '{}'); } catch (e) {}
     try { agentProtocol = JSON.parse(row.agent_protocol_json || '{}'); } catch (e) {}
+    try { synthesis = JSON.parse(row.synthesis_json || '{}'); } catch (e) {}
+
+    if (!synthesis.summary) {
+      synthesis = {
+        summary: row.summary || 'Code modifications recorded.',
+        whatChanged: [
+          `Modified ${diffs.length} file(s)`,
+          `Delta of +${row.additions || 0} / -${row.deletions || 0} lines`
+        ],
+        affectedFeatures: diffs.map(d => d.file.split(/[\/\\]/).pop().replace(/\.[^.]+$/, '')).slice(0, 4),
+        downstreamImpact: row.architectural_impact || 'Systemic boundaries consistent.',
+        riskLevel: harness.status === 'FAIL' ? 'High' : (harness.status === 'WARN' ? 'Medium' : 'Low')
+      };
+    }
 
     return {
       id: row.id,
@@ -208,6 +227,7 @@ class Database {
       },
       harness,
       agentProtocol,
+      synthesis,
       diffs
     };
   }

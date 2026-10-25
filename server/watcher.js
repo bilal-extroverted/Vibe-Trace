@@ -71,13 +71,20 @@ class WorkspaceWatcher {
         if (proto.status === 'in_progress') {
           sse.broadcast({
             type: 'agent_status',
-            status: 'writing',
+            status: 'working',
+            task: proto.task || proto.intent,
             filesCount: this.pendingChangedFiles.size,
-            message: `Agent started task: ${proto.task || proto.intent}`
+            message: `Agent Working: ${proto.task || proto.intent}`
           });
         } else if (proto.status === 'completed') {
           // Agent explicitly signaled completion! Trigger batch immediately
           console.log(`[VibeTrace Protocol] Agent signaled completion for: "${proto.task}". Processing trace...`);
+          sse.broadcast({
+            type: 'agent_status',
+            status: 'completed',
+            task: proto.task,
+            message: `Task Completed: ${proto.task}`
+          });
           clearTimeout(this.debounceTimer);
           setTimeout(() => this.processBatch(proto.task || proto.intent), 300);
         }
@@ -233,8 +240,10 @@ class WorkspaceWatcher {
 
       sse.broadcast({
         type: 'agent_status',
-        status: 'idle',
-        message: `Trace captured: ${analysis.title}`
+        status: 'trace_created',
+        task: analysis.agentProtocol?.task || analysis.title,
+        traceId: analysis.id,
+        message: `Trace Created: ${analysis.agentProtocol?.task || analysis.title}`
       });
     } catch (err) {
       console.error('[VibeTrace Watcher Error in processBatch]:', err);

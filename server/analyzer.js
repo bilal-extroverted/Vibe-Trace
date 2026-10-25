@@ -33,12 +33,25 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '
   else if (configFiles.length > 0 && logicFiles.length === 0) changeType = 'Config Update';
   else if (additions > 40 && deletions > 25) changeType = 'Architectural Refactor';
 
-  const summary = aiResponse?.summary || `Observed code modifications across ${files.length} file(s). Added ${additions} line(s), removed ${deletions} line(s).`;
-  const architecturalImpact = aiResponse?.architecturalImpact || `Files modified in ${files.slice(0, 3).join(', ')}. Code structure updated with consistent boundaries.`;
-  const title = aiResponse?.title || `${changeType} (${files.length} file${files.length === 1 ? '' : 's'})`;
-
-  // Real AI Harness Engineering Validation
   const harnessReport = harnessEngine.validate({ files, diffs, watchDir });
+
+  const synthesis = {
+    summary: aiResponse?.summary || `Observed code modifications across ${files.length} file(s). Added ${additions} line(s), removed ${deletions} line(s).`,
+    whatChanged: Array.isArray(aiResponse?.whatChanged) && aiResponse.whatChanged.length > 0 ? aiResponse.whatChanged : [
+      `Modified ${files.length} file(s): ${files.slice(0, 3).join(', ')}`,
+      `Updated logic with +${additions} / -${deletions} line delta`
+    ],
+    affectedFeatures: Array.isArray(aiResponse?.affectedFeatures) && aiResponse.affectedFeatures.length > 0 ? aiResponse.affectedFeatures : (
+      files.map(f => {
+        const parts = f.replace(/\\/g, '/').split('/');
+        return parts.length > 1 ? parts[0] + ' (' + parts[parts.length - 1].replace(/\.[^.]+$/, '') + ')' : f;
+      }).slice(0, 4)
+    ),
+    downstreamImpact: aiResponse?.downstreamImpact || aiResponse?.architecturalImpact || `Local modifications to ${files.slice(0, 3).join(', ')}. Existing systemic boundaries maintained.`,
+    riskLevel: aiResponse?.riskLevel || (harnessReport.status === 'FAIL' ? 'High' : (harnessReport.status === 'WARN' ? 'Medium' : 'Low'))
+  };
+
+  const title = aiResponse?.title || `${changeType} (${files.length} file${files.length === 1 ? '' : 's'})`;
 
   return {
     id: traceId,
@@ -51,8 +64,9 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '
     files,
     additions,
     deletions,
-    summary,
-    architecturalImpact,
+    summary: synthesis.summary,
+    architecturalImpact: synthesis.downstreamImpact,
+    synthesis,
     subsystems: [
       dbFiles.length ? 'Database' : null,
       logicFiles.length ? 'Application Logic' : null,
@@ -74,8 +88,17 @@ async function callOpenRouter(apiKey, modelList, promptText, diffSummary, harnes
 Analyze the prompt and code diffs, and return a strict JSON object:
 {
   "title": "Concise 3-6 word summary of what the code change did",
-  "summary": "2-3 clear, technical sentences explaining what was implemented, refactored, or fixed",
-  "architecturalImpact": "A concise assessment of how this change impacts system architecture and downstream dependencies"
+  "summary": "Clear, plain-English summary of what changes occurred in the code for both non-technical stakeholders and engineers",
+  "whatChanged": [
+    "Specific mechanical change 1",
+    "Specific mechanical change 2"
+  ],
+  "affectedFeatures": [
+    "Feature or option 1",
+    "Feature or option 2"
+  ],
+  "downstreamImpact": "Clear assessment of potential ripple effects on other features, system behavior, or dependencies",
+  "riskLevel": "Low"
 }
 Return ONLY valid JSON.`;
 
