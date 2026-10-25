@@ -477,6 +477,24 @@
   }
 
   // 9. Render Left Pane: Chronological Traces Feed (BORDERLESS ROWS, NO CARDS!)
+  function formatTraceTime(ts) {
+    if (!ts) return '--:--:--';
+    if (typeof ts === 'string' && ts.includes(' ') && ts.split(' ')[1]) {
+      return ts.split(' ')[1].slice(0, 8);
+    }
+    try {
+      const d = new Date(ts);
+      if (!isNaN(d.getTime())) {
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        const ss = String(d.getSeconds()).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+      }
+    } catch (e) {}
+    return String(ts).slice(0, 8);
+  }
+
+  // 9. Render Left Pane: Chronological Traces Feed (Concise, Small, Non-Bold)
   function renderTracesList() {
     if (tracesCountTag) tracesCountTag.textContent = traces.length;
 
@@ -506,7 +524,7 @@
       rowItem.className = `trace-item-row ${trace.id === selectedTraceId ? 'active' : ''} ${isInProgress ? 'in-progress' : ''}`;
       rowItem.dataset.id = trace.id;
 
-      const timeStr = trace.timestamp ? (trace.timestamp.includes(' ') ? trace.timestamp.split(' ')[1] : trace.timestamp) : '--:--:--';
+      const timeStr = formatTraceTime(trace.timestamp);
       const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
       const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
       const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
@@ -515,12 +533,25 @@
       const isAgentTask = Boolean(trace.agentProtocol?.task);
       const activeFileName = trace.activeFile || (trace.files && trace.files[0]) || (latestProtocol && latestProtocol.active_file) || 'vibetrace.md';
 
+      let tagLabel = 'MUTATION';
+      let tagClass = 'tag-mutation';
+      if (isInProgress) {
+        tagLabel = 'WORKING';
+        tagClass = 'tag-in-progress';
+      } else if (trace.changeType && !trace.changeType.toLowerCase().includes('mutation')) {
+        tagLabel = trace.changeType.toUpperCase().replace(/\s*\(.*\)/, '').slice(0, 14);
+        tagClass = 'tag-agent';
+      } else if (isAgentTask) {
+        tagLabel = 'COMPLETED';
+        tagClass = 'tag-agent';
+      }
+
       if (isInProgress) {
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
-            <span class="trace-item-tag tag-in-progress">
-              <span class="live-dot-pulse"></span> IN PROGRESS
+            <span class="trace-item-tag ${tagClass}">
+              <span class="live-dot-pulse"></span> ${tagLabel}
             </span>
           </div>
           <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
@@ -541,9 +572,7 @@
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
-            <span class="trace-item-tag ${isAgentTask ? 'tag-agent' : ''}">
-              ${isAgentTask ? 'AGENT TASK' : (trace.changeType || 'CODE MUTATION')}
-            </span>
+            <span class="trace-item-tag ${tagClass}">${tagLabel}</span>
           </div>
           <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
           <div class="trace-item-footer">
