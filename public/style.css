@@ -2363,8 +2363,13 @@ body.resizing {
 }
 
 .proto-step-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--emerald-primary);
-  font-weight: bold;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .inter-agent-notes-box {
@@ -2426,9 +2431,21 @@ body.resizing {
 }
 
 .check-glyph {
-  font-weight: bold;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   color: var(--emerald-primary);
+  flex-shrink: 0;
+}
+
+.harness-check-item.warn .check-glyph {
+  color: var(--amber-primary, #d97706);
+}
+
+.harness-check-item.fail .check-glyph {
+  color: var(--rose-primary, #e11d48);
 }
 
 .check-meta {
@@ -2733,4 +2750,135 @@ body.resizing {
 
 .hidden {
   display: none !important;
+}
+
+/* =========================================================
+   PROPER VECTOR SVG ICONS (CLEAN PROFESSIONAL UI)
+   ========================================================= */
+.ui-icon {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, stroke 0.15s ease;
+}
+
+.ui-icon.icon-xs {
+  width: 11px;
+  height: 11px;
+  stroke-width: 2;
+}
+
+.ui-icon.icon-sm {
+  width: 12px;
+  height: 12px;
+}
+
+.ui-icon.icon-md {
+  width: 14px;
+  height: 14px;
+}
+
+.ui-icon.icon-lg {
+  width: 16px;
+  height: 16px;
+}
+
+.pill-icon .ui-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 2px;
+}
+
+.action-icon .ui-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 2px;
+}
+
+.search-icon .ui-icon {
+  width: 11px;
+  height: 11px;
+  stroke: var(--text-muted);
+}
+
+.repo-path-icon .ui-icon,
+.active-file-icon .ui-icon {
+  width: 12px;
+  height: 12px;
+  stroke: var(--text-muted);
+}
+
+.impact-sparkle-icon .ui-icon {
+  width: 13px;
+  height: 13px;
+  stroke: var(--emerald-primary);
+}
+
+.impact-card-icon .ui-icon,
+.insight-label-icon .ui-icon {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+}
+
+.section-icon .ui-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.section-icon.shield-icon .ui-icon {
+  stroke: #10b981;
+}
+
+.section-icon.sparkle-icon .ui-icon {
+  stroke: #3b82f6;
+}
+
+.check-glyph .ui-icon {
+  width: 12px;
+  height: 12px;
+  stroke: #10b981;
+  stroke-width: 2.5;
+}
+
+.empty-diff-icon .ui-icon {
+  width: 36px;
+  height: 36px;
+  stroke: var(--text-muted);
+  opacity: 0.55;
+}
+
+.empty-icon .ui-icon {
+  width: 28px;
+  height: 28px;
+  stroke: #10b981;
+}
+
+.file-icon .ui-icon {
+  width: 13px;
+  height: 13px;
+  stroke: var(--text-secondary);
+}
+
+.toggle-icon .ui-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.proto-step-checkbox .ui-icon {
+  width: 13px;
+  height: 13px;
+  stroke: var(--emerald-primary);
+}
+
+.btn-close-response .ui-icon {
+  width: 11px;
+  height: 11px;
 }

@@ -6,7 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3.1">
+  <link rel="stylesheet" href="style.css?v=4.0">
 </head>
 <body class="light-theme">
 
@@ -16,7 +16,7 @@
   <header class="top-nav">
     <div class="nav-left">
       <div class="brand-logo">
-        <span class="logo-symbol">◈</span>
+        <span class="logo-symbol"><svg class="ui-icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 22 12 12 22 2 12 12 2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span>
         <span class="brand-text">VibeTrace</span>
       </div>
     </div>
@@ -24,7 +24,7 @@
     <div class="nav-right">
       <!-- Active Project Pill -->
       <div class="pill-btn project-pill" title="Observed project root">
-        <span class="pill-icon">📁</span>
+        <span class="pill-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
         <span class="pill-text" id="nav-project-name">workspace</span>
       </div>
 
@@ -36,13 +36,13 @@
 
       <!-- Rescan Button -->
       <button id="btn-rescan" class="pill-btn action-btn" title="Force immediate Git diff rescan">
-        <span class="pill-icon">↻</span>
+        <span class="pill-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg></span>
         <span>Rescan Diffs</span>
       </button>
 
       <!-- Theme Switcher -->
       <button id="btn-theme-toggle" class="pill-btn icon-only-pill" title="Toggle Light / Dark mode">
-        <span id="theme-icon">🌙</span>
+        <span id="theme-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
       </button>
     </div>
   </header>
@@ -65,14 +65,14 @@
           <span class="git-branch-tag" id="left-git-branch">main</span>
         </div>
         <div class="repo-path-row" id="repo-path-copy-btn" title="Click to copy full project path">
-          <span class="repo-path-icon">📁</span>
+          <span class="repo-path-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
           <span class="repo-path" id="left-project-path" title="">c:\...</span>
           <span class="repo-path-copy-tag" id="repo-path-copy-tag">Copy</span>
         </div>
       </div>
 
       <div class="traces-search-box">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         <input type="text" id="traces-search-input" placeholder="Filter tasks, traces, files..." autocomplete="off">
       </div>
 
@@ -119,11 +119,11 @@
 
           <div class="middle-actions-row">
             <button id="btn-copy-diff" class="btn-middle-action" title="Copy unified git diff to clipboard">
-              <span class="action-icon">📋</span>
+              <span class="action-icon"><svg class="ui-icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
               <span id="copy-diff-label">Copy diff</span>
             </button>
             <button id="btn-toggle-all-diffs" class="btn-middle-action" title="Collapse or expand all file cards">
-              <span class="action-icon">↕</span>
+              <span class="action-icon"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="7 15 12 20 17 15"/><polyline points="7 9 12 4 17 9"/></svg></span>
               <span>Toggle all</span>
             </button>
           </div>
@@ -159,12 +159,12 @@
         <div class="middle-trace-impact-banner" id="middle-trace-impact-banner">
           <div class="trace-impact-header">
             <div class="impact-header-left">
-              <span class="impact-sparkle-icon">✦</span>
+              <span class="impact-sparkle-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg></span>
               <span class="impact-title">TRACE CHANGE & IMPACT INTELLIGENCE</span>
               <span class="impact-risk-chip" id="middle-impact-risk">LOW RISK</span>
             </div>
             <button type="button" class="btn-toggle-impact" id="btn-toggle-trace-impact" title="Collapse or expand impact summary">
-              <span id="toggle-impact-icon">▲</span>
+              <span id="toggle-impact-icon"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></span>
               <span id="toggle-impact-label">Hide Summary</span>
             </button>
           </div>
@@ -172,7 +172,7 @@
             <div class="trace-impact-grid">
               <div class="trace-impact-card">
                 <div class="impact-card-title">
-                  <span class="impact-card-icon">⚡</span>
+                  <span class="impact-card-icon"><svg class="ui-icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
                   <span>WHAT CHANGED</span>
                 </div>
                 <ul class="trace-impact-list" id="middle-what-changed-list">
@@ -182,7 +182,7 @@
 
               <div class="trace-impact-card">
                 <div class="impact-card-title">
-                  <span class="impact-card-icon">🎯</span>
+                  <span class="impact-card-icon"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
                   <span>WHAT WAS AFFECTED</span>
                 </div>
                 <div class="trace-affected-chips" id="middle-affected-features-chips">
@@ -192,7 +192,7 @@
 
               <div class="trace-impact-card">
                 <div class="impact-card-title">
-                  <span class="impact-card-icon">🌊</span>
+                  <span class="impact-card-icon"><svg class="ui-icon" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></span>
                   <span>SYSTEMIC RIPPLE & DOWNSTREAM EFFECT</span>
                 </div>
                 <div class="trace-downstream-text" id="middle-downstream-desc">
@@ -205,7 +205,7 @@
 
         <div id="diffs-container" class="diffs-container"></div>
         <div class="empty-diff-state" id="empty-diff-state">
-          <div class="empty-diff-icon">⎇</div>
+          <div class="empty-diff-icon"><svg class="ui-icon" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
           <h3>No Trace Selected</h3>
           <p>Select any execution trace from the left timeline to inspect the exact line-by-line diffs.</p>
         </div>
@@ -224,7 +224,7 @@
       <div class="inspector-section ai-synthesis-section">
         <div class="section-top-header">
           <div class="header-cluster">
-            <span class="section-icon emerald-icon">◈</span>
+            <span class="section-icon emerald-icon"><svg class="ui-icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
             <div>
               <span class="section-eyebrow">INDEPENDENT OBSERVER</span>
               <h3 class="section-heading">OpenRouter AI Synthesis</h3>
@@ -296,7 +296,7 @@
       <div class="inspector-section agent-protocol-section">
         <div class="section-top-header">
           <div class="header-cluster">
-            <span class="section-icon agent-icon">⚡</span>
+            <span class="section-icon agent-icon"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
             <div>
               <span class="section-eyebrow">AGENT SELF-DECLARATION</span>
               <h3 class="section-heading">Coding Agent Plan</h3>
@@ -316,7 +316,7 @@
           </div>
 
           <div class="active-file-path-row" id="active-file-click-copy">
-            <span class="active-file-icon">📄</span>
+            <span class="active-file-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
             <code class="active-file-path" id="right-active-file-path">vibetrace.md</code>
             <button type="button" class="active-file-copy-btn" id="btn-copy-active-file" title="Copy active file path">Copy</button>
           </div>
@@ -356,7 +356,7 @@
       <div class="inspector-section harness-audit-section">
         <div class="section-top-header">
           <div class="header-cluster">
-            <span class="section-icon shield-icon">🛡️</span>
+            <span class="section-icon shield-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span>
             <div>
               <span class="section-eyebrow">AUTOMATED HARNESS</span>
               <h3 class="section-heading">Engineering Verification</h3>
@@ -371,28 +371,28 @@
 
         <div class="harness-checks-grid" id="harness-checks-list">
           <div class="harness-check-item pass">
-            <span class="check-glyph">✓</span>
+            <span class="check-glyph"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
             <div class="check-meta">
               <span class="check-title">Syntax Integrity</span>
               <span class="check-desc">node --check AST validation</span>
             </div>
           </div>
           <div class="harness-check-item pass">
-            <span class="check-glyph">✓</span>
+            <span class="check-glyph"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
             <div class="check-meta">
               <span class="check-title">Protected Files</span>
               <span class="check-desc">Zero .env/keys touched</span>
             </div>
           </div>
           <div class="harness-check-item pass">
-            <span class="check-glyph">✓</span>
+            <span class="check-glyph"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
             <div class="check-meta">
               <span class="check-title">Secret Scanner</span>
               <span class="check-desc">No hardcoded credentials</span>
             </div>
           </div>
           <div class="harness-check-item pass">
-            <span class="check-glyph">✓</span>
+            <span class="check-glyph"><svg class="ui-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
             <div class="check-meta">
               <span class="check-title">Dependency Guard</span>
               <span class="check-desc">Package boundaries valid</span>
@@ -405,7 +405,7 @@
       <div class="inspector-section query-section">
         <div class="section-top-header">
           <div class="header-cluster">
-            <span class="section-icon sparkle-icon">💬</span>
+            <span class="section-icon sparkle-icon"><svg class="ui-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
             <div>
               <span class="section-eyebrow">INTERACTIVE ANALYSIS</span>
               <h3 class="section-heading">Ask Questions About This Change</h3>
@@ -430,7 +430,7 @@
         <div id="query-answer-card" class="query-response-box hidden">
           <div class="response-header">
             <span class="response-model-tag" id="query-model-tag">OpenRouter AI</span>
-            <button id="btn-close-query-answer" class="btn-close-response" title="Close answer">✕</button>
+            <button id="btn-close-query-answer" class="btn-close-response" title="Close answer"><svg class="ui-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           </div>
           <div class="response-body" id="query-answer-body">Answer will render here...</div>
         </div>
@@ -475,7 +475,7 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="diffViewer.js?v=3.1"></script>
-  <script src="app.js?v=3.1"></script>
+  <script src="diffViewer.js?v=4.0"></script>
+  <script src="app.js?v=4.0"></script>
 </body>
 </html>

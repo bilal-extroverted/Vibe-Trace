@@ -8,7 +8,9 @@ class DiffViewer {
     if (!diffs || diffs.length === 0) {
       container.innerHTML = `
         <div class="diff-empty-notice">
-          <div class="empty-icon">✓</div>
+          <div class="empty-icon">
+            <svg class="ui-icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
           <h4>No Code Diffs Recorded</h4>
           <p>No modified files were tracked for this trace.</p>
         </div>
@@ -55,7 +57,7 @@ class DiffViewer {
       header.className = 'diff-file-header';
       header.innerHTML = `
         <div class="diff-header-left">
-          <span class="file-icon">📄</span>
+          <span class="file-icon"><svg class="ui-icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
           <span class="diff-filename">${this.escapeHtml(diffItem.file)}</span>
           ${liveBadgeHtml}
         </div>
@@ -66,7 +68,7 @@ class DiffViewer {
           </span>
           <span class="diff-status-tag ${diffItem.status || 'modified'}">${(diffItem.status || 'modified').toUpperCase()}</span>
           <button type="button" class="btn-toggle-file-diff" title="Collapse or expand code diff for this file">
-            <span class="toggle-icon">↕</span>
+            <span class="toggle-icon"><svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"/><polyline points="7 9 12 4 17 9"/></svg></span>
           </button>
         </div>
       `;
@@ -87,7 +89,7 @@ class DiffViewer {
         <div class="file-insight-grid">
           <div class="file-insight-block file-insight-changed ${isEditingNow ? 'file-insight-live' : ''}">
             <div class="file-insight-label">
-              <span class="insight-label-icon">⚡</span>
+              <span class="insight-label-icon"><svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
               <span>${isEditingNow ? "WHAT'S HAPPENING IN THIS FILE" : "WHAT CHANGED IN THIS FILE"}</span>
             </div>
             <div class="file-insight-body">${this.escapeHtml(isEditingNow ? liveActionText : analysis.whatChanged)}${isEditingNow && liveSummaryText ? `<div style="margin-top:3px;font-size:10px;color:var(--text-muted);">${this.escapeHtml(liveSummaryText)}</div>` : ''}</div>
@@ -95,7 +97,7 @@ class DiffViewer {
 
           <div class="file-insight-block file-insight-affected">
             <div class="file-insight-label">
-              <span class="insight-label-icon">🎯</span>
+              <span class="insight-label-icon"><svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
               <span>AFFECTED SCOPE & FUNCTIONS</span>
             </div>
             <div class="file-insight-chips">${chipsHtml}</div>
@@ -103,7 +105,7 @@ class DiffViewer {
 
           <div class="file-insight-block file-insight-downstream">
             <div class="file-insight-label">
-              <span class="insight-label-icon">🌊</span>
+              <span class="insight-label-icon"><svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></span>
               <span>DOWNSTREAM EFFECT & SYSTEMIC IMPACT</span>
             </div>
             <div class="file-insight-body subtle">${this.escapeHtml(analysis.downstreamImpact)}</div>

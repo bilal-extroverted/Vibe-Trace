@@ -202,7 +202,9 @@
     document.documentElement.setAttribute('data-theme', theme);
     document.body.className = `${theme}-theme`;
     if (themeIcon) {
-      themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+      themeIcon.innerHTML = theme === 'light'
+        ? '<svg class="ui-icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+        : '<svg class="ui-icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
     }
   }
 
@@ -351,8 +353,11 @@
         steps.forEach(s => {
           const row = document.createElement('div');
           row.className = `proto-step-row ${s.done ? 'done' : ''}`;
+          const checkIcon = s.done
+            ? '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"/></svg>';
           row.innerHTML = `
-            <span class="proto-step-checkbox">${s.done ? '☑' : '☐'}</span>
+            <span class="proto-step-checkbox">${checkIcon}</span>
             <span>${escapeHtml(s.text)}</span>
           `;
           protoStepsList.appendChild(row);
@@ -635,7 +640,7 @@
           </div>
           <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
           <div class="trace-item-active-file" title="${escapeHtml(activeFileName)}">
-            <span class="active-file-dot">●</span>
+            <span class="active-file-dot"></span>
             <span class="active-file-label">Changing:</span>
             <code class="active-file-name">${escapeHtml(activeFileName)}</code>
           </div>
@@ -685,7 +690,7 @@
     // Populate Middle Pane
     if (emptyDiffState) emptyDiffState.classList.add('hidden');
     if (middleTraceTitle) {
-      middleTraceTitle.textContent = (trace.inProgress ? '● [IN PROGRESS] ' : '') + (trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes');
+      middleTraceTitle.textContent = (trace.inProgress ? '[IN PROGRESS] ' : '') + (trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes');
     }
 
     const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
@@ -1117,12 +1122,19 @@
 
       checks.forEach(check => {
         const chkStatus = (check.status || 'PASS').toLowerCase();
-        const icoChar = chkStatus === 'pass' ? '✓' : (chkStatus === 'warn' ? '!' : '✕');
+        let icoSvg = '';
+        if (chkStatus === 'pass') {
+          icoSvg = '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        } else if (chkStatus === 'warn') {
+          icoSvg = '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+        } else {
+          icoSvg = '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+        }
 
         const box = document.createElement('div');
         box.className = `harness-check-item ${chkStatus}`;
         box.innerHTML = `
-          <span class="check-glyph">${icoChar}</span>
+          <span class="check-glyph">${icoSvg}</span>
           <div class="check-meta">
             <span class="check-title">${escapeHtml(check.name)}</span>
             <span class="check-desc">${escapeHtml(check.detail)}</span>
@@ -1306,7 +1318,9 @@
     btnToggleTraceImpact.addEventListener('click', () => {
       const isHidden = middleTraceImpactBody.style.display === 'none';
       middleTraceImpactBody.style.display = isHidden ? 'block' : 'none';
-      if (toggleImpactIcon) toggleImpactIcon.textContent = isHidden ? '▲' : '▼';
+      if (toggleImpactIcon) {
+        toggleImpactIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
       if (toggleImpactLabel) toggleImpactLabel.textContent = isHidden ? 'Hide Summary' : 'Show Summary';
     });
   }
