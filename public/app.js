@@ -520,6 +520,14 @@
 
     filtered.forEach(trace => {
       const isInProgress = Boolean(trace.inProgress || trace.status === 'in_progress');
+      const timeStr = formatTraceTime(trace.timestamp);
+      const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
+      const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
+      const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
+      const taskDisplayName = trace.agentProtocol?.task || trace.title || 'Code Changes';
+      const isAgentTask = Boolean(trace.agentProtocol?.task);
+      const activeFileName = trace.activeFile || (trace.files && trace.files[0]) || (latestProtocol && latestProtocol.active_file) || 'vibetrace.md';
+
       let tagLabel = 'MUTATION';
       let tagClass = 'tag-mutation';
       let statusType = 'mutation';
