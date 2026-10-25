@@ -100,11 +100,28 @@
     <section class="pane pane-middle" id="pane-middle">
       <div class="middle-header">
         <div class="middle-title-row">
-          <h2 class="trace-title" id="middle-trace-title">Select an Execution Trace</h2>
-          <div class="trace-tags-row">
-            <span class="tag-chip tag-id" id="middle-trace-id">--</span>
-            <span class="tag-chip tag-time" id="middle-trace-time">--:--:--</span>
-            <span class="tag-chip tag-commit" id="middle-trace-commit">HEAD</span>
+          <div class="middle-title-group">
+            <h2 class="trace-title" id="middle-trace-title">Select an Execution Trace</h2>
+            <div class="middle-meta-subrow">
+              <span class="middle-meta-chip" id="middle-files-summary">0 files modified</span>
+              <span class="middle-meta-delta" id="middle-delta-summary">
+                <span class="diff-pill-add" id="middle-diff-add">+0</span>
+                <span class="diff-pill-del" id="middle-diff-del">-0</span>
+              </span>
+              <span class="middle-meta-dot">·</span>
+              <span class="middle-meta-badge" id="middle-agent-badge">Code change</span>
+            </div>
+          </div>
+
+          <div class="middle-actions-row">
+            <button id="btn-copy-diff" class="btn-middle-action" title="Copy unified git diff to clipboard">
+              <span class="action-icon">📋</span>
+              <span id="copy-diff-label">Copy diff</span>
+            </button>
+            <button id="btn-toggle-all-diffs" class="btn-middle-action" title="Collapse or expand all file cards">
+              <span class="action-icon">↕</span>
+              <span>Toggle all</span>
+            </button>
           </div>
         </div>
 
@@ -145,6 +162,13 @@
             <span class="risk-badge risk-low" id="ai-risk-badge">LOW RISK</span>
             <span class="model-tag-chip" id="ai-model-tag">nemotron-3.5</span>
           </div>
+        </div>
+
+        <!-- Trace Coordinates & Meta Tags (Relocated from Middle Pane) -->
+        <div class="inspector-coords-row">
+          <span class="tag-chip tag-id" id="right-trace-id" title="Execution Trace ID">ID: --</span>
+          <span class="tag-chip tag-time" id="right-trace-time" title="Timestamp">--:--:--</span>
+          <span class="tag-chip tag-commit" id="right-trace-commit" title="Git Commit">HEAD</span>
         </div>
 
         <!-- HERO STATS METRIC ROW (MATCHING REFERENCE DESIGN HERO CARD) -->

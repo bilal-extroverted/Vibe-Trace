@@ -31,15 +31,22 @@
   // Middle Pane: Trace Content & Diffs
   const paneMiddle = document.getElementById('pane-middle');
   const middleTraceTitle = document.getElementById('middle-trace-title');
-  const middleTraceId = document.getElementById('middle-trace-id');
-  const middleTraceTime = document.getElementById('middle-trace-time');
-  const middleTraceCommit = document.getElementById('middle-trace-commit');
+  const middleFilesSummary = document.getElementById('middle-files-summary');
+  const middleDiffAdd = document.getElementById('middle-diff-add');
+  const middleDiffDel = document.getElementById('middle-diff-del');
+  const middleAgentBadge = document.getElementById('middle-agent-badge');
+  const btnCopyDiff = document.getElementById('btn-copy-diff');
+  const copyDiffLabel = document.getElementById('copy-diff-label');
+  const btnToggleAllDiffs = document.getElementById('btn-toggle-all-diffs');
   const fileTabsScroll = document.getElementById('file-tabs-scroll');
   const diffsContainer = document.getElementById('diffs-container');
   const emptyDiffState = document.getElementById('empty-diff-state');
 
   // Right Pane: Inspector
   const paneRight = document.getElementById('pane-right');
+  const rightTraceId = document.getElementById('right-trace-id');
+  const rightTraceTime = document.getElementById('right-trace-time');
+  const rightTraceCommit = document.getElementById('right-trace-commit');
   const aiRiskBadge = document.getElementById('ai-risk-badge');
   const aiModelTag = document.getElementById('ai-model-tag');
   const aiSummaryText = document.getElementById('ai-summary-text');
@@ -420,9 +427,27 @@
     if (middleTraceTitle) {
       middleTraceTitle.textContent = trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes';
     }
-    if (middleTraceId) middleTraceId.textContent = trace.id ? trace.id.slice(0, 8) : '--';
-    if (middleTraceTime) middleTraceTime.textContent = trace.timestamp || '';
-    if (middleTraceCommit) middleTraceCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
+
+    const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
+    if (middleFilesSummary) {
+      middleFilesSummary.textContent = `${fileCount} file${fileCount === 1 ? '' : 's'} modified`;
+    }
+    if (middleDiffAdd) {
+      middleDiffAdd.textContent = `+${trace.additions || 0}`;
+    }
+    if (middleDiffDel) {
+      middleDiffDel.textContent = `-${trace.deletions || 0}`;
+    }
+    if (middleAgentBadge) {
+      const isAgent = Boolean(trace.agentProtocol?.task);
+      middleAgentBadge.className = `middle-meta-badge ${isAgent ? 'tag-agent' : ''}`;
+      middleAgentBadge.textContent = isAgent ? 'Agent Task' : (trace.changeType || 'Code Change');
+    }
+
+    // Populate Right Pane Coordinates (Relocated from Middle Pane)
+    if (rightTraceId) rightTraceId.textContent = `ID: ${trace.id ? trace.id.slice(0, 8) : '--'}`;
+    if (rightTraceTime) rightTraceTime.textContent = trace.timestamp || '';
+    if (rightTraceCommit) rightTraceCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
 
     // Render file pill tabs in Middle Pane
     renderFileTabs(trace);
@@ -688,6 +713,40 @@
     tracesSearchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value.trim();
       renderTracesList();
+    });
+  }
+
+  // Copy Diff Action
+  if (btnCopyDiff) {
+    btnCopyDiff.addEventListener('click', async () => {
+      const trace = traces.find(t => t.id === selectedTraceId);
+      if (!trace || !trace.diffs || trace.diffs.length === 0) return;
+
+      let fullDiff = '';
+      trace.diffs.forEach(d => {
+        fullDiff += `--- a/${d.file}\n+++ b/${d.file}\n${d.content || ''}\n\n`;
+      });
+
+      try {
+        await navigator.clipboard.writeText(fullDiff);
+        if (copyDiffLabel) copyDiffLabel.textContent = 'Copied!';
+        setTimeout(() => {
+          if (copyDiffLabel) copyDiffLabel.textContent = 'Copy diff';
+        }, 1800);
+      } catch (err) {
+        console.warn('Clipboard write failed:', err);
+      }
+    });
+  }
+
+  // Toggle All Diffs Action
+  if (btnToggleAllDiffs) {
+    let allCollapsed = false;
+    btnToggleAllDiffs.addEventListener('click', () => {
+      allCollapsed = !allCollapsed;
+      document.querySelectorAll('.diff-code-wrapper').forEach(w => {
+        w.style.display = allCollapsed ? 'none' : 'block';
+      });
     });
   }
 
