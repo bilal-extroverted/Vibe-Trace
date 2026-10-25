@@ -162,12 +162,10 @@ async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', ha
 
   const modelsToTry = [
     configuredModel,
-    'nvidia/nemotron-3.5-lightning:free',
-    'meta-llama/llama-3.2-3b-instruct:free',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'google/gemini-2.0-flash-exp:free',
-    'mistralai/mistral-7b-instruct:free',
-    'qwen/qwen-2.5-coder-32b-instruct:free'
+    'recursive/flint-v1.0:free',
+    'nvidia/nemotron-3.5-super-vl:free',
+    'xingchen-agi/xing4.0-29b-a4b:free',
+    'nvidia/nemotron-3.5-lightning:free'
   ].filter((v, i, a) => a.indexOf(v) === i);
 
   const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
