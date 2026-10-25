@@ -39,6 +39,12 @@ class WorkspaceWatcher {
       } catch (e) {}
     }
 
+    const placeholderDiffs = files.map(f => ({
+      file: f,
+      content: `@@ -1,1 +1,1 @@\n+ // [Live Mutation] Agent actively editing ${f}\n+ // Action: ${fileAction}\n`,
+      status: 'modified'
+    }));
+
     this.activeTrace = {
       id: 'trace-live-active',
       inProgress: true,
@@ -49,6 +55,7 @@ class WorkspaceWatcher {
       fileAction: fileAction,
       fileSummary: fileSummary,
       files: files,
+      diffs: placeholderDiffs,
       additions: 0,
       deletions: 0,
       changeType: 'IN PROGRESS',

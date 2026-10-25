@@ -29,9 +29,13 @@ class DiffViewer {
       return;
     }
 
+    const isInProgress = Boolean(trace?.inProgress || (window.latestProtocol && window.latestProtocol.status === 'in_progress'));
+    const activeEditingFile = trace?.activeFile || (window.latestProtocol && window.latestProtocol.active_file) || (trace?.agentProtocol && trace.agentProtocol.active_file) || null;
+
     filteredDiffs.forEach((diffItem, fileIdx) => {
+      const isEditingNow = isInProgress && this.matchesFile(diffItem.file, activeEditingFile);
       const fileCard = document.createElement('div');
-      fileCard.className = 'diff-file-card';
+      fileCard.className = `diff-file-card ${isEditingNow ? 'is-editing-file' : ''}`;
       fileCard.id = `diff-card-${fileIdx}`;
 
       const rawContent = diffItem.content || '';
@@ -42,6 +46,10 @@ class DiffViewer {
       // Extract or compute intelligent per-file change and impact analysis
       const analysis = diffItem.analysis || this.analyzeFileDiff(diffItem.file, rawContent, trace);
 
+      const liveBadgeHtml = isEditingNow
+        ? `<span class="diff-file-editing-badge"><span class="pill-live-dot"></span> EDITING NOW</span>`
+        : '';
+
       // 1. File Card Header
       const header = document.createElement('div');
       header.className = 'diff-file-header';
@@ -49,6 +57,7 @@ class DiffViewer {
         <div class="diff-header-left">
           <span class="file-icon">📄</span>
           <span class="diff-filename">${this.escapeHtml(diffItem.file)}</span>
+          ${liveBadgeHtml}
         </div>
         <div class="diff-header-right">
           <span class="diff-file-delta">
@@ -63,7 +72,7 @@ class DiffViewer {
       `;
       fileCard.appendChild(header);
 
-      // 2. File Change & Impact Intelligence Banner (Directly answers "what changed" & "what was affected")
+      // 2. File Change & Impact Intelligence Banner (Directly answers "what changed / what's happening" & "what was affected")
       const insightBar = document.createElement('div');
       insightBar.className = 'diff-file-insights';
 
@@ -71,14 +80,17 @@ class DiffViewer {
         `<span class="file-scope-chip">${this.escapeHtml(sc)}</span>`
       ).join('');
 
+      const liveActionText = (trace && (trace.fileAction || trace.agentProtocol?.file_action)) || analysis.whatChanged;
+      const liveSummaryText = (trace && (trace.fileSummary || trace.agentProtocol?.file_summary)) || '';
+
       insightBar.innerHTML = `
         <div class="file-insight-grid">
-          <div class="file-insight-block file-insight-changed">
+          <div class="file-insight-block file-insight-changed ${isEditingNow ? 'file-insight-live' : ''}">
             <div class="file-insight-label">
               <span class="insight-label-icon">⚡</span>
-              <span>WHAT CHANGED IN THIS FILE</span>
+              <span>${isEditingNow ? "WHAT'S HAPPENING IN THIS FILE" : "WHAT CHANGED IN THIS FILE"}</span>
             </div>
-            <div class="file-insight-body">${this.escapeHtml(analysis.whatChanged)}</div>
+            <div class="file-insight-body">${this.escapeHtml(isEditingNow ? liveActionText : analysis.whatChanged)}${isEditingNow && liveSummaryText ? `<div style="margin-top:3px;font-size:10px;color:var(--text-muted);">${this.escapeHtml(liveSummaryText)}</div>` : ''}</div>
           </div>
 
           <div class="file-insight-block file-insight-affected">
@@ -248,6 +260,18 @@ class DiffViewer {
       downstreamImpact,
       symbols: symbolList
     };
+  }
+
+  matchesFile(f1, f2) {
+    if (!f1 || !f2) return false;
+    const s1 = String(f1).replace(/\\/g, '/').toLowerCase();
+    const s2 = String(f2).replace(/\\/g, '/').toLowerCase();
+    if (s1 === s2) return true;
+    const b1 = s1.split('/').pop();
+    const b2 = s2.split('/').pop();
+    if (b1 === b2) return true;
+    if (s1.endsWith('/' + s2) || s2.endsWith('/' + s1)) return true;
+    return false;
   }
 
   escapeHtml(str) {

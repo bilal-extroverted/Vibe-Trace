@@ -273,6 +273,7 @@
   function renderProtocol(proto) {
     if (!proto) return;
     latestProtocol = proto;
+    window.latestProtocol = proto;
 
     const status = (proto.status || 'idle').toLowerCase();
     if (protoStatusTag) {
@@ -352,6 +353,14 @@
     } else if (status === 'completed') {
       setTopBarStatus('completed', 'TASK COMPLETED', proto.task || 'Agent finished task');
     }
+
+    // Refresh Middle Pane file tabs and activity bar if current trace is selected
+    if (selectedTraceId) {
+      const curTrace = traces.find(t => t.id === selectedTraceId);
+      if (curTrace) {
+        renderFileTabs(curTrace);
+      }
+    }
   }
 
   // 5. Status Management
@@ -395,6 +404,13 @@
       } else {
         traces[activeIdx].activeFile = activeFile;
         renderTracesList();
+      }
+
+      if (selectedTraceId) {
+        const curTrace = traces.find(t => t.id === selectedTraceId);
+        if (curTrace) {
+          renderFileTabs(curTrace);
+        }
       }
     } else if (status === 'completed') {
       setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
@@ -715,43 +731,192 @@
   }
 
   // 11. Render File Tabs in Middle Pane
+  function matchesFile(f1, f2) {
+    if (!f1 || !f2) return false;
+    const s1 = String(f1).replace(/\\/g, '/').toLowerCase();
+    const s2 = String(f2).replace(/\\/g, '/').toLowerCase();
+    if (s1 === s2) return true;
+    const b1 = s1.split('/').pop();
+    const b2 = s2.split('/').pop();
+    if (b1 === b2) return true;
+    if (s1.endsWith('/' + s2) || s2.endsWith('/' + s1)) return true;
+    return false;
+  }
+
+  function isFileBeingEdited(filepath, trace) {
+    if (!filepath) return false;
+    const isInProgress = Boolean(trace?.inProgress || (latestProtocol && latestProtocol.status === 'in_progress'));
+    if (!isInProgress) return false;
+
+    const activeFile = trace?.activeFile || latestProtocol?.active_file || trace?.agentProtocol?.active_file;
+    if (!activeFile) return false;
+
+    return matchesFile(filepath, activeFile);
+  }
+
   function renderFileTabs(trace) {
     fileTabsScroll.innerHTML = '';
-    const diffs = trace.diffs || [];
+
+    // Collect file list from diffs or fallback to trace.files
+    let fileEntries = [];
+    if (trace.diffs && trace.diffs.length > 0) {
+      fileEntries = trace.diffs.map(d => ({ file: d.file, diff: d }));
+    } else if (trace.files && trace.files.length > 0) {
+      fileEntries = trace.files.map(f => ({ file: f, diff: null }));
+    }
 
     const allPill = document.createElement('button');
     allPill.className = `file-pill ${selectedFileFilter === 'all' ? 'active' : ''}`;
-    allPill.textContent = `All Files (${diffs.length})`;
+    allPill.textContent = `All Files (${fileEntries.length})`;
     allPill.addEventListener('click', () => {
       selectedFileFilter = 'all';
       updateActiveFilePill();
       renderDiffsContent(trace);
+      updateFileActivityBar(trace);
     });
     fileTabsScroll.appendChild(allPill);
 
-    diffs.forEach(d => {
+    fileEntries.forEach(entry => {
+      const filePath = entry.file;
+      const isEditing = isFileBeingEdited(filePath, trace);
       const pill = document.createElement('button');
-      pill.className = `file-pill ${selectedFileFilter === d.file ? 'active' : ''}`;
-      const shortName = d.file.split(/[\\/]/).pop();
-      pill.textContent = shortName;
-      pill.title = d.file;
+      pill.className = `file-pill ${selectedFileFilter === filePath ? 'active' : ''} ${isEditing ? 'is-editing' : ''}`;
+      const shortName = filePath.split(/[\\/]/).pop();
+      pill.title = filePath;
+      pill.dataset.file = filePath;
+
+      if (isEditing) {
+        pill.innerHTML = `<span class="pill-live-dot"></span><span>${escapeHtml(shortName)}</span>`;
+        pill.title = `${filePath} (Active file currently being edited by agent)`;
+      } else {
+        pill.textContent = shortName;
+      }
+
       pill.addEventListener('click', () => {
-        selectedFileFilter = d.file;
+        selectedFileFilter = filePath;
         updateActiveFilePill();
         renderDiffsContent(trace);
+        updateFileActivityBar(trace);
       });
       fileTabsScroll.appendChild(pill);
     });
+
+    updateFileActivityBar(trace);
   }
 
   function updateActiveFilePill() {
     fileTabsScroll.querySelectorAll('.file-pill').forEach(p => {
       if (selectedFileFilter === 'all') {
-        p.classList.toggle('active', p.textContent.startsWith('All Files'));
+        p.classList.toggle('active', p.textContent.includes('All Files'));
       } else {
-        p.classList.toggle('active', p.title === selectedFileFilter);
+        p.classList.toggle('active', p.dataset.file === selectedFileFilter || p.title === selectedFileFilter);
       }
     });
+  }
+
+  // Real-time Middle Pane File Activity Bar ("Below I can see what's happening")
+  function updateFileActivityBar(trace) {
+    const bar = document.getElementById('file-live-activity-bar');
+    if (!bar) return;
+
+    if (!trace) {
+      bar.classList.add('hidden');
+      return;
+    }
+
+    bar.classList.remove('hidden');
+
+    const badge = document.getElementById('file-live-badge');
+    const badgeText = document.getElementById('file-live-badge-text');
+    const filePathEl = document.getElementById('file-live-path');
+    const actionLabel = document.getElementById('file-live-action-label');
+    const actionText = document.getElementById('file-live-action-text');
+    const summaryText = document.getElementById('file-live-summary-text');
+    const scopeTag = document.getElementById('file-live-scope-tag');
+    const deltaTag = document.getElementById('file-live-lines-delta');
+
+    const isInProgress = Boolean(trace.inProgress || (latestProtocol && latestProtocol.status === 'in_progress'));
+    const activeEditingFile = trace.activeFile || latestProtocol?.active_file || trace.agentProtocol?.active_file || null;
+    const fileAction = trace.fileAction || latestProtocol?.file_action || trace.agentProtocol?.file_action || 'Live modifications taking place in workspace';
+    const fileSummary = trace.fileSummary || latestProtocol?.file_summary || trace.agentProtocol?.file_summary || 'Agent actively mutating file buffer';
+
+    // Scenario A: A specific file pill is selected
+    if (selectedFileFilter && selectedFileFilter !== 'all') {
+      const isThisFileEditing = isInProgress && matchesFile(selectedFileFilter, activeEditingFile);
+      const diffItem = (trace.diffs || []).find(d => matchesFile(d.file, selectedFileFilter));
+
+      bar.classList.toggle('is-live', isThisFileEditing);
+
+      if (isThisFileEditing) {
+        if (badge) badge.className = 'file-live-badge badge-editing';
+        if (badgeText) badgeText.textContent = 'EDITING NOW';
+        if (filePathEl) filePathEl.textContent = selectedFileFilter;
+        if (actionLabel) actionLabel.textContent = "What's Happening:";
+        if (actionText) actionText.textContent = fileAction;
+        if (summaryText) summaryText.textContent = fileSummary;
+        if (scopeTag) scopeTag.textContent = 'Active Mutation';
+        if (deltaTag) deltaTag.textContent = 'LIVE';
+      } else {
+        if (badge) badge.className = 'file-live-badge badge-inspect';
+        if (badgeText) badgeText.textContent = 'FILE FOCUS';
+        if (filePathEl) filePathEl.textContent = selectedFileFilter;
+        if (actionLabel) actionLabel.textContent = "What's Happening:";
+
+        let whatChanged = '';
+        let scope = 'Core Logic';
+        let delta = '+0 / -0';
+
+        if (diffItem) {
+          const raw = diffItem.content || '';
+          const adds = (raw.match(/^\+[^+]/gm) || []).length;
+          const dels = (raw.match(/^-[^-]/gm) || []).length;
+          delta = `+${adds} / -${dels}`;
+          if (window.diffViewer) {
+            const analysis = window.diffViewer.analyzeFileDiff(diffItem.file, raw, trace);
+            whatChanged = analysis.whatChanged;
+            scope = (analysis.affectedScope && analysis.affectedScope[0]) || 'Core Module';
+          }
+        } else {
+          whatChanged = `Inspecting changes for ${selectedFileFilter}`;
+        }
+
+        if (actionText) actionText.textContent = whatChanged || `Changes contained in ${selectedFileFilter}`;
+        if (summaryText) summaryText.textContent = `Detailed code diffs rendered below`;
+        if (scopeTag) scopeTag.textContent = scope;
+        if (deltaTag) deltaTag.textContent = delta;
+      }
+      return;
+    }
+
+    // Scenario B: "All Files" is selected
+    if (isInProgress && activeEditingFile) {
+      // In progress: file is actively being edited!
+      bar.classList.add('is-live');
+      if (badge) badge.className = 'file-live-badge badge-editing';
+      if (badgeText) badgeText.textContent = 'ACTIVE FILE EDITING';
+      if (filePathEl) filePathEl.textContent = activeEditingFile;
+      if (actionLabel) actionLabel.textContent = "What's Happening:";
+      if (actionText) actionText.textContent = fileAction;
+      if (summaryText) summaryText.textContent = fileSummary;
+      if (scopeTag) scopeTag.textContent = 'Live Mutation';
+      if (deltaTag) deltaTag.textContent = 'LIVE';
+    } else {
+      // Completed trace overview
+      bar.classList.remove('is-live');
+      const filesCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
+      if (badge) badge.className = 'file-live-badge badge-overview';
+      if (badgeText) badgeText.textContent = 'ALL FILES';
+      if (filePathEl) filePathEl.textContent = `${filesCount} file${filesCount === 1 ? '' : 's'} modified`;
+      if (actionLabel) actionLabel.textContent = "What Happened:";
+      if (actionText) {
+        actionText.textContent = trace.synthesis?.summary || trace.summary || trace.title || 'Code modifications recorded';
+      }
+      if (summaryText) {
+        summaryText.textContent = trace.synthesis?.downstreamImpact || 'Select individual file pill above to inspect specific file impact';
+      }
+      if (scopeTag) scopeTag.textContent = (trace.subsystems && trace.subsystems[0]) || 'Repository';
+      if (deltaTag) deltaTag.textContent = `+${trace.additions || 0} / -${trace.deletions || 0}`;
+    }
   }
 
   // 12. Render Diffs in Middle Pane with Trace Intelligence

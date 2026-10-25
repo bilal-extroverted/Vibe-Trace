@@ -132,6 +132,26 @@
         <div class="file-tabs-bar" id="file-tabs-scroll">
           <!-- File pill buttons injected dynamically -->
         </div>
+
+        <!-- ACTIVE FILE REAL-TIME MUTATION & ACTIVITY STRIP (Directly below file tabs) -->
+        <div class="file-live-activity-bar" id="file-live-activity-bar">
+          <div class="file-live-left">
+            <span class="file-live-badge badge-editing" id="file-live-badge">
+              <span class="pill-live-dot"></span>
+              <span id="file-live-badge-text">EDITING NOW</span>
+            </span>
+            <code class="file-live-path" id="file-live-path">server/watcher.js</code>
+          </div>
+          <div class="file-live-middle">
+            <span class="file-live-action-label" id="file-live-action-label">What's Happening:</span>
+            <span class="file-live-action-text" id="file-live-action-text">Adding active file broadcast and live in-progress trace generation</span>
+            <span class="file-live-summary-text" id="file-live-summary-text">Live file mutation tracking with minimal line animation in left pane</span>
+          </div>
+          <div class="file-live-right">
+            <span class="file-live-scope-tag" id="file-live-scope-tag">Active Mutation</span>
+            <span class="file-live-lines-delta" id="file-live-lines-delta">LIVE</span>
+          </div>
+        </div>
       </div>
 
       <div class="diff-viewer-container" id="diff-viewer-area">
