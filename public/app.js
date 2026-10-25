@@ -528,8 +528,23 @@
     }
   }
 
+  function normalizeTaskName(name) {
+    if (!name) return '';
+    return String(name).replace(/^["']|["']$/g, '').trim().toLowerCase();
+  }
+
   // 8. Add Trace to List
   function addTrace(trace) {
+    // Prevent duplicate entries in memory
+    traces = traces.filter(t => {
+      if (t.id === trace.id) return false;
+      const tName = normalizeTaskName(t.agentProtocol?.task || t.title);
+      const newName = normalizeTaskName(trace.agentProtocol?.task || trace.title);
+      const sameTime = formatTraceTime(t.timestamp) === formatTraceTime(trace.timestamp);
+      const sameDiff = (t.additions === trace.additions) && (t.deletions === trace.deletions);
+      if (tName && newName && tName === newName && sameTime && sameDiff) return false;
+      return true;
+    });
     traces.unshift(trace);
     renderTracesList();
     selectTrace(trace.id);
@@ -571,27 +586,30 @@
     // Deduplicate in list view: If an in-progress active trace exists, hide any past completed traces with the exact same task
     const activeTask = traces.find(t => t.inProgress || t.status === 'in_progress');
     if (activeTask) {
-      const activeTaskName = activeTask.agentProtocol?.task || activeTask.title;
+      const activeTaskName = normalizeTaskName(activeTask.agentProtocol?.task || activeTask.title);
       if (activeTaskName) {
         filtered = filtered.filter(t => {
           if (t.id === activeTask.id) return true;
-          return (t.agentProtocol?.task || t.title) !== activeTaskName;
+          const tName = normalizeTaskName(t.agentProtocol?.task || t.title);
+          return tName !== activeTaskName;
         });
       }
     }
 
-    // Deduplicate completed traces: filter out identical traces (same task/title, timestamp, additions, deletions)
+    // Deduplicate completed traces: filter out identical traces (same task/title, timestamp, additions, deletions, or ID)
     const seenCompletedKeys = new Set();
     filtered = filtered.filter(t => {
       const isInProgress = Boolean(t.inProgress || t.status === 'in_progress');
       if (isInProgress) return true;
-      const taskName = (t.agentProtocol?.task || t.title || '').trim().toLowerCase();
+      if (seenCompletedKeys.has(t.id)) return false;
+      const taskName = normalizeTaskName(t.agentProtocol?.task || t.title);
       const timeStr = formatTraceTime(t.timestamp);
       const key = `${taskName}::${timeStr}::${t.additions || 0}::${t.deletions || 0}`;
       if (seenCompletedKeys.has(key)) {
         return false;
       }
       seenCompletedKeys.add(key);
+      seenCompletedKeys.add(t.id);
       return true;
     });
 

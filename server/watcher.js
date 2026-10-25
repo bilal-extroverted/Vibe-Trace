@@ -282,9 +282,8 @@ class WorkspaceWatcher {
       // 2. Check if diff has actually changed since last trace (deduplication)
       const diffContent = diffs.map(d => `${d.file}:${d.content}`).join('\n');
       const diffHash = crypto.createHash('md5').update(`${diffContent}::${explicitPrompt || ''}`).digest('hex');
-
-      if (diffHash === this.lastAnalyzedDiffHash && !explicitPrompt) {
-        console.log('[VibeTrace Watcher] Diff content identical to previous analysis. Skipping redundant LLM call.');
+      if (diffHash === this.lastAnalyzedDiffHash) {
+        console.log('[VibeTrace Watcher] Diff content and task identical to previous analysis. Skipping redundant trace creation.');
         sse.broadcast({
           type: 'agent_status',
           status: 'idle',

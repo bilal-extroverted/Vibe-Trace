@@ -74,6 +74,25 @@ class Database {
     try {
       this.db.exec('ALTER TABLE traces ADD COLUMN synthesis_json TEXT');
     } catch (e) {}
+
+    // Clean duplicate traces on startup
+    this.cleanDuplicateTraces();
+  }
+
+  // Deduplicate existing duplicate rows in SQLite
+  cleanDuplicateTraces() {
+    try {
+      this.db.exec(`
+        DELETE FROM traces
+        WHERE id NOT IN (
+          SELECT MIN(id)
+          FROM traces
+          GROUP BY title, timestamp, additions, deletions
+        )
+      `);
+    } catch (e) {
+      console.warn('[DB Deduplication]', e.message);
+    }
   }
 
   // Upsert project

@@ -699,73 +699,85 @@ body.resizing {
    (ANIMATION APPLIES ONLY TO IN-PROGRESS; ALL OTHERS ARE STATIC)
    ========================================================= */
 
-/* 1. Default Selected State: Calm, Non-Animated */
+/* 1. Default Selected State: Clean Elevated Card with Left Status Indicator */
 .trace-item-row.active:not(.in-progress) {
   animation: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  color: #ffffff !important;
+  background: var(--bg-surface) !important;
+  border: 1.5px solid var(--border-strong) !important;
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-primary) !important;
 }
 
 .trace-item-row.active:not(.in-progress)::before {
   display: none !important;
 }
 
-/* 2. COMPLETED / AGENT TASK: Obsidian / Dark Charcoal Slate Gradient (STATIC) */
+/* 2. COMPLETED / AGENT TASK: Crisp White Card with Leaf/Emerald Left Indicator (NOT Black!) */
 .trace-item-row.active.status-completed,
 .trace-item-row.active:not(.in-progress):not(.status-architectural):not(.status-mutation) {
-  background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%) !important;
-  box-shadow: 0 4px 12px -2px rgba(24, 24, 27, 0.45) !important;
+  background: var(--bg-surface) !important;
+  border: 1.5px solid #10b981 !important;
+  border-left: 3.5px solid #10b981 !important;
+  box-shadow: 0 2px 8px -1px rgba(16, 185, 129, 0.16) !important;
 }
 
-/* 3. ARCHITECTURAL / REFACTOR: Sapphire / Royal Blue Gradient (STATIC) */
+/* 3. ARCHITECTURAL / REFACTOR: Crisp White Card with Sapphire Blue Left Indicator */
 .trace-item-row.active.status-architectural {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
-  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.4) !important;
+  background: var(--bg-surface) !important;
+  border: 1.5px solid #2563eb !important;
+  border-left: 3.5px solid #2563eb !important;
+  box-shadow: 0 2px 8px -1px rgba(37, 99, 235, 0.16) !important;
 }
 
-/* 4. CODE MUTATION: Deep Slate / Indigo Navy Gradient (STATIC) */
+/* 4. CODE MUTATION: Crisp White Card with Slate Left Indicator */
 .trace-item-row.active.status-mutation {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
-  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.45) !important;
+  background: var(--bg-surface) !important;
+  border: 1.5px solid #475569 !important;
+  border-left: 3.5px solid #475569 !important;
+  box-shadow: 0 2px 8px -1px rgba(71, 85, 105, 0.14) !important;
 }
 
-/* Selected Card Typography & Elements (Small, Non-Bold, White) */
+/* Selected Card Typography & Elements (Clear, Crisp, Dark Text in Light Mode) */
 .trace-item-row.active:not(.in-progress) .trace-item-time {
-  color: rgba(255, 255, 255, 0.85) !important;
-  font-weight: 400 !important;
-}
-
-.trace-item-row.active:not(.in-progress) .trace-item-tag {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  color: var(--text-muted) !important;
   font-weight: 500 !important;
 }
 
 .trace-item-row.active:not(.in-progress) .trace-item-title {
-  color: #ffffff !important;
-  font-weight: 400 !important;
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
   font-size: 9.5px !important;
   line-height: 1.25;
 }
 
 .trace-item-row.active:not(.in-progress) .trace-item-files {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--text-muted) !important;
   font-weight: 400 !important;
 }
 
-.trace-item-row.active:not(.in-progress) .diff-pill-add {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.22);
-  padding: 0 4px;
-  border-radius: 3px;
+/* Dark Mode Overrides for Active Cards */
+[data-theme="dark"] .trace-item-row.active:not(.in-progress),
+body.dark-theme .trace-item-row.active:not(.in-progress) {
+  background: #172136 !important;
+  color: var(--text-primary) !important;
 }
 
-.trace-item-row.active:not(.in-progress) .diff-pill-del {
-  color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 0 4px;
-  border-radius: 3px;
+[data-theme="dark"] .trace-item-row.active.status-completed,
+body.dark-theme .trace-item-row.active.status-completed {
+  border-color: #34d399 !important;
+  border-left-color: #34d399 !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.status-architectural,
+body.dark-theme .trace-item-row.active.status-architectural {
+  border-color: #60a5fa !important;
+  border-left-color: #60a5fa !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.status-mutation,
+body.dark-theme .trace-item-row.active.status-mutation {
+  border-color: #94a3b8 !important;
+  border-left-color: #94a3b8 !important;
 }
 
 /* =========================================================

@@ -92,10 +92,23 @@ app.get('/api/traces', (req, res) => {
   try {
     const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
     let traces = db.getTraces(folder, 50);
+
+    // Deduplicate traces by task + timestamp + additions + deletions
+    const seen = new Set();
+    traces = traces.filter(t => {
+      const task = (t.agentProtocol?.task || t.title || '').trim().toLowerCase();
+      const time = (t.timestamp || '').slice(0, 19);
+      const key = `${task}::${time}::${t.additions || 0}::${t.deletions || 0}`;
+      if (seen.has(key) || seen.has(t.id)) return false;
+      seen.add(key);
+      seen.add(t.id);
+      return true;
+    });
+
     if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
-      const activeTask = watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title;
+      const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase();
       if (activeTask) {
-        traces = traces.filter(t => (t.agentProtocol?.task || t.title) !== activeTask);
+        traces = traces.filter(t => (t.agentProtocol?.task || t.title || '').trim().toLowerCase() !== activeTask);
       }
       traces = [watcher.activeTrace, ...traces];
     }
