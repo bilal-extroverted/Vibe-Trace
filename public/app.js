@@ -870,7 +870,6 @@
       selectedFileFilter = 'all';
       updateActiveFilePill();
       renderDiffsContent(trace);
-      updateFileActivityBar(trace);
     });
     fileTabsScroll.appendChild(allPill);
 
@@ -894,12 +893,9 @@
         selectedFileFilter = filePath;
         updateActiveFilePill();
         renderDiffsContent(trace);
-        updateFileActivityBar(trace);
       });
       fileTabsScroll.appendChild(pill);
     });
-
-    updateFileActivityBar(trace);
   }
 
   function updateActiveFilePill() {
@@ -910,33 +906,6 @@
         p.classList.toggle('active', p.dataset.file === selectedFileFilter || p.title === selectedFileFilter);
       }
     });
-  }
-
-  // Real-time Middle Pane File Activity Bar (Calm, Minimal & Single-Line)
-  function updateFileActivityBar(trace) {
-    const bar = document.getElementById('file-live-activity-bar');
-    if (!bar) return;
-
-    // The live file activity bar is STRICTLY for active in-progress traces
-    if (!trace || !trace.inProgress) {
-      bar.classList.add('hidden');
-      bar.classList.remove('is-live');
-      return;
-    }
-
-    const activeEditingFile = trace.activeFile || latestProtocol?.active_file || trace.agentProtocol?.active_file || 'vibetrace.md';
-    const fileAction = trace.fileAction || latestProtocol?.file_action || trace.agentProtocol?.file_action || 'Modifying codebase';
-
-    bar.classList.remove('hidden');
-    bar.classList.add('is-live');
-
-    const badgeText = document.getElementById('file-live-badge-text');
-    const filePathEl = document.getElementById('file-live-path');
-    const actionText = document.getElementById('file-live-action-text');
-
-    if (badgeText) badgeText.textContent = 'Active File';
-    if (filePathEl) filePathEl.textContent = activeEditingFile;
-    if (actionText) actionText.textContent = fileAction;
   }
 
   // 12. Render Diffs in Middle Pane with Trace Intelligence
