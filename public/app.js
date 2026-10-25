@@ -489,6 +489,24 @@
     // -----------------------------------------------------------------
     const synth = trace.synthesis || {};
 
+    // Hero Stats Banner (Reference Design Metric Highlights)
+    const heroStatDelta = document.getElementById('hero-stat-delta');
+    const heroStatFiles = document.getElementById('hero-stat-files');
+    const heroStatRisk = document.getElementById('hero-stat-risk');
+
+    if (heroStatDelta) {
+      const add = trace.additions != null ? trace.additions : 0;
+      const del = trace.deletions != null ? trace.deletions : 0;
+      heroStatDelta.textContent = `+${add} / -${del}`;
+    }
+    if (heroStatFiles) {
+      const cnt = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
+      heroStatFiles.textContent = `${cnt} file${cnt === 1 ? '' : 's'}`;
+    }
+    if (heroStatRisk) {
+      heroStatRisk.textContent = (synth.riskLevel || 'LOW').toUpperCase();
+    }
+
     // Plain-English Summary
     if (aiSummaryText) {
       aiSummaryText.textContent = synth.summary || trace.summary || 'Code modifications recorded.';
