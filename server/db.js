@@ -63,8 +63,28 @@ class Database {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS features_evolution (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_path TEXT NOT NULL,
+        trace_id TEXT NOT NULL UNIQUE,
+        milestone_index INTEGER DEFAULT 1,
+        timestamp TEXT NOT NULL,
+        title TEXT NOT NULL,
+        task TEXT,
+        narrative TEXT,
+        features_added_json TEXT,
+        features_modified_json TEXT,
+        features_removed_json TEXT,
+        files_changed_json TEXT,
+        metrics_json TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (trace_id) REFERENCES traces(id) ON DELETE CASCADE
+      );
+
       CREATE INDEX IF NOT EXISTS idx_traces_project ON traces(project_path);
       CREATE INDEX IF NOT EXISTS idx_diffs_trace ON diffs(trace_id);
+      CREATE INDEX IF NOT EXISTS idx_features_project ON features_evolution(project_path);
+      CREATE INDEX IF NOT EXISTS idx_features_trace ON features_evolution(trace_id);
     `);
 
     // Ensure migration for existing DBs
@@ -300,10 +320,85 @@ class Database {
     stmt.run(traceId || null, question, answer, modelUsed || 'unknown', latencyMs || 0);
   }
 
-  // Get recent queries
-  getQueries(limit = 10) {
-    const stmt = this.db.prepare('SELECT * FROM queries ORDER BY created_at DESC LIMIT ?');
-    return stmt.all(limit);
+  // Save Feature Evolution Milestone
+  saveFeatureEvolutionStep(step, projectPath) {
+    const resolvedPath = path.resolve(projectPath);
+    this.upsertProject(resolvedPath);
+
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO features_evolution (
+        project_path, trace_id, milestone_index, timestamp,
+        title, task, narrative, features_added_json,
+        features_modified_json, features_removed_json,
+        files_changed_json, metrics_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      resolvedPath,
+      step.traceId || step.id,
+      step.milestoneIndex || 1,
+      step.timestamp || new Date().toISOString(),
+      step.title || 'Codebase Milestone',
+      step.task || step.title || '',
+      step.narrative || '',
+      JSON.stringify(step.featuresAdded || []),
+      JSON.stringify(step.featuresModified || []),
+      JSON.stringify(step.featuresRemoved || []),
+      JSON.stringify(step.filesChanged || []),
+      JSON.stringify(step.metrics || {}),
+      step.createdAt || new Date().toISOString()
+    );
+
+    return step;
+  }
+
+  // Get all Feature Evolution milestones for a project in chronological order
+  getFeaturesEvolution(projectPath) {
+    const resolvedPath = path.resolve(projectPath);
+    const stmt = this.db.prepare(`
+      SELECT * FROM features_evolution
+      WHERE project_path = ?
+      ORDER BY milestone_index ASC, created_at ASC
+    `);
+
+    const rows = stmt.all(resolvedPath);
+    return rows.map(r => {
+      let featuresAdded = [];
+      let featuresModified = [];
+      let featuresRemoved = [];
+      let filesChanged = [];
+      let metrics = {};
+
+      try { featuresAdded = JSON.parse(r.features_added_json || '[]'); } catch (e) {}
+      try { featuresModified = JSON.parse(r.features_modified_json || '[]'); } catch (e) {}
+      try { featuresRemoved = JSON.parse(r.features_removed_json || '[]'); } catch (e) {}
+      try { filesChanged = JSON.parse(r.files_changed_json || '[]'); } catch (e) {}
+      try { metrics = JSON.parse(r.metrics_json || '{}'); } catch (e) {}
+
+      return {
+        id: r.id,
+        traceId: r.trace_id,
+        milestoneIndex: r.milestone_index,
+        timestamp: r.timestamp,
+        title: r.title,
+        task: r.task,
+        narrative: r.narrative,
+        featuresAdded,
+        featuresModified,
+        featuresRemoved,
+        filesChanged,
+        metrics,
+        createdAt: r.created_at
+      };
+    });
+  }
+
+  // Clear features evolution for a project (useful when recomputing all)
+  clearFeaturesEvolution(projectPath) {
+    const resolvedPath = path.resolve(projectPath);
+    const stmt = this.db.prepare('DELETE FROM features_evolution WHERE project_path = ?');
+    stmt.run(resolvedPath);
   }
 }
 

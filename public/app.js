@@ -309,6 +309,10 @@
               populateRightPane(targetTrace);
             }
           }
+        } else if (payload.type === 'features_updated') {
+          if (cachedEvolutionData) {
+            loadFeaturesOverTime(true);
+          }
         } else if (payload.type === 'log') {
           logTicker(payload.message, payload.category || 'SERVER', payload.level || 'info');
         }
@@ -1940,7 +1944,7 @@
   }
 
   // =========================================================
-  // 13. AI ARCHITECTURE & TRACE MIND MAP MODULE
+  // 13. FEATURES OVER TIME & CODEBASE EVOLUTION MODULE
   // =========================================================
   const btnMindMap = document.getElementById('btn-mindmap');
   const mindMapModal = document.getElementById('mindmap-modal');
@@ -1949,645 +1953,457 @@
   const mindMapLoading = document.getElementById('mindmap-loading');
   const mindMapContent = document.getElementById('mindmap-content');
 
-  // Tabs & Views
-  const tabViewSubsystems = document.getElementById('tab-view-subsystems');
-  const tabViewFlowchart = document.getElementById('tab-view-flowchart');
-  const tabViewMermaid = document.getElementById('tab-view-mermaid');
-  const mindMapSubsystemsWrapper = document.getElementById('mindmap-subsystems-wrapper');
-  const mindMapFlowchartWrapper = document.getElementById('mindmap-flowchart-wrapper');
-  const mindMapMermaidWrapper = document.getElementById('mindmap-mermaid-wrapper');
+  // Stats
+  const statMilestones = document.getElementById('stat-milestones-count');
+  const statAdded = document.getElementById('stat-features-added');
+  const statModified = document.getElementById('stat-features-modified');
+  const statRemoved = document.getElementById('stat-features-removed');
+  const statFiles = document.getElementById('stat-files-evolved');
 
-  // Flowchart Controls
-  const flowchartFilterInput = document.getElementById('flowchart-filter-input');
-  const btnZoomIn = document.getElementById('btn-zoom-in');
-  const btnZoomOut = document.getElementById('btn-zoom-out');
-  const btnZoomReset = document.getElementById('btn-zoom-reset');
-  const flowchartCanvas = document.getElementById('flowchart-canvas');
+  // Evolution Graph & Timeline
+  const evolutionGraphCanvas = document.getElementById('evolution-graph-canvas');
+  const evolutionSearchInput = document.getElementById('evolution-search-input');
+  const evolutionFilterPills = document.getElementById('evolution-filter-pills');
+  const evolutionCountTag = document.getElementById('evolution-count-tag');
+  const evolutionTimelineFeed = document.getElementById('evolution-timeline-feed');
+  const evolutionEmptyState = document.getElementById('evolution-empty-state');
 
-  // Mermaid Controls
-  const btnCopyMermaid = document.getElementById('btn-copy-mermaid');
-  const mermaidCodePre = document.getElementById('mermaid-code-pre');
+  let cachedEvolutionData = null;
+  let activeEvolutionFilter = 'all';
+  let currentEvolutionSearch = '';
 
-  // Flaws Filter
-  const flawsFilterPills = document.getElementById('flaws-filter-pills');
-
-  let cachedMindMapData = null;
-  let currentFlowchartZoom = 1.0;
-  let activeViewTab = 'subsystems';
-  let activeFlawFilter = 'all';
-
-  function openMindMap() {
+  function openFeaturesOverTime() {
     if (!mindMapModal) return;
     mindMapModal.classList.remove('hidden');
     mindMapModal.setAttribute('aria-hidden', 'false');
-    if (!cachedMindMapData) {
-      loadMindMap();
+    if (!cachedEvolutionData) {
+      loadFeaturesOverTime();
     } else {
-      renderMindMapUI(cachedMindMapData);
+      renderEvolutionUI(cachedEvolutionData);
     }
   }
 
-  function closeMindMap() {
+  function closeFeaturesOverTime() {
     if (!mindMapModal) return;
     mindMapModal.classList.add('hidden');
     mindMapModal.setAttribute('aria-hidden', 'true');
   }
 
-  async function loadMindMap(forceRefresh = false) {
+  async function loadFeaturesOverTime(forceRefresh = false) {
     if (!mindMapModal) return;
-    if (mindMapLoading) mindMapLoading.classList.remove('hidden');
-    if (mindMapContent) mindMapContent.classList.add('hidden');
+    if (forceRefresh || !cachedEvolutionData) {
+      if (mindMapLoading) mindMapLoading.classList.remove('hidden');
+      if (mindMapContent) mindMapContent.classList.add('hidden');
+    }
 
     try {
-      const res = await fetch(`/api/mindmap${forceRefresh ? '?refresh=1' : ''}`);
+      const res = await fetch(`/api/features-over-time${forceRefresh ? '?refresh=1' : ''}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const data = await res.json();
-      cachedMindMapData = data;
-      renderMindMapUI(data);
+      cachedEvolutionData = data;
+      renderEvolutionUI(data);
     } catch (err) {
-      console.error('[VibeTrace MindMap Error]:', err);
+      console.error('[VibeTrace Features Over Time Error]:', err);
       if (mindMapLoading) mindMapLoading.classList.add('hidden');
       if (mindMapContent) mindMapContent.classList.remove('hidden');
-      const summaryEl = document.getElementById('mindmap-summary-text');
-      if (summaryEl) summaryEl.textContent = 'Failed to load mind map: ' + err.message;
     }
   }
 
-  function switchMindMapView(viewName) {
-    activeViewTab = viewName;
-    const tabs = [
-      { id: 'subsystems', btn: tabViewSubsystems, wrapper: mindMapSubsystemsWrapper },
-      { id: 'flowchart', btn: tabViewFlowchart, wrapper: mindMapFlowchartWrapper },
-      { id: 'mermaid', btn: tabViewMermaid, wrapper: mindMapMermaidWrapper }
-    ];
-
-    tabs.forEach(t => {
-      if (t.id === viewName) {
-        if (t.btn) t.btn.classList.add('active');
-        if (t.wrapper) t.wrapper.classList.remove('hidden');
-      } else {
-        if (t.btn) t.btn.classList.remove('active');
-        if (t.wrapper) t.wrapper.classList.add('hidden');
-      }
-    });
-
-    if (viewName === 'flowchart' && cachedMindMapData) {
-      renderFlowchartSVG(cachedMindMapData);
-    }
-  }
-
-  function renderFlowchartSVG(data) {
-    if (!flowchartCanvas) return;
-    const subsystems = data.subsystems || [];
-    if (subsystems.length === 0) {
-      flowchartCanvas.innerHTML = '<div style="color:var(--text-muted); padding:30px;">No subsystems available to render graph</div>';
-      return;
-    }
-
-    // Organize subsystems into 5 distinct architectural columns (tiers)
-    const tiers = [
-      { name: 'Tier 1: Harness & Protocols', match: ['harness'] },
-      { name: 'Tier 2: Real-time Telemetry & Watcher', match: ['watcher', 'telemetry'] },
-      { name: 'Tier 3: Drift Guard & OpenRouter AI', match: ['drift_guard', 'ai_engine'] },
-      { name: 'Tier 4: Storage & Communication', match: ['storage'] },
-      { name: 'Tier 5: 3-Pane Workbench UI & Docs', match: ['workbench', 'docs'] }
-    ];
-
-    const colWidth = 230;
-    const colGap = 60;
-    const cardHeight = 110;
-    const rowGap = 28;
-    const startX = 40;
-    const startY = 40;
-
-    // Map subsystem to layout coordinates
-    const nodeCoords = {};
-    let maxColY = 0;
-
-    tiers.forEach((tier, colIdx) => {
-      const colSubs = subsystems.filter(s => tier.match.includes(s.id));
-      colSubs.forEach((sub, rowIdx) => {
-        const x = startX + colIdx * (colWidth + colGap);
-        const y = startY + rowIdx * (cardHeight + rowGap);
-        nodeCoords[sub.id] = {
-          x,
-          y,
-          width: colWidth,
-          height: cardHeight,
-          sub,
-          colIdx,
-          rowIdx
-        };
-        const bottom = y + cardHeight;
-        if (bottom > maxColY) maxColY = bottom;
-      });
-    });
-
-    // Check for any unplaced subsystems
-    subsystems.forEach(s => {
-      if (!nodeCoords[s.id]) {
-        const colIdx = 4;
-        const x = startX + colIdx * (colWidth + colGap);
-        const y = maxColY + 20;
-        nodeCoords[s.id] = { x, y, width: colWidth, height: cardHeight, sub: s, colIdx, rowIdx: 99 };
-        maxColY = y + cardHeight;
-      }
-    });
-
-    const totalWidth = startX + tiers.length * (colWidth + colGap) + 40;
-    const totalHeight = Math.max(520, maxColY + 60);
-
-    // Build SVG
-    let svgHtml = `
-      <svg width="${totalWidth}" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" style="font-family: var(--font-sans);">
-        <defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3b82f6" />
-          </marker>
-          <filter id="nodeShadow" x="-5%" y="-5%" width="110%" height="115%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
-          </filter>
-        </defs>
-    `;
-
-    // Tier column backgrounds & headers
-    tiers.forEach((t, i) => {
-      const x = startX + i * (colWidth + colGap) - 10;
-      const w = colWidth + 20;
-      svgHtml += `
-        <rect x="${x}" y="12" width="${w}" height="${totalHeight - 24}" rx="8" fill="var(--bg-canvas)" stroke="var(--border-subtle)" stroke-dasharray="3,3" opacity="0.6"/>
-        <text x="${x + w / 2}" y="30" font-size="9.5" font-weight="600" text-anchor="middle" fill="var(--text-muted)" text-transform="uppercase" letter-spacing="0.04em">${escapeHtml(t.name)}</text>
-      `;
-    });
-
-    // Draw connection lines
-    subsystems.forEach(sub => {
-      const source = nodeCoords[sub.id];
-      if (!source) return;
-      const targets = sub.flowsTo || [];
-
-      targets.forEach(targetId => {
-        const target = nodeCoords[targetId];
-        if (!target) return;
-
-        // Path start & end
-        let startPointX, startPointY, endPointX, endPointY;
-
-        if (target.colIdx > source.colIdx) {
-          // Left to right
-          startPointX = source.x + source.width;
-          startPointY = source.y + source.height / 2;
-          endPointX = target.x;
-          endPointY = target.y + target.height / 2;
-        } else if (target.colIdx === source.colIdx) {
-          // Same column (top to bottom)
-          startPointX = source.x + source.width / 2;
-          startPointY = source.y + source.height;
-          endPointX = target.x + target.width / 2;
-          endPointY = target.y;
-        } else {
-          // Loopback
-          startPointX = source.x;
-          startPointY = source.y + source.height / 2;
-          endPointX = target.x + target.width;
-          endPointY = target.y + target.height / 2;
-        }
-
-        const deltaX = Math.abs(endPointX - startPointX) / 2;
-        const c1X = startPointX + deltaX;
-        const c1Y = startPointY;
-        const c2X = endPointX - deltaX;
-        const c2Y = endPointY;
-
-        svgHtml += `
-          <path d="M ${startPointX} ${startPointY} C ${c1X} ${c1Y}, ${c2X} ${c2Y}, ${endPointX} ${endPointY}" 
-                fill="none" stroke="var(--border-medium)" stroke-width="1.8" marker-end="url(#arrow)" opacity="0.8" />
-        `;
-      });
-    });
-
-    // Draw nodes
-    Object.values(nodeCoords).forEach(node => {
-      const sub = node.sub;
-      const accent = sub.color || '#3b82f6';
-      const fileCount = sub.fileCount || (sub.files ? sub.files.length : 0);
-
-      svgHtml += `
-        <g class="flowchart-node-group" data-subsystem-id="${escapeHtml(sub.id)}" style="cursor: pointer;">
-          <rect class="node-rect" x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="7" 
-                fill="var(--bg-surface)" stroke="var(--border-medium)" stroke-width="1.2" filter="url(#nodeShadow)" />
-          <rect x="${node.x}" y="${node.y}" width="4" height="${node.height}" rx="2" fill="${accent}" />
-          
-          <!-- Icon & Title -->
-          <text x="${node.x + 14}" y="${node.y + 24}" font-size="12" font-weight="600" fill="var(--text-primary)">
-            ${escapeHtml(sub.icon || '📦')} ${escapeHtml(sub.name)}
-          </text>
-          
-          <!-- File Count Chip -->
-          <rect x="${node.x + node.width - 64}" y="${node.y + 12}" width="54" height="18" rx="4" fill="var(--bg-surface-subtle)" stroke="var(--border-subtle)" />
-          <text x="${node.x + node.width - 37}" y="${node.y + 25}" font-size="9" font-family="var(--font-mono)" text-anchor="middle" fill="var(--text-muted)">
-            ${fileCount} files
-          </text>
-          
-          <!-- Subtitle / Description -->
-          <text x="${node.x + 14}" y="${node.y + 46}" font-size="9.5" fill="var(--text-secondary)">
-            ${escapeHtml((sub.description || '').slice(0, 36))}...
-          </text>
-          
-          <!-- Connection Summary -->
-          <rect x="${node.x + 12}" y="${node.y + 60}" width="${node.width - 24}" height="38" rx="4" fill="var(--bg-canvas)" stroke="var(--border-subtle)" />
-          <text x="${node.x + 18}" y="${node.y + 75}" font-size="8.5" fill="var(--text-muted)">
-            Feeds into: <tspan fill="${accent}" font-weight="600">${(sub.flowsTo || ['Terminal UI']).join(', ')}</tspan>
-          </text>
-          <text x="${node.x + 18}" y="${node.y + 90}" font-size="8.5" fill="var(--text-muted)">
-            Key module: <tspan font-family="var(--font-mono)" fill="var(--text-primary)">${escapeHtml(sub.files && sub.files[0] ? sub.files[0].split(/[\/\\]/).pop() : 'core')}</tspan>
-          </text>
-        </g>
-      `;
-    });
-
-    svgHtml += `</svg>`;
-    flowchartCanvas.innerHTML = svgHtml;
-    flowchartCanvas.style.transform = `scale(${currentFlowchartZoom})`;
-
-    // Node click handler -> jump to Subsystem Topology view and highlight
-    flowchartCanvas.querySelectorAll('.flowchart-node-group').forEach(group => {
-      group.addEventListener('click', () => {
-        const subId = group.getAttribute('data-subsystem-id');
-        switchMindMapView('subsystems');
-        setTimeout(() => {
-          const card = document.getElementById(`subsystem-card-${subId}`);
-          if (card) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            card.classList.add('highlighted');
-            setTimeout(() => card.classList.remove('highlighted'), 2000);
-          }
-        }, 100);
-      });
-    });
-  }
-
-  function filterFlaws(filter) {
-    activeFlawFilter = filter;
-    const cards = document.querySelectorAll('#mindmap-flaws-grid .flaw-card');
-    cards.forEach(card => {
-      if (filter === 'all') {
-        card.classList.remove('hidden');
-      } else {
-        const severity = card.getAttribute('data-severity');
-        if (severity === filter) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
-      }
-    });
-
-    if (flawsFilterPills) {
-      flawsFilterPills.querySelectorAll('.flaw-filter-btn').forEach(btn => {
-        if (btn.getAttribute('data-filter') === filter) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-  }
-
-  function filterFlowchartNodes(query) {
-    const q = (query || '').toLowerCase().trim();
-    if (!flowchartCanvas) return;
-    const nodeGroups = flowchartCanvas.querySelectorAll('.flowchart-node-group');
-    nodeGroups.forEach(group => {
-      const subId = (group.getAttribute('data-subsystem-id') || '').toLowerCase();
-      const rect = group.querySelector('.node-rect');
-      if (!rect) return;
-      if (!q) {
-        rect.classList.remove('highlighted');
-      } else if (subId.includes(q)) {
-        rect.classList.add('highlighted');
-      } else {
-        rect.classList.remove('highlighted');
-      }
-    });
-
-    // Also highlight cards in subsystems view
-    const subCards = document.querySelectorAll('.subsystem-card');
-    subCards.forEach(card => {
-      const name = (card.getAttribute('data-name') || '').toLowerCase();
-      const files = (card.getAttribute('data-files') || '').toLowerCase();
-      if (!q) {
-        card.classList.remove('highlighted');
-      } else if (name.includes(q) || files.includes(q)) {
-        card.classList.add('highlighted');
-      } else {
-        card.classList.remove('highlighted');
-      }
-    });
-  }
-
-  function renderMindMapUI(data) {
+  function renderEvolutionUI(data) {
     if (mindMapLoading) mindMapLoading.classList.add('hidden');
     if (mindMapContent) mindMapContent.classList.remove('hidden');
 
-    const metrics = data.metrics || {};
-    const statTraces = document.getElementById('stat-traces-count');
-    const statSubsystems = document.getElementById('stat-subsystems-count');
-    const statFiles = document.getElementById('stat-files-count');
-    const statFlaws = document.getElementById('stat-flaws-count');
+    const summary = data.summary || {};
+    if (statMilestones) statMilestones.textContent = summary.totalMilestones || 0;
+    if (statAdded) statAdded.textContent = summary.totalFeaturesAdded || 0;
+    if (statModified) statModified.textContent = summary.totalFeaturesModified || 0;
+    if (statRemoved) statRemoved.textContent = summary.totalFeaturesRemoved || 0;
+    if (statFiles) statFiles.textContent = summary.totalFilesEvolved || 0;
 
-    if (statTraces) statTraces.textContent = metrics.totalTraces || 0;
-    if (statSubsystems) statSubsystems.textContent = metrics.subsystemsCount || (data.subsystems ? data.subsystems.length : 0);
-    if (statFiles) statFiles.textContent = metrics.totalFiles || 0;
-    if (statFlaws) statFlaws.textContent = data.flawsAndRisks ? data.flawsAndRisks.length : 0;
-
-    const summaryText = document.getElementById('mindmap-summary-text');
-    if (summaryText) {
-      summaryText.textContent = data.executiveSummary || 'No summary available.';
-    }
-
-    const sourceTag = document.getElementById('mindmap-source-tag');
-    if (sourceTag) {
-      sourceTag.textContent = data.source === 'openrouter' ? `OpenRouter: ${data.modelUsed}` : `Engine: ${data.modelUsed}`;
-    }
-
-    const modelBadge = document.getElementById('mindmap-model-badge');
-    if (modelBadge) {
-      modelBadge.textContent = data.source === 'openrouter' ? 'AI SYNTHESIZED' : 'HEURISTIC VERIFIED';
-    }
-
-    const flawsBadge = document.getElementById('flaws-badge');
-    const flawsCount = data.flawsAndRisks ? data.flawsAndRisks.length : 0;
-    if (flawsBadge) {
-      flawsBadge.textContent = flawsCount === 0 ? 'No Critical Flaws' : `${flawsCount} Issue${flawsCount === 1 ? '' : 's'} Detected`;
-    }
-
-    // Render Flaws Grid with Severity Attribute for live filtering
-    const flawsGrid = document.getElementById('mindmap-flaws-grid');
-    if (flawsGrid) {
-      flawsGrid.innerHTML = '';
-      if (!data.flawsAndRisks || data.flawsAndRisks.length === 0) {
-        flawsGrid.innerHTML = '<div style="color: var(--text-muted); font-size: 11px;">No structural flaws or high-risk regressions detected across traces.</div>';
-      } else {
-        data.flawsAndRisks.forEach(flaw => {
-          const card = document.createElement('div');
-          const severity = (flaw.severity || 'low').toLowerCase();
-          card.className = `flaw-card severity-${severity}`;
-          card.setAttribute('data-severity', severity);
-          card.innerHTML = `
-            <div class="flaw-head-row">
-              <span class="flaw-severity-pill">${escapeHtml(severity)}</span>
-              <span class="flaw-subsystem-tag">${escapeHtml(flaw.subsystem || 'System')}</span>
-            </div>
-            <div class="flaw-title">${escapeHtml(flaw.title || 'Risk Notice')}</div>
-            <div class="flaw-detail">${escapeHtml(flaw.detail || '')}</div>
-            ${flaw.remedy ? `<div class="flaw-remedy"><b>Remedy:</b> ${escapeHtml(flaw.remedy)}</div>` : ''}
-          `;
-          flawsGrid.appendChild(card);
-        });
-      }
-    }
-
-    // Render Systemic Recommendations
-    const recsList = document.getElementById('mindmap-recs-list');
-    if (recsList) {
-      recsList.innerHTML = '';
-      const recs = data.recommendations || [];
-      if (recs.length === 0) {
-        recsList.innerHTML = '<li style="color: var(--text-muted);">Maintain standard test hygiene and monitor OpenRouter rate limits.</li>';
-      } else {
-        recs.forEach(rec => {
-          const li = document.createElement('li');
-          li.textContent = rec;
-          recsList.appendChild(li);
-        });
-      }
-    }
-
-    // Render Mermaid Code Pre
-    if (mermaidCodePre) {
-      mermaidCodePre.textContent = data.diagramMermaid || 'flowchart TD\n  subgraph System\n    Core\n  end';
-    }
-
-    // Render Subsystem Topology Grid
-    const canvas = document.getElementById('mindmap-subsystems-canvas');
-    if (canvas) {
-      canvas.innerHTML = '';
-      const subsystems = data.subsystems || [];
-
-      // Group into tiers
-      const tierGroups = {
-        'Tier 1: Harness & Protocols': { color: '#2563eb', subs: [] },
-        'Tier 2: Real-time Telemetry & Watcher': { color: '#10b981', subs: [] },
-        'Tier 3: Drift Guard & OpenRouter AI': { color: '#8b5cf6', subs: [] },
-        'Tier 4: Storage & Communication': { color: '#06b6d4', subs: [] },
-        'Tier 5: 3-Pane Workbench UI & Docs': { color: '#6366f1', subs: [] }
-      };
-
-      subsystems.forEach(sub => {
-        if (sub.id === 'harness') tierGroups['Tier 1: Harness & Protocols'].subs.push(sub);
-        else if (sub.id === 'watcher' || sub.id === 'telemetry') tierGroups['Tier 2: Real-time Telemetry & Watcher'].subs.push(sub);
-        else if (sub.id === 'drift_guard' || sub.id === 'ai_engine') tierGroups['Tier 3: Drift Guard & OpenRouter AI'].subs.push(sub);
-        else if (sub.id === 'storage') tierGroups['Tier 4: Storage & Communication'].subs.push(sub);
-        else tierGroups['Tier 5: 3-Pane Workbench UI & Docs'].subs.push(sub);
-      });
-
-      const tiersContainer = document.createElement('div');
-      tiersContainer.className = 'subsystems-tiers-container';
-
-      Object.entries(tierGroups).forEach(([tierName, group]) => {
-        if (group.subs.length === 0) return;
-
-        const tierBlock = document.createElement('div');
-        tierBlock.className = 'subsystem-tier-block';
-
-        const tierHeader = document.createElement('div');
-        tierHeader.className = 'subsystem-tier-header';
-        tierHeader.innerHTML = `
-          <span class="tier-badge" style="background: ${group.color}22; color: ${group.color}; border: 1px solid ${group.color}44;">
-            ${escapeHtml(tierName.split(':')[0])}
-          </span>
-          <span class="tier-title">${escapeHtml(tierName.split(':')[1] || tierName)}</span>
-        `;
-        tierBlock.appendChild(tierHeader);
-
-        const grid = document.createElement('div');
-        grid.className = 'tier-subsystems-grid';
-
-        group.subs.forEach(sub => {
-          const card = document.createElement('div');
-          card.className = 'subsystem-card';
-          card.id = `subsystem-card-${sub.id}`;
-          card.setAttribute('data-name', sub.name);
-          card.setAttribute('data-files', (sub.files || []).join(' '));
-          card.style.setProperty('--subsystem-accent', sub.color || group.color);
-
-          const fileRoles = sub.fileRoles || {};
-          const churn = sub.churn || {};
-          const files = sub.files || [];
-          const fileCount = sub.fileCount || files.length;
-
-          // Flows row
-          const flowsToHtml = (sub.flowsTo && sub.flowsTo.length > 0)
-            ? `<div class="flow-tag-item"><span class="flow-label">Feeds into:</span> ${sub.flowsTo.map(t => `<span class="flow-target-chip">${escapeHtml(t)}</span>`).join(' ')}</div>`
-            : '';
-          const flowsFromHtml = (sub.flowsFrom && sub.flowsFrom.length > 0)
-            ? `<div class="flow-tag-item"><span class="flow-label">Consumes:</span> ${sub.flowsFrom.map(f => `<span class="flow-target-chip">${escapeHtml(f)}</span>`).join(' ')}</div>`
-            : '';
-
-          // Build file roster HTML
-          const rosterItemsHtml = files.map(file => {
-            const base = file.split(/[\/\\]/).pop();
-            const role = fileRoles[file] || 'Subsystem operational source module';
-            const fileChurn = churn[file] || { additions: 0, deletions: 0 };
-            const statsHtml = (fileChurn.additions > 0 || fileChurn.deletions > 0)
-              ? `<span class="file-stats-tag"><span class="plus">+${fileChurn.additions}</span> <span class="minus">-${fileChurn.deletions}</span></span>`
-              : `<span class="file-stats-tag" style="color:var(--text-faint);">stable</span>`;
-
-            return `
-              <div class="subsystem-file-item">
-                <div class="file-identity">
-                  <span class="file-basename" title="${escapeHtml(file)}">${escapeHtml(base)}</span>
-                  <span class="file-role-text">${escapeHtml(role)}</span>
-                </div>
-                ${statsHtml}
-              </div>
-            `;
-          }).join('');
-
-          card.innerHTML = `
-            <div class="subsystem-card-head">
-              <div class="subsystem-meta-left">
-                <span class="subsystem-icon-badge">${escapeHtml(sub.icon || '📦')}</span>
-                <span class="subsystem-name-title">${escapeHtml(sub.name)}</span>
-              </div>
-              <span class="subsystem-files-badge">${fileCount} files</span>
-            </div>
-            <div class="subsystem-card-desc">${escapeHtml(sub.description)}</div>
-            ${flowsToHtml || flowsFromHtml ? `<div class="subsystem-flows-row">${flowsToHtml}${flowsFromHtml}</div>` : ''}
-            
-            <button type="button" class="btn-toggle-roster" data-expanded="false">
-              <span>View Subsystem Files (${fileCount})</span>
-              <span>▼</span>
-            </button>
-            <div class="subsystem-file-roster hidden">
-              ${rosterItemsHtml || '<div style="color:var(--text-muted);font-size:9.5px;padding:4px;">No files mapped directly</div>'}
-            </div>
-          `;
-
-          // Bind roster toggle
-          const toggleBtn = card.querySelector('.btn-toggle-roster');
-          const rosterDiv = card.querySelector('.subsystem-file-roster');
-          if (toggleBtn && rosterDiv) {
-            toggleBtn.addEventListener('click', () => {
-              const isExpanded = toggleBtn.getAttribute('data-expanded') === 'true';
-              if (isExpanded) {
-                rosterDiv.classList.add('hidden');
-                toggleBtn.setAttribute('data-expanded', 'false');
-                toggleBtn.innerHTML = `<span>View Subsystem Files (${fileCount})</span><span>▼</span>`;
-              } else {
-                rosterDiv.classList.remove('hidden');
-                toggleBtn.setAttribute('data-expanded', 'true');
-                toggleBtn.innerHTML = `<span>Hide Subsystem Files (${fileCount})</span><span>▲</span>`;
-              }
-            });
-          }
-
-          grid.appendChild(card);
-        });
-
-        tierBlock.appendChild(grid);
-        tiersContainer.appendChild(tierBlock);
-      });
-
-      canvas.appendChild(tiersContainer);
-    }
-
-    // Also pre-render Flowchart SVG
-    renderFlowchartSVG(data);
+    renderEvolutionGraph(data.graphData || [], data.milestones || []);
+    renderMilestonesFeed(data.milestones || []);
   }
 
-  // Bind Mind Map Events
+  function renderEvolutionGraph(graphData = [], milestones = []) {
+    if (!evolutionGraphCanvas) return;
+    if (graphData.length === 0) {
+      evolutionGraphCanvas.innerHTML = '<div style="color:var(--text-muted); padding:30px; font-size:11px;">No milestones available to plot evolution curve.</div>';
+      return;
+    }
+
+    const n = graphData.length;
+    const paddingLeft = 46;
+    const paddingRight = 40;
+    const paddingTop = 30;
+    const paddingBottom = 42;
+    const height = 190;
+
+    // Minimum node spacing so points don't cram together
+    const minNodeGap = 42;
+    const contentWidth = Math.max(680, (n - 1) * minNodeGap + paddingLeft + paddingRight);
+    const width = contentWidth;
+
+    const maxFeatures = Math.max(5, ...graphData.map(d => d.cumulativeFeatures || 0));
+    const maxAdd = Math.max(10, ...graphData.map(d => d.additions || 0));
+    const maxDel = Math.max(10, ...graphData.map(d => d.deletions || 0));
+    const maxChurn = Math.max(maxAdd, maxDel);
+
+    // Compute coordinates for each milestone
+    const coords = graphData.map((d, i) => {
+      const x = paddingLeft + (i / Math.max(1, n - 1)) * (width - paddingLeft - paddingRight);
+      const yNorm = (d.cumulativeFeatures || 0) / maxFeatures;
+      const y = paddingTop + (1 - yNorm) * (height - paddingTop - paddingBottom);
+      return { x, y, data: d, index: d.index };
+    });
+
+    // Build smooth SVG Spline
+    let splineD = `M ${coords[0].x} ${coords[0].y}`;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const p0 = coords[i];
+      const p1 = coords[i + 1];
+      const cx1 = p0.x + (p1.x - p0.x) / 2;
+      const cy1 = p0.y;
+      const cx2 = p0.x + (p1.x - p0.x) / 2;
+      const cy2 = p1.y;
+      splineD += ` C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p1.x} ${p1.y}`;
+    }
+
+    // Area path for gradient fill
+    const firstPt = coords[0];
+    const lastPt = coords[coords.length - 1];
+    const baselineY = height - paddingBottom;
+    const areaD = `${splineD} L ${lastPt.x} ${baselineY} L ${firstPt.x} ${baselineY} Z`;
+
+    // Horizontal grid lines
+    const gridLines = [0, 0.33, 0.66, 1.0].map(pct => {
+      const y = paddingTop + (1 - pct) * (height - paddingTop - paddingBottom);
+      const val = Math.round(pct * maxFeatures);
+      return `
+        <line x1="${paddingLeft}" y1="${y}" x2="${width - paddingRight}" y2="${y}" stroke="var(--border-subtle)" stroke-dasharray="2,3" stroke-width="1" opacity="0.6"/>
+        <text x="${paddingLeft - 8}" y="${y + 3}" font-size="8.5" font-family="var(--font-mono)" fill="var(--text-faint)" text-anchor="end">${val}</text>
+      `;
+    }).join('');
+
+    // Vertical churn bars at each point
+    const churnBars = coords.map(c => {
+      const addH = Math.min(32, ((c.data.additions || 0) / maxChurn) * 32);
+      const delH = Math.min(32, ((c.data.deletions || 0) / maxChurn) * 32);
+      let barSvg = '';
+      if (addH > 0) {
+        barSvg += `<rect x="${c.x - 2.5}" y="${baselineY - addH}" width="5" height="${addH}" rx="1.5" fill="#10b981" opacity="0.75" />`;
+      }
+      if (delH > 0) {
+        barSvg += `<rect x="${c.x + 0.5}" y="${baselineY}" width="5" height="${delH}" rx="1.5" fill="#f43f5e" opacity="0.75" />`;
+      }
+      return barSvg;
+    }).join('');
+
+    // Milestone nodes & labels
+    const nodesSvg = coords.map(c => {
+      const m = c.data;
+      const label = `M${m.index}`;
+      const titleTooltip = escapeHtml(`Milestone #${m.index}: ${m.task || m.title} (${m.timestamp})\n+${m.featuresAddedCount} Added, ${m.featuresModifiedCount} Mod, ${m.featuresRemovedCount} Rem\nChurn: +${m.additions} / -${m.deletions}`);
+
+      return `
+        <g class="evolution-node-group" data-milestone="${m.index}" data-trace-id="${escapeHtml(m.traceId)}" style="cursor: pointer;">
+          <title>${titleTooltip}</title>
+          <!-- Hit area -->
+          <circle cx="${c.x}" cy="${c.y}" r="14" fill="transparent" />
+          <!-- Outer halo -->
+          <circle class="node-halo" cx="${c.x}" cy="${c.y}" r="6.5" fill="var(--bg-surface)" stroke="#2563eb" stroke-width="2.2" />
+          <!-- Center dot -->
+          <circle cx="${c.x}" cy="${c.y}" r="2.5" fill="#2563eb" />
+          <!-- X Axis Milestone Label -->
+          <text x="${c.x}" y="${baselineY + 16}" font-size="8.5" font-family="var(--font-mono)" font-weight="600" fill="var(--text-secondary)" text-anchor="middle">${label}</text>
+        </g>
+      `;
+    }).join('');
+
+    const svgHtml = `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="display: block; font-family: var(--font-sans);">
+        <defs>
+          <linearGradient id="curveAreaGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2563eb" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="#2563eb" stop-opacity="0.01"/>
+          </linearGradient>
+          <filter id="curveShadow" x="-2%" y="-10%" width="104%" height="130%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#2563eb" flood-opacity="0.28"/>
+          </filter>
+        </defs>
+
+        <!-- Grid -->
+        ${gridLines}
+
+        <!-- Baseline -->
+        <line x1="${paddingLeft}" y1="${baselineY}" x2="${width - paddingRight}" y2="${baselineY}" stroke="var(--border-medium)" stroke-width="1.2"/>
+
+        <!-- Churn Bars -->
+        ${churnBars}
+
+        <!-- Curve Area Fill -->
+        <path d="${areaD}" fill="url(#curveAreaGradient)"/>
+
+        <!-- Curve Path -->
+        <path d="${splineD}" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#curveShadow)"/>
+
+        <!-- Nodes & Labels -->
+        ${nodesSvg}
+      </svg>
+    `;
+
+    evolutionGraphCanvas.innerHTML = svgHtml;
+
+    // Attach click events on nodes -> smooth scroll down to milestone card
+    evolutionGraphCanvas.querySelectorAll('.evolution-node-group').forEach(group => {
+      group.addEventListener('click', () => {
+        const milestoneIdx = group.getAttribute('data-milestone');
+        scrollToMilestoneCard(milestoneIdx);
+      });
+    });
+  }
+
+  function scrollToMilestoneCard(milestoneIdx) {
+    const card = document.getElementById(`milestone-card-${milestoneIdx}`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('milestone-highlighted');
+      setTimeout(() => card.classList.remove('milestone-highlighted'), 2200);
+    }
+  }
+
+  function renderMilestonesFeed(milestones = []) {
+    if (!evolutionTimelineFeed) return;
+
+    // Filter milestones
+    let filtered = milestones.filter(m => {
+      // 1. Filter pill
+      if (activeEvolutionFilter === 'added') {
+        if (!m.featuresAdded || m.featuresAdded.length === 0) return false;
+      } else if (activeEvolutionFilter === 'modified') {
+        if (!m.featuresModified || m.featuresModified.length === 0) return false;
+      } else if (activeEvolutionFilter === 'removed') {
+        const realRemoved = (m.featuresRemoved || []).filter(r => !r.includes('No deprecated'));
+        if (realRemoved.length === 0) return false;
+      }
+
+      // 2. Search query
+      if (currentEvolutionSearch) {
+        const q = currentEvolutionSearch.toLowerCase();
+        const inTask = (m.task || '').toLowerCase().includes(q);
+        const inTitle = (m.title || '').toLowerCase().includes(q);
+        const inNarrative = (m.narrative || '').toLowerCase().includes(q);
+        const inAdded = (m.featuresAdded || []).some(f => f.toLowerCase().includes(q));
+        const inModified = (m.featuresModified || []).some(f => f.toLowerCase().includes(q));
+        const inRemoved = (m.featuresRemoved || []).some(f => f.toLowerCase().includes(q));
+        const inFiles = (m.filesChanged || []).some(f => f.file.toLowerCase().includes(q) || (f.role || '').toLowerCase().includes(q));
+
+        if (!inTask && !inTitle && !inNarrative && !inAdded && !inModified && !inRemoved && !inFiles) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    if (evolutionCountTag) {
+      evolutionCountTag.textContent = `Showing ${filtered.length} of ${milestones.length} Milestones`;
+    }
+
+    if (filtered.length === 0) {
+      evolutionTimelineFeed.innerHTML = '';
+      if (evolutionEmptyState) evolutionEmptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (evolutionEmptyState) evolutionEmptyState.classList.add('hidden');
+
+    evolutionTimelineFeed.innerHTML = filtered.map(m => {
+      const realRemoved = (m.featuresRemoved || []).filter(r => !r.includes('No deprecated'));
+      const filesCount = m.filesChanged ? m.filesChanged.length : 0;
+      const additions = m.metrics?.additions || 0;
+      const deletions = m.metrics?.deletions || 0;
+
+      const addedHtml = (m.featuresAdded || []).map(f => `
+        <li class="feature-item-added">
+          <span class="feat-dot dot-green"></span>
+          <span class="feat-text">${escapeHtml(f)}</span>
+        </li>
+      `).join('');
+
+      const modifiedHtml = (m.featuresModified || []).map(f => `
+        <li class="feature-item-modified">
+          <span class="feat-dot dot-amber"></span>
+          <span class="feat-text">${escapeHtml(f)}</span>
+        </li>
+      `).join('');
+
+      const removedHtml = realRemoved.length > 0 ? realRemoved.map(f => `
+        <li class="feature-item-removed">
+          <span class="feat-dot dot-rose"></span>
+          <span class="feat-text">${escapeHtml(f)}</span>
+        </li>
+      `).join('') : '<li class="feature-item-none"><span class="feat-text-faint">No deprecated capabilities removed</span></li>';
+
+      const filesRosterHtml = (m.filesChanged || []).map(fc => `
+        <div class="milestone-file-item">
+          <div class="milestone-file-meta">
+            <span class="milestone-file-path" title="${escapeHtml(fc.file)}">${escapeHtml(fc.file)}</span>
+            <span class="milestone-file-role">${escapeHtml(fc.role)}</span>
+          </div>
+          <span class="milestone-file-status ${escapeHtml(fc.status || 'modified')}">${escapeHtml(fc.status || 'modified')}</span>
+        </div>
+      `).join('');
+
+      return `
+        <div class="milestone-card" id="milestone-card-${m.milestoneIndex}" data-milestone="${m.milestoneIndex}">
+          <div class="milestone-card-header">
+            <div class="milestone-header-meta">
+              <span class="milestone-badge-pill">Milestone #${m.milestoneIndex}</span>
+              <span class="milestone-timestamp-pill">
+                <svg class="ui-icon icon-xs" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                ${escapeHtml(m.timestamp)}
+              </span>
+              <span class="milestone-churn-pill plus">+${additions}</span>
+              <span class="milestone-churn-pill minus">−${deletions}</span>
+            </div>
+
+            <button type="button" class="btn-inspect-milestone" data-trace-id="${escapeHtml(m.traceId)}" title="Inspect this trace in the 3-pane workbench">
+              <svg class="ui-icon icon-xs" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>Inspect in Workbench</span>
+            </button>
+          </div>
+
+          <h3 class="milestone-title-heading">${escapeHtml(m.task || m.title)}</h3>
+
+          <div class="milestone-narrative-card">
+            <span class="narrative-badge-label">ARCHITECTURAL NARRATIVE</span>
+            <p class="narrative-body-text">${escapeHtml(m.narrative || 'Codebase changes synchronized and verified.')}</p>
+          </div>
+
+          <div class="milestone-features-grid">
+            <!-- Added -->
+            <div class="milestone-feature-col col-added">
+              <div class="col-head">
+                <span class="col-icon-pill pill-green">+</span>
+                <span class="col-title">Features Added (${m.featuresAdded?.length || 0})</span>
+              </div>
+              <ul class="col-list">${addedHtml || '<li class="feature-item-none"><span class="feat-text-faint">No new features added</span></li>'}</ul>
+            </div>
+
+            <!-- Modified -->
+            <div class="milestone-feature-col col-modified">
+              <div class="col-head">
+                <span class="col-icon-pill pill-amber">↻</span>
+                <span class="col-title">Modified / Refactored (${m.featuresModified?.length || 0})</span>
+              </div>
+              <ul class="col-list">${modifiedHtml || '<li class="feature-item-none"><span class="feat-text-faint">No modules modified</span></li>'}</ul>
+            </div>
+
+            <!-- Removed -->
+            <div class="milestone-feature-col col-removed">
+              <div class="col-head">
+                <span class="col-icon-pill pill-rose">−</span>
+                <span class="col-title">Removed / Cleaned (${realRemoved.length})</span>
+              </div>
+              <ul class="col-list">${removedHtml}</ul>
+            </div>
+          </div>
+
+          <!-- Files Accordion -->
+          <div class="milestone-files-accordion">
+            <button type="button" class="btn-toggle-milestone-files" data-expanded="false">
+              <span>Files Touched (${filesCount} files)</span>
+              <span class="accordion-arrow">▼</span>
+            </button>
+            <div class="milestone-files-dropdown hidden">
+              ${filesRosterHtml || '<div style="color:var(--text-muted);font-size:10px;padding:6px;">No files mapped directly</div>'}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind inspect button in each milestone card
+    evolutionTimelineFeed.querySelectorAll('.btn-inspect-milestone').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const traceId = btn.getAttribute('data-trace-id');
+        if (traceId) {
+          closeFeaturesOverTime();
+          selectTrace(traceId);
+          setTimeout(() => {
+            const cardEl = document.querySelector(`.trace-card[data-id="${traceId}"]`);
+            if (cardEl) {
+              cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 150);
+        }
+      });
+    });
+
+    // Bind file accordion toggles
+    evolutionTimelineFeed.querySelectorAll('.btn-toggle-milestone-files').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isExp = btn.getAttribute('data-expanded') === 'true';
+        const dropdown = btn.nextElementSibling;
+        const arrow = btn.querySelector('.accordion-arrow');
+
+        if (isExp) {
+          btn.setAttribute('data-expanded', 'false');
+          if (dropdown) dropdown.classList.add('hidden');
+          if (arrow) arrow.textContent = '▼';
+        } else {
+          btn.setAttribute('data-expanded', 'true');
+          if (dropdown) dropdown.classList.remove('hidden');
+          if (arrow) arrow.textContent = '▲';
+        }
+      });
+    });
+  }
+
+  // Filter pills events
+  if (evolutionFilterPills) {
+    evolutionFilterPills.querySelectorAll('.evolution-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        evolutionFilterPills.querySelectorAll('.evolution-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeEvolutionFilter = btn.getAttribute('data-filter') || 'all';
+        if (cachedEvolutionData) {
+          renderMilestonesFeed(cachedEvolutionData.milestones || []);
+        }
+      });
+    });
+  }
+
+  // Search input events
+  if (evolutionSearchInput) {
+    evolutionSearchInput.addEventListener('input', (e) => {
+      currentEvolutionSearch = (e.target.value || '').trim();
+      if (cachedEvolutionData) {
+        renderMilestonesFeed(cachedEvolutionData.milestones || []);
+      }
+    });
+  }
+
+  // Bind Open/Close Events
   if (btnMindMap) {
-    btnMindMap.addEventListener('click', openMindMap);
+    btnMindMap.addEventListener('click', openFeaturesOverTime);
   }
   if (btnCloseMindMap) {
-    btnCloseMindMap.addEventListener('click', closeMindMap);
+    btnCloseMindMap.addEventListener('click', closeFeaturesOverTime);
   }
   if (btnRegenerateMindMap) {
-    btnRegenerateMindMap.addEventListener('click', () => loadMindMap(true));
+    btnRegenerateMindMap.addEventListener('click', () => loadFeaturesOverTime(true));
   }
   if (mindMapModal) {
     mindMapModal.addEventListener('click', (e) => {
-      if (e.target === mindMapModal) closeMindMap();
+      if (e.target === mindMapModal) closeFeaturesOverTime();
     });
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && mindMapModal && !mindMapModal.classList.contains('hidden')) {
-      closeMindMap();
+      closeFeaturesOverTime();
     }
   });
-
-  // Tab View Switcher
-  if (tabViewSubsystems) {
-    tabViewSubsystems.addEventListener('click', () => switchMindMapView('subsystems'));
-  }
-  if (tabViewFlowchart) {
-    tabViewFlowchart.addEventListener('click', () => switchMindMapView('flowchart'));
-  }
-  if (tabViewMermaid) {
-    tabViewMermaid.addEventListener('click', () => switchMindMapView('mermaid'));
-  }
-
-  // Flowchart Zoom Controls
-  if (btnZoomIn) {
-    btnZoomIn.addEventListener('click', () => {
-      currentFlowchartZoom = Math.min(2.5, currentFlowchartZoom + 0.15);
-      if (flowchartCanvas) flowchartCanvas.style.transform = `scale(${currentFlowchartZoom})`;
-    });
-  }
-  if (btnZoomOut) {
-    btnZoomOut.addEventListener('click', () => {
-      currentFlowchartZoom = Math.max(0.4, currentFlowchartZoom - 0.15);
-      if (flowchartCanvas) flowchartCanvas.style.transform = `scale(${currentFlowchartZoom})`;
-    });
-  }
-  if (btnZoomReset) {
-    btnZoomReset.addEventListener('click', () => {
-      currentFlowchartZoom = 1.0;
-      if (flowchartCanvas) flowchartCanvas.style.transform = `scale(1)`;
-    });
-  }
-
-  // Flowchart Filter Input
-  if (flowchartFilterInput) {
-    flowchartFilterInput.addEventListener('input', (e) => {
-      filterFlowchartNodes(e.target.value);
-    });
-  }
-
-  // Flaws Filter Pills
-  if (flawsFilterPills) {
-    flawsFilterPills.querySelectorAll('.flaw-filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterFlaws(btn.getAttribute('data-filter'));
-      });
-    });
-  }
-
-  if (btnCopyMermaid && mermaidCodePre) {
-    btnCopyMermaid.addEventListener('click', async () => {
-      const code = mermaidCodePre.textContent;
-      try {
-        await navigator.clipboard.writeText(code);
-        const orig = btnCopyMermaid.textContent;
-        btnCopyMermaid.textContent = 'Copied!';
-        setTimeout(() => { btnCopyMermaid.textContent = orig; }, 1500);
-      } catch (e) {
-        console.warn('Failed to copy mermaid code:', e);
-      }
-    });
-  }
 
   // Agent Prompt Entry Composer Form
   const formAgentPrompt = document.getElementById('form-agent-prompt');

@@ -22,22 +22,14 @@
     </div>
 
     <div class="nav-right">
-      <!-- Mind Map Button -->
-      <button id="btn-mindmap" class="pill-btn action-btn mindmap-nav-btn" title="AI Repository Architecture & Trace Mind Map">
+      <!-- Features Over Time Button -->
+      <button id="btn-mindmap" class="pill-btn action-btn mindmap-nav-btn" title="Features Over Time & Codebase Evolution Timeline">
         <span class="pill-icon">
           <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="9" width="6" height="6" rx="1.5"/>
-            <rect x="16" y="3" width="6" height="5" rx="1.5"/>
-            <rect x="16" y="10" width="6" height="5" rx="1.5"/>
-            <rect x="16" y="17" width="6" height="5" rx="1.5"/>
-            <path d="M8 12h4"/>
-            <path d="M12 5.5v13"/>
-            <path d="M12 5.5h4"/>
-            <path d="M12 12.5h4"/>
-            <path d="M12 19.5h4"/>
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
         </span>
-        <span>Mind Map</span>
+        <span>Features Over Time</span>
       </button>
 
       <!-- Rescan Button -->
@@ -656,170 +648,138 @@
   </footer>
 
   <!-- ========================================================
-       AI ARCHITECTURE & TRACE MIND MAP MODAL
+       FEATURES OVER TIME & CODEBASE EVOLUTION MODAL
        ======================================================== -->
   <div id="mindmap-modal" class="modal-backdrop hidden" aria-hidden="true">
-    <div class="mindmap-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mindmap-modal-title">
+    <div class="mindmap-modal-dialog evolution-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="mindmap-modal-title">
       <!-- Modal Header -->
-      <div class="mindmap-modal-header">
+      <div class="mindmap-modal-header evolution-modal-header">
         <div class="mindmap-header-left">
-          <div class="mindmap-header-icon">
+          <div class="mindmap-header-icon evolution-header-icon">
             <svg class="ui-icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="9" width="6" height="6" rx="1.5"/>
-              <rect x="16" y="3" width="6" height="5" rx="1.5"/>
-              <rect x="16" y="10" width="6" height="5" rx="1.5"/>
-              <rect x="16" y="17" width="6" height="5" rx="1.5"/>
-              <path d="M8 12h4"/>
-              <path d="M12 5.5v13"/>
-              <path d="M12 5.5h4"/>
-              <path d="M12 12.5h4"/>
-              <path d="M12 19.5h4"/>
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
           </div>
           <div>
             <div class="mindmap-header-title" id="mindmap-modal-title">
-              <span>Repository Architecture & Trace Mind Map</span>
-              <span class="mindmap-ai-badge" id="mindmap-model-badge">AI Powered</span>
+              <span>Features Over Time & Evolution Graph</span>
+              <span class="mindmap-ai-badge evolution-db-badge" id="mindmap-model-badge">SQLite Persistent</span>
             </div>
             <div class="mindmap-header-sub">
-              Causal tree diagram, subsystem clustering, and automated flaw detection across all traces
+              Chronological history of features added, modified, and removed across all completed execution traces
             </div>
           </div>
         </div>
 
         <div class="mindmap-header-actions">
-          <button id="btn-regenerate-mindmap" class="mindmap-action-btn" title="Re-synthesize mind map with latest traces">
+          <button id="btn-regenerate-mindmap" class="mindmap-action-btn" title="Re-sync feature milestones from SQLite traces">
             <svg class="ui-icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-            <span>Regenerate</span>
+            <span>Refresh</span>
           </button>
-          <button id="btn-close-mindmap" class="mindmap-close-btn" title="Close Mind Map">
+          <button id="btn-close-mindmap" class="mindmap-close-btn" title="Close Modal">
             <svg class="ui-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
       </div>
 
       <!-- Modal Body -->
-      <div class="mindmap-modal-body" id="mindmap-modal-body">
+      <div class="mindmap-modal-body evolution-modal-body" id="mindmap-modal-body">
         <!-- Loading State -->
         <div id="mindmap-loading" class="mindmap-loading-state hidden">
           <div class="mindmap-spinner"></div>
-          <div class="mindmap-loading-text">Synthesizing codebase traces and constructing architectural mind map...</div>
-          <div class="mindmap-loading-sub">Analyzing subsystem boundaries, causal diff trees, and inspecting for potential flaws</div>
+          <div class="mindmap-loading-text">Loading feature evolution history from SQLite...</div>
+          <div class="mindmap-loading-sub">Synthesizing code churn, feature additions, modifications, and removed capabilities</div>
         </div>
 
         <!-- Content State -->
-        <div id="mindmap-content" class="mindmap-content-container">
+        <div id="mindmap-content" class="mindmap-content-container evolution-content-container">
           <!-- Overview Stats Metric Strip -->
-          <div class="mindmap-stats-strip">
-            <div class="mindmap-stat-card">
-              <span class="stat-number" id="stat-traces-count">0</span>
-              <span class="stat-label">Traces Analyzed</span>
+          <div class="evolution-stats-strip">
+            <div class="evolution-stat-card">
+              <div class="stat-top-row">
+                <span class="stat-icon-bullet bullet-blue"></span>
+                <span class="stat-label">Milestones</span>
+              </div>
+              <span class="stat-number" id="stat-milestones-count">0</span>
+              <span class="stat-caption">Completed Traces</span>
             </div>
-            <div class="mindmap-stat-card">
-              <span class="stat-number" id="stat-subsystems-count">0</span>
-              <span class="stat-label">Subsystems Identified</span>
+            <div class="evolution-stat-card stat-card-added">
+              <div class="stat-top-row">
+                <span class="stat-icon-bullet bullet-green"></span>
+                <span class="stat-label">Features Added</span>
+              </div>
+              <span class="stat-number stat-added-color" id="stat-features-added">0</span>
+              <span class="stat-caption">New Capabilities</span>
             </div>
-            <div class="mindmap-stat-card">
-              <span class="stat-number" id="stat-files-count">0</span>
-              <span class="stat-label">Files Touched</span>
+            <div class="evolution-stat-card stat-card-modified">
+              <div class="stat-top-row">
+                <span class="stat-icon-bullet bullet-amber"></span>
+                <span class="stat-label">Refactored / Modified</span>
+              </div>
+              <span class="stat-number stat-modified-color" id="stat-features-modified">0</span>
+              <span class="stat-caption">Enhanced Features</span>
             </div>
-            <div class="mindmap-stat-card stat-card-flaws">
-              <span class="stat-number" id="stat-flaws-count">0</span>
-              <span class="stat-label">Flaws & Risks Flagged</span>
+            <div class="evolution-stat-card stat-card-removed">
+              <div class="stat-top-row">
+                <span class="stat-icon-bullet bullet-rose"></span>
+                <span class="stat-label">Removed / Cleaned</span>
+              </div>
+              <span class="stat-number stat-removed-color" id="stat-features-removed">0</span>
+              <span class="stat-caption">Deprecated Code</span>
+            </div>
+            <div class="evolution-stat-card stat-card-files">
+              <div class="stat-top-row">
+                <span class="stat-icon-bullet bullet-purple"></span>
+                <span class="stat-label">Files Touched</span>
+              </div>
+              <span class="stat-number stat-files-color" id="stat-files-evolved">0</span>
+              <span class="stat-caption">Active Modules</span>
             </div>
           </div>
 
-          <!-- Executive Summary Card -->
-          <div class="mindmap-summary-card">
-            <div class="mindmap-section-header">
-              <span class="section-title">Architectural Evolution Overview</span>
-              <span class="section-source" id="mindmap-source-tag">OpenRouter Model</span>
+          <!-- Visual Feature Growth & Churn Curve Graph -->
+          <div class="evolution-graph-card">
+            <div class="evolution-graph-header">
+              <div class="graph-heading">
+                <span class="graph-title">Codebase Feature Growth & Churn Timeline</span>
+                <span class="graph-hint">Interactive evolution curve across completed milestones. Click any node to jump to its milestone card.</span>
+              </div>
+              <div class="graph-legend">
+                <span class="legend-item"><span class="legend-dot dot-cumulative"></span> Cumulative Features</span>
+                <span class="legend-item"><span class="legend-dot dot-added"></span> Additions (+)</span>
+                <span class="legend-item"><span class="legend-dot dot-deleted"></span> Deletions (−)</span>
+              </div>
             </div>
-            <div class="mindmap-summary-text" id="mindmap-summary-text">
-              Loading synthesis...
+            <div class="evolution-graph-viewport" id="evolution-graph-viewport">
+              <div class="evolution-graph-canvas" id="evolution-graph-canvas">
+                <!-- Dynamically rendered SVG Feature Growth Chart -->
+              </div>
             </div>
           </div>
 
-          <!-- Visual Mind Map Diagram Section -->
-          <div class="mindmap-diagram-section">
-            <div class="mindmap-diagram-header">
-              <div class="diagram-heading">
-                <span class="section-title">System Architecture & Subsystem Topology</span>
-                <span class="diagram-hint">Comprehensive architectural map showing data flows, module roles, and file relationships</span>
-              </div>
-              <div class="diagram-view-tabs">
-                <button class="view-tab-btn active" data-view="subsystems" id="tab-view-subsystems">Subsystem Topology</button>
-                <button class="view-tab-btn" data-view="flowchart" id="tab-view-flowchart">Visual Flowchart</button>
-                <button class="view-tab-btn" data-view="mermaid" id="tab-view-mermaid">Mermaid Code</button>
-              </div>
+          <!-- Search & Filter Controls -->
+          <div class="evolution-controls-bar">
+            <div class="evolution-search-box">
+              <svg class="ui-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="evolution-search-input" placeholder="Search features, files, or tasks..." autocomplete="off">
             </div>
-
-            <!-- Subsystem Topology View Container -->
-            <div class="mindmap-subsystems-wrapper" id="mindmap-subsystems-wrapper">
-              <div class="mindmap-subsystems-canvas" id="mindmap-subsystems-canvas">
-                <!-- Dynamically rendered visual subsystem tiers -->
-              </div>
+            <div class="evolution-filter-pills" id="evolution-filter-pills">
+              <button type="button" class="evolution-filter-btn active" data-filter="all">All Milestones</button>
+              <button type="button" class="evolution-filter-btn" data-filter="added">Features Added (+)</button>
+              <button type="button" class="evolution-filter-btn" data-filter="modified">Modified (↻)</button>
+              <button type="button" class="evolution-filter-btn" data-filter="removed">Removed (−)</button>
             </div>
-
-            <!-- Visual Flowchart SVG Container -->
-            <div class="mindmap-flowchart-wrapper hidden" id="mindmap-flowchart-wrapper">
-              <div class="flowchart-toolbar">
-                <div class="flowchart-search-box">
-                  <input type="text" id="flowchart-filter-input" placeholder="Highlight subsystem or file..." autocomplete="off">
-                </div>
-                <div class="flowchart-zoom-controls">
-                  <button type="button" class="btn-flowchart-zoom" id="btn-zoom-in" title="Zoom in">+</button>
-                  <button type="button" class="btn-flowchart-zoom" id="btn-zoom-out" title="Zoom out">−</button>
-                  <button type="button" class="btn-flowchart-zoom" id="btn-zoom-reset" title="Reset view">↺</button>
-                </div>
-              </div>
-              <div class="flowchart-viewport" id="flowchart-viewport">
-                <div class="flowchart-canvas" id="flowchart-canvas">
-                  <!-- Dynamically rendered SVG architectural graph -->
-                </div>
-              </div>
-            </div>
-
-            <!-- Mermaid Code Container -->
-            <div class="mindmap-mermaid-wrapper hidden" id="mindmap-mermaid-wrapper">
-              <div class="mermaid-code-actions">
-                <span class="mermaid-hint">Copy and paste into GitHub issues, PR descriptions, or mermaid.live</span>
-                <button class="btn-copy-mermaid" id="btn-copy-mermaid">Copy Mermaid Flowchart</button>
-              </div>
-              <pre class="mermaid-code-pre" id="mermaid-code-pre"></pre>
-            </div>
+            <div class="evolution-visible-count" id="evolution-count-tag">0 Milestones</div>
           </div>
 
-          <!-- Flaws, Anomalies & Architectural Risks Section -->
-          <div class="mindmap-flaws-section">
-            <div class="mindmap-section-header">
-              <div class="flaws-header-left">
-                <svg class="ui-icon icon-amber" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                <span class="section-title">Architectural Flaw, Risk & Anomaly Scanner</span>
-              </div>
-              <div class="flaws-header-right">
-                <div class="flaws-filter-pills" id="flaws-filter-pills">
-                  <button type="button" class="flaw-filter-btn active" data-filter="all">All</button>
-                  <button type="button" class="flaw-filter-btn" data-filter="high">High Risk</button>
-                  <button type="button" class="flaw-filter-btn" data-filter="medium">Medium</button>
-                  <button type="button" class="flaw-filter-btn" data-filter="low">Informational</button>
-                </div>
-                <span class="flaws-count-badge" id="flaws-badge">0 Issues Detected</span>
-              </div>
+          <!-- Chronological Milestones Timeline Feed -->
+          <div class="evolution-timeline-container">
+            <div class="evolution-timeline-feed" id="evolution-timeline-feed">
+              <!-- Dynamically populated chronological milestone cards -->
             </div>
-            <div class="mindmap-flaws-grid" id="mindmap-flaws-grid">
-              <!-- Dynamically populated flaw cards -->
+            <div class="evolution-empty-state hidden" id="evolution-empty-state">
+              <p>No milestones match your search filter.</p>
             </div>
-          </div>
-
-          <!-- Actionable Recommendations Card -->
-          <div class="mindmap-recommendations-card">
-            <div class="mindmap-section-header">
-              <span class="section-title">Systemic Recommendations</span>
-            </div>
-            <ul class="mindmap-recs-list" id="mindmap-recs-list">
-              <!-- Dynamically populated recommendations -->
-            </ul>
           </div>
         </div>
       </div>

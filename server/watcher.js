@@ -437,6 +437,15 @@ class WorkspaceWatcher {
       const db = require('./db');
       db.saveTrace(analysis, this.watchDir);
 
+      // Record Features Over Time milestone and persist to SQLite
+      let evolutionMilestone = null;
+      try {
+        const featureTimelineEngine = require('./featureTimelineEngine');
+        evolutionMilestone = featureTimelineEngine.recordTraceMilestone(analysis, this.watchDir);
+      } catch (evoErr) {
+        console.warn('[VibeTrace Watcher] Feature evolution record error:', evoErr.message);
+      }
+
       if (this.onEventCallback) {
         this.onEventCallback(analysis);
       }
@@ -446,6 +455,14 @@ class WorkspaceWatcher {
         type: 'trace',
         trace: analysis
       });
+
+      // Broadcast feature evolution update
+      if (evolutionMilestone) {
+        sse.broadcast({
+          type: 'features_updated',
+          milestone: evolutionMilestone
+        });
+      }
 
       const currentProto = protocol.read(this.watchDir);
       const isCurrentActive = Boolean(currentProto && (currentProto.status === 'in_progress' || currentProto.status === 'working' || currentProto.status === 'started' || currentProto.status === 'editing'));

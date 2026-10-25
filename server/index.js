@@ -9,6 +9,7 @@ const { analyze } = require('./analyzer');
 const { answerQuestion } = require('./queryEngine');
 const { generateAiMindMap } = require('./mindMapEngine');
 const { analyzeDrift } = require('./driftAnalyzer');
+const featureTimelineEngine = require('./featureTimelineEngine');
 require('dotenv').config();
 
 const app = express();
@@ -21,6 +22,13 @@ app.use(express.static(path.join(__dirname, '../public')));
 // Register initial project in SQLite and ensure vibetrace.md exists
 db.upsertProject(WATCH_DIR);
 protocol.ensureExists(WATCH_DIR);
+
+// Initialize features evolution table in SQLite from existing historical traces
+try {
+  featureTimelineEngine.ensureFeaturesEvolutionInitialized(WATCH_DIR);
+} catch (e) {
+  console.warn('[Features Evolution Init]', e.message);
+}
 
 // Helper to record and broadcast trace
 function recordEvent(event) {
@@ -223,30 +231,34 @@ app.post('/api/query', async (req, res) => {
   }
 });
 
-// Endpoint to generate AI Mind Map analyzing all traces and codebase evolution
-app.all('/api/mindmap', async (req, res) => {
+// Endpoint to get Features Over Time evolution graph & timeline
+app.get('/api/features-over-time', (req, res) => {
   try {
     const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
-    let traces = db.getTraces(folder, 100);
-
-    // If an active in-progress trace exists, include it
-    if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
-      const activeTask = (watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title || '').trim().toLowerCase();
-      if (activeTask) {
-        traces = traces.filter(t => (t.agentProtocol?.task || t.title || '').trim().toLowerCase() !== activeTask);
-      }
-      traces = [watcher.activeTrace, ...traces];
+    const forceRefresh = req.query.refresh === '1' || req.query.recompute === '1';
+    if (forceRefresh) {
+      featureTimelineEngine.ensureFeaturesEvolutionInitialized(folder);
     }
-
-    const projectName = path.basename(folder) || 'VibeTrace';
-    const mindMapData = await generateAiMindMap({
-      traces,
-      watchDir: folder,
-      projectName
-    });
-
-    res.json({ success: true, ...mindMapData });
+    const payload = featureTimelineEngine.getFeaturesEvolutionPayload(folder);
+    res.json(payload);
   } catch (err) {
+    console.error('[API /api/features-over-time Error]:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Backward-compatible alias for mindmap endpoint -> returns Features Over Time payload
+app.all('/api/mindmap', (req, res) => {
+  try {
+    const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
+    const forceRefresh = req.query.refresh === '1' || req.query.recompute === '1';
+    if (forceRefresh) {
+      featureTimelineEngine.ensureFeaturesEvolutionInitialized(folder);
+    }
+    const payload = featureTimelineEngine.getFeaturesEvolutionPayload(folder);
+    res.json(payload);
+  } catch (err) {
+    console.error('[API /api/mindmap Error]:', err);
     res.status(500).json({ error: err.message });
   }
 });

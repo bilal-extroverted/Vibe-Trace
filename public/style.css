@@ -5760,3 +5760,637 @@ body.dark-theme .mermaid-code-pre {
   color: #C5D4CA;
 }
 
+/* =========================================================
+   FEATURES OVER TIME & CODEBASE EVOLUTION TIMELINE STYLING
+   ========================================================= */
+
+.evolution-modal-dialog {
+  width: 95vw;
+  max-width: 1100px;
+  max-height: 90vh;
+}
+
+.evolution-header-icon {
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.22);
+}
+
+.evolution-db-badge {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.evolution-modal-body {
+  padding: 16px 22px 28px;
+  overflow-y: auto;
+  gap: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.evolution-content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 5-Column Stats Strip */
+.evolution-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.evolution-stat-card {
+  padding: 11px 13px;
+  border-radius: 7px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.15s ease;
+}
+
+.evolution-stat-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.stat-top-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.stat-icon-bullet {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bullet-blue { background: #2563eb; }
+.bullet-green { background: #10b981; }
+.bullet-amber { background: #f59e0b; }
+.bullet-rose { background: #f43f5e; }
+.bullet-purple { background: #8b5cf6; }
+
+.stat-caption {
+  font-size: 9.5px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.stat-added-color { color: #10b981 !important; }
+.stat-modified-color { color: #f59e0b !important; }
+.stat-removed-color { color: #f43f5e !important; }
+.stat-files-color { color: #6366f1 !important; }
+
+/* Evolution Graph Card */
+.evolution-graph-card {
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  background: var(--bg-canvas);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.evolution-graph-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.graph-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.graph-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+}
+
+.graph-hint {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+.graph-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-cumulative { background: #2563eb; }
+.dot-added { background: #10b981; }
+.dot-deleted { background: #f43f5e; }
+
+.evolution-graph-viewport {
+  width: 100%;
+  overflow-x: auto;
+  padding: 10px 4px 6px;
+  background: var(--bg-canvas);
+}
+
+.evolution-node-group:hover .node-halo {
+  stroke-width: 3.2px;
+  stroke: #1d4ed8;
+}
+
+/* Search & Filter Controls */
+.evolution-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.evolution-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  padding: 6px 11px;
+  min-width: 250px;
+  flex: 1;
+  max-width: 360px;
+}
+
+.evolution-search-box svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.evolution-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 11px;
+  color: var(--text-primary);
+  width: 100%;
+  font-family: inherit;
+}
+
+.evolution-filter-pills {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-canvas);
+  padding: 2.5px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.evolution-filter-btn {
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.evolution-filter-btn:hover {
+  color: var(--text-primary);
+}
+
+.evolution-filter-btn.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+}
+
+.evolution-visible-count {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-left: auto;
+}
+
+/* Chronological Milestones Feed */
+.evolution-timeline-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.evolution-timeline-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+}
+
+.milestone-card {
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  padding: 15px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.milestone-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.milestone-card.milestone-highlighted {
+  animation: milestonePulse 2.2s ease-out;
+  border-color: #2563eb !important;
+}
+
+@keyframes milestonePulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
+  30% { transform: scale(1.012); box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.18); }
+  70% { transform: scale(1); box-shadow: 0 0 0 14px rgba(37, 99, 235, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.milestone-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.milestone-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.milestone-badge-pill {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  letter-spacing: 0.02em;
+}
+
+.milestone-timestamp-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.milestone-churn-pill {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+}
+
+.milestone-churn-pill.plus {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.milestone-churn-pill.minus {
+  background: rgba(244, 63, 94, 0.12);
+  color: #e11d48;
+}
+
+.btn-inspect-milestone {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-inspect-milestone:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-inspect-milestone svg {
+  fill: currentColor;
+}
+
+.milestone-title-heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Narrative Card */
+.milestone-narrative-card {
+  padding: 9px 13px;
+  background: var(--bg-canvas);
+  border-radius: 6px;
+  border-left: 3px solid #2563eb;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.narrative-badge-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #2563eb;
+}
+
+.narrative-body-text {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* 3-Column Features Grid */
+.milestone-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 860px) {
+  .milestone-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.milestone-feature-col {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.col-icon-pill {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.pill-green { background: rgba(16, 185, 129, 0.15); color: #059669; }
+.pill-amber { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+.pill-rose { background: rgba(244, 63, 94, 0.15); color: #e11d48; }
+
+.col-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.col-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.col-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.feat-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.feat-text-faint {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+/* Files Touched Accordion */
+.milestone-files-accordion {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 8px;
+}
+
+.btn-toggle-milestone-files {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 8px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.btn-toggle-milestone-files:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.accordion-arrow {
+  font-size: 8px;
+}
+
+.milestone-files-dropdown {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 6px;
+}
+
+.milestone-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  font-size: 10px;
+  gap: 8px;
+}
+
+.milestone-file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.milestone-file-path {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.milestone-file-role {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.milestone-file-status {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: var(--bg-canvas);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+/* Empty State */
+.evolution-empty-state {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Dark Theme Overrides for Evolution Modal (#C5D4CA #FFFFFF #444242 #312F30) */
+[data-theme="dark"] .evolution-modal-dialog,
+body.dark-theme .evolution-modal-dialog {
+  background: #312F30;
+  border-color: #444242;
+}
+
+[data-theme="dark"] .evolution-stat-card,
+[data-theme="dark"] .evolution-graph-card,
+[data-theme="dark"] .milestone-card,
+body.dark-theme .evolution-stat-card,
+body.dark-theme .evolution-graph-card,
+body.dark-theme .milestone-card {
+  background: #312F30;
+  border-color: #444242;
+}
+
+[data-theme="dark"] .evolution-graph-header,
+[data-theme="dark"] .milestone-narrative-card,
+[data-theme="dark"] .milestone-feature-col,
+[data-theme="dark"] .evolution-search-box,
+[data-theme="dark"] .evolution-filter-pills,
+[data-theme="dark"] .btn-inspect-milestone,
+[data-theme="dark"] .btn-toggle-milestone-files,
+[data-theme="dark"] .milestone-files-dropdown,
+[data-theme="dark"] .milestone-file-item,
+body.dark-theme .evolution-graph-header,
+body.dark-theme .milestone-narrative-card,
+body.dark-theme .milestone-feature-col,
+body.dark-theme .evolution-search-box,
+body.dark-theme .evolution-filter-pills,
+body.dark-theme .btn-inspect-milestone,
+body.dark-theme .btn-toggle-milestone-files,
+body.dark-theme .milestone-files-dropdown,
+body.dark-theme .milestone-file-item {
+  background: #292728;
+  border-color: #444242;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .evolution-filter-btn.active,
+body.dark-theme .evolution-filter-btn.active {
+  background: #383536;
+  color: #FFFFFF;
+}
+
+[data-theme="dark"] .evolution-db-badge,
+body.dark-theme .evolution-db-badge {
+  background: rgba(197, 212, 202, 0.15);
+  color: #C5D4CA;
+  border-color: rgba(197, 212, 202, 0.35);
+}
+
+
