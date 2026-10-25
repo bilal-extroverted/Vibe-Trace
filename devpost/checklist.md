@@ -61,18 +61,17 @@ Build mode: fast
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — Slice 2 (Demo Scenario execution with plain-English summary & drift alert)
-- [ ] Final kick-the-tires exploration and feedback completed
+- [x] Early usable behavior explored — Real-time debounced file watcher & OpenRouter causal intelligence
+- [x] Final kick-the-tires exploration and feedback completed — Verified live vibetrace.md lifecycle transitions, chronological traces bar, and dual isolated summaries
 
 ## Final Review
 
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — Clean light-theme 3-pane UI, SQLite persistence, and mechanical AI harness engineering verified and ready to ship
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] Learning activity complete — Verified end-to-end telemetry loop, agent-harness protocol, and dual AI/agent perspective isolation
+- [x] devpost/app-map.html generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
 Activity and evidence: [to be recorded upon completion]
 Route and stops: [to be recorded upon completion]
