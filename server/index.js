@@ -93,6 +93,10 @@ app.get('/api/traces', (req, res) => {
     const folder = req.query.dir ? path.resolve(req.query.dir) : WATCH_DIR;
     let traces = db.getTraces(folder, 50);
     if (watcher.activeTrace && (!req.query.dir || folder === WATCH_DIR)) {
+      const activeTask = watcher.activeTrace.agentProtocol?.task || watcher.activeTrace.title;
+      if (activeTask) {
+        traces = traces.filter(t => (t.agentProtocol?.task || t.title) !== activeTask);
+      }
       traces = [watcher.activeTrace, ...traces];
     }
     res.json({ traces });

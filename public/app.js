@@ -222,14 +222,26 @@
         } else if (payload.type === 'history') {
           traces = payload.traces || [];
           renderTracesList();
-          if (traces.length > 0 && !selectedTraceId) {
+          // If an in-progress active trace exists, ALWAYS select it!
+          const activeItem = traces.find(t => t.inProgress || t.status === 'in_progress');
+          if (activeItem) {
+            selectTrace(activeItem.id);
+          } else if (traces.length > 0 && (!selectedTraceId || !traces.some(t => t.id === selectedTraceId))) {
             selectTrace(traces[0].id);
           }
         } else if (payload.type === 'trace') {
           logTicker(`Trace captured: ${payload.trace.title}`);
-          // Remove active in-progress placeholder trace since permanent trace is now saved
-          traces = traces.filter(t => t.id !== 'trace-live-active' && !t.inProgress);
+          const completedTask = payload.trace.agentProtocol?.task || payload.trace.title;
+          traces = traces.filter(t => {
+            if (t.id === 'trace-live-active' || t.inProgress) return false;
+            if (completedTask && (t.agentProtocol?.task === completedTask || t.title === completedTask)) {
+              return false;
+            }
+            return true;
+          });
           addTrace(payload.trace);
+          // Automatically select the newly created completed trace
+          selectTrace(payload.trace.id);
           setTopBarStatus('completed', 'TRACE CREATED', payload.trace.agentProtocol?.task || payload.trace.title);
         } else if (payload.type === 'agent_status') {
           handleAgentStatus(payload);
@@ -246,18 +258,23 @@
 
   function handleActiveTrace(activeTrace) {
     if (!activeTrace) return;
-    const existingIdx = traces.findIndex(t => t.id === activeTrace.id || t.inProgress);
-    if (existingIdx >= 0) {
-      traces[existingIdx] = activeTrace;
-    } else {
-      traces.unshift(activeTrace);
-    }
+    const activeTaskName = activeTrace.agentProtocol?.task || activeTrace.title;
+
+    // Filter out any past duplicate trace with the same task name or existing inProgress
+    traces = traces.filter(t => {
+      if (t.id === activeTrace.id || t.inProgress) return false;
+      if (activeTaskName && (t.agentProtocol?.task === activeTaskName || t.title === activeTaskName)) {
+        return false;
+      }
+      return true;
+    });
+
+    traces.unshift(activeTrace);
     renderTracesList();
 
-    // If no trace is selected or the active trace was already selected, update panes
-    if (!selectedTraceId || selectedTraceId === activeTrace.id || selectedTraceId === 'trace-live-active') {
-      selectTrace(activeTrace.id);
-    }
+    // ALWAYS automatically select the newly created active in-progress trace!
+    // The past trace must NEVER remain selected!
+    selectTrace(activeTrace.id);
 
     if (activeTrace.agentProtocol) {
       renderProtocol(activeTrace.agentProtocol);
@@ -383,35 +400,41 @@
       if (data.file_action && rightFileActionDesc) rightFileActionDesc.textContent = data.file_action;
       if (rightActiveFileCard) rightActiveFileCard.classList.add('is-live');
 
-      // Guarantee in-progress card is present in traces list when agent is working
-      const activeIdx = traces.findIndex(t => t.id === 'trace-live-active' || t.inProgress);
-      if (activeIdx < 0) {
-        const activeItem = {
-          id: 'trace-live-active',
-          inProgress: true,
-          status: 'in_progress',
-          title: data.task || latestProtocol?.task || 'Active Agent Task',
-          timestamp: formatTraceTime(latestProtocol?.started_at || new Date().toISOString()),
-          activeFile: activeFile,
-          files: [activeFile],
-          additions: 0,
-          deletions: 0,
-          changeType: 'WORKING',
-          agentProtocol: latestProtocol
-        };
-        traces.unshift(activeItem);
-        renderTracesList();
-      } else {
-        traces[activeIdx].activeFile = activeFile;
-        renderTracesList();
-      }
+      // Guarantee single in-progress card is present and selected
+      const activeTaskName = data.task || latestProtocol?.task;
 
-      if (selectedTraceId) {
-        const curTrace = traces.find(t => t.id === selectedTraceId);
-        if (curTrace) {
-          renderFileTabs(curTrace);
+      // Filter out any past duplicate trace with the same task name
+      traces = traces.filter(t => {
+        if (t.id === 'trace-live-active' || t.inProgress) return false;
+        if (activeTaskName && (t.agentProtocol?.task === activeTaskName || t.title === activeTaskName)) {
+          return false;
         }
-      }
+        return true;
+      });
+
+      const activeItem = {
+        id: 'trace-live-active',
+        inProgress: true,
+        status: 'in_progress',
+        title: activeTaskName || 'Active Agent Task',
+        timestamp: formatTraceTime(latestProtocol?.started_at || new Date().toISOString()),
+        activeFile: activeFile,
+        files: [activeFile],
+        diffs: [{
+          file: activeFile,
+          content: `@@ -1,1 +1,1 @@\n+ // [Live Mutation] Agent actively editing ${activeFile}\n`,
+          status: 'modified'
+        }],
+        additions: 0,
+        deletions: 0,
+        changeType: 'WORKING',
+        agentProtocol: latestProtocol
+      };
+      traces.unshift(activeItem);
+      renderTracesList();
+
+      // ALWAYS automatically select the active in-progress trace!
+      selectTrace(activeItem.id);
     } else if (status === 'completed') {
       setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
       logTicker(`Task Completed: ${data.task || ''}`);
@@ -537,6 +560,18 @@
         (t.agentProtocol?.task && t.agentProtocol.task.toLowerCase().includes(q)) ||
         (t.files && t.files.some(f => f.toLowerCase().includes(q)))
       );
+    }
+
+    // Deduplicate in list view: If an in-progress active trace exists, hide any past completed traces with the exact same task
+    const activeTask = traces.find(t => t.inProgress || t.status === 'in_progress');
+    if (activeTask) {
+      const activeTaskName = activeTask.agentProtocol?.task || activeTask.title;
+      if (activeTaskName) {
+        filtered = filtered.filter(t => {
+          if (t.id === activeTask.id) return true;
+          return (t.agentProtocol?.task || t.title) !== activeTaskName;
+        });
+      }
     }
 
     if (filtered.length === 0) {

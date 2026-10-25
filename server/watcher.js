@@ -350,6 +350,12 @@ class WorkspaceWatcher {
         this.onEventCallback(analysis);
       }
 
+      // Broadcast permanent trace to dashboard
+      sse.broadcast({
+        type: 'trace',
+        trace: analysis
+      });
+
       sse.broadcast({
         type: 'agent_status',
         status: 'trace_created',
