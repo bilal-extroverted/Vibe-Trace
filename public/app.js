@@ -520,31 +520,37 @@
 
     filtered.forEach(trace => {
       const isInProgress = Boolean(trace.inProgress || trace.status === 'in_progress');
-      const rowItem = document.createElement('div');
-      rowItem.className = `trace-item-row ${trace.id === selectedTraceId ? 'active' : ''} ${isInProgress ? 'in-progress' : ''}`;
-      rowItem.dataset.id = trace.id;
-
-      const timeStr = formatTraceTime(trace.timestamp);
-      const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
-      const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
-      const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
-
-      const taskDisplayName = trace.agentProtocol?.task || trace.title || 'Code Changes';
-      const isAgentTask = Boolean(trace.agentProtocol?.task);
-      const activeFileName = trace.activeFile || (trace.files && trace.files[0]) || (latestProtocol && latestProtocol.active_file) || 'vibetrace.md';
-
       let tagLabel = 'MUTATION';
       let tagClass = 'tag-mutation';
+      let statusType = 'mutation';
+
       if (isInProgress) {
         tagLabel = 'WORKING';
         tagClass = 'tag-in-progress';
+        statusType = 'in_progress';
       } else if (trace.changeType && !trace.changeType.toLowerCase().includes('mutation')) {
+        const ct = trace.changeType.toLowerCase();
+        if (ct.includes('architectural') || ct.includes('refactor')) {
+          statusType = 'architectural';
+          tagClass = 'tag-architectural';
+        } else {
+          statusType = 'completed';
+          tagClass = 'tag-agent';
+        }
         tagLabel = trace.changeType.toUpperCase().replace(/\s*\(.*\)/, '').slice(0, 14);
-        tagClass = 'tag-agent';
       } else if (isAgentTask) {
         tagLabel = 'COMPLETED';
         tagClass = 'tag-agent';
+        statusType = 'completed';
+      } else {
+        statusType = 'mutation';
+        tagClass = 'tag-mutation';
+        tagLabel = 'MUTATION';
       }
+
+      const rowItem = document.createElement('div');
+      rowItem.className = `trace-item-row status-${statusType} ${trace.id === selectedTraceId ? 'active' : ''} ${isInProgress ? 'in-progress' : ''}`;
+      rowItem.dataset.id = trace.id;
 
       if (isInProgress) {
         rowItem.innerHTML = `

@@ -628,10 +628,17 @@ body.resizing {
   text-transform: uppercase;
 }
 
-.trace-item-tag.tag-agent {
+.trace-item-tag.tag-agent,
+.trace-item-tag.tag-completed {
   background: #ecfdf5;
   color: #059669;
   border-color: #a7f3d0;
+}
+
+.trace-item-tag.tag-architectural {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
 }
 
 .trace-item-tag.tag-mutation {
@@ -640,14 +647,14 @@ body.resizing {
   border-color: #cbd5e1;
 }
 
-/* Trace Card Title: STRICTLY NON-BOLD, COMPACT & REFINED SANS-SERIF */
+/* Trace Card Title: SMALL (9.5px), STRICTLY NON-BOLD, COMPACT & REFINED SANS-SERIF */
 .trace-item-title {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 9.5px !important;
   font-weight: 400 !important;
-  line-height: 1.3;
+  line-height: 1.25;
   color: var(--text-primary);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -664,7 +671,7 @@ body.resizing {
 }
 
 .trace-item-files {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -674,7 +681,7 @@ body.resizing {
   align-items: center;
   gap: 4px;
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -688,17 +695,41 @@ body.resizing {
 }
 
 /* =========================================================
-   HIGHLIGHTED (SELECTED) COMPLETED CARD:
-   Lush Apple/Leaf Green Gradient replica from user reference,
-   Crisp, Small, NON-BOLD White Typography
+   STATUS-BASED GRADIENTS FOR SELECTED / HIGHLIGHTED CARDS
+   (ANIMATION APPLIES ONLY TO IN-PROGRESS; ALL OTHERS ARE STATIC)
    ========================================================= */
+
+/* 1. Default Selected State: Calm, Non-Animated */
 .trace-item-row.active:not(.in-progress) {
-  background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%) !important;
+  animation: none !important;
   border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4) !important;
   color: #ffffff !important;
 }
 
+.trace-item-row.active:not(.in-progress)::before {
+  display: none !important;
+}
+
+/* 2. COMPLETED / AGENT TASK: Lush Apple/Leaf Green Gradient (STATIC) */
+.trace-item-row.active.status-completed,
+.trace-item-row.active:not(.in-progress):not(.status-architectural):not(.status-mutation) {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%) !important;
+  box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4) !important;
+}
+
+/* 3. ARCHITECTURAL / REFACTOR: Sapphire / Royal Blue Gradient (STATIC) */
+.trace-item-row.active.status-architectural {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
+  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* 4. CODE MUTATION: Obsidian / Dark Charcoal Slate Gradient (STATIC) */
+.trace-item-row.active.status-mutation {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.45) !important;
+}
+
+/* Selected Card Typography & Elements (Small, Non-Bold, White) */
 .trace-item-row.active:not(.in-progress) .trace-item-time {
   color: rgba(255, 255, 255, 0.85) !important;
   font-weight: 400 !important;
@@ -714,7 +745,8 @@ body.resizing {
 .trace-item-row.active:not(.in-progress) .trace-item-title {
   color: #ffffff !important;
   font-weight: 400 !important;
-  font-size: 11px !important;
+  font-size: 9.5px !important;
+  line-height: 1.25;
 }
 
 .trace-item-row.active:not(.in-progress) .trace-item-files {
@@ -797,7 +829,8 @@ body.resizing {
 .trace-item-row.active.in-progress .trace-item-title {
   color: #ffffff !important;
   font-weight: 400 !important;
-  font-size: 11px !important;
+  font-size: 9.5px !important;
+  line-height: 1.25;
 }
 
 .trace-item-row.in-progress .trace-item-files,
