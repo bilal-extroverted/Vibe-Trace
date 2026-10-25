@@ -214,6 +214,7 @@ sequenceDiagram
     VibeTrace->>VibeTrace: Gathers Git diffs & runs Drift Guard
     VibeTrace-->>UI: SSE: Trace card turns Blue (Completed), Right pane updates
 ```
+<img width="959" height="437" alt="Screenshot 2026-10-25 200550" src="https://github.com/user-attachments/assets/bdb31faf-4732-4e90-a875-813b1f985973" />
 
 ### Agent Best Practices & Protocol Format
 When equipping an agent with `skills/vibetrace/SKILL.md`, the agent maintains `vibetrace.md` in the project root:
