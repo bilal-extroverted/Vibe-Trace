@@ -254,11 +254,11 @@
 
   // 5. Top Bar Real-Time Status Management
   function setTopBarStatus(type, badgeText, detailText) {
-    if (!liveIndicatorPill) return;
-
-    liveIndicatorPill.className = `agent-live-pill status-${type}`;
-    if (liveStatusBadge) liveStatusBadge.textContent = badgeText;
-    if (liveIndicatorText) liveIndicatorText.textContent = detailText;
+    if (liveIndicatorPill) {
+      liveIndicatorPill.className = `agent-live-pill status-${type}`;
+      if (liveStatusBadge) liveStatusBadge.textContent = badgeText;
+      if (liveIndicatorText) liveIndicatorText.textContent = detailText;
+    }
     if (footerStatusLabel) footerStatusLabel.textContent = badgeText;
   }
 
