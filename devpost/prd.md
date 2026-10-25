@@ -3,115 +3,72 @@ doc: prd
 status: approved
 ---
 
-# VibeTrace — Product Requirements
+# VibeTrace — Product Requirements Document (PRD)
 
-A local-first, side-by-side observability dashboard that translates black-box AI code generation into plain-language causal summaries and interactive fishbone diagrams, so developers of any experience level can immediately spot unintended code, configuration, or permission drifts.
+A local-first, side-by-side observability dashboard that translates black-box AI code generation into verified execution traces, real-time telemetry, and independent prompt-to-output drift auditing, so developers can immediately spot unintended code, configuration, design, or permission drifts.
 
 Source: `scope.md > The Unique Kernel`, `scope.md > The Core Loop`, `scope.md > Look and Feel`.
 
 ## The Core Journey
-1. **Connection**: The developer opens VibeTrace in their browser on `localhost` and connects it to their local project directory. The dashboard confirms live watching status.
-2. **Side-by-Side Prompting**: The developer works in their preferred IDE (Cursor, Antigravity, VS Code, etc.) and prompts their AI agent.
-3. **Automatic Ingestion**: As the AI writes or modifies files, VibeTrace detects the change automatically under the hood without manual refresh.
-4. **Timeline Logging**: A new chronological tile appears in the side pane showing the timestamp, primary action highlight (e.g., *"Added Users Table"*), and risk rating.
-5. **Plain-English Causal Inspection**: Clicking or viewing the active tile updates the main canvas:
-   - A non-technical summary explaining what the AI did in plain English.
-   - An interactive, expandable fishbone breakdown displaying the trigger, touched systems (Database, Logic, Config, Permissions), and downstream effects.
-   - An explicit drift/warning banner if unrequested side effects occurred (e.g., *"Warning: Permissions were modified on auth keys without an explicit prompt"*).
-6. **Detailed Verification**: The developer clicks expandable bars to inspect the exact files and code diffs before continuing to their next prompt.
+1. **Connection & Idle State:** The developer opens VibeTrace at `http://localhost:3000`. The top header displays the workspace name, and the bottom status bar pulses green (`• HARNESS ACTIVE: Watching repository mutations with intelligent sliding debouncing...`).
+2. **Side-by-Side Prompting:** The developer works in their IDE (Antigravity, Cursor, Claude Code, VS Code) and prompts their agent.
+3. **Task Initialization (Working State):** The agent updates `vibetrace.md` with `status: in_progress` and its declared task. Instantly, an execution trace card appears in the left feed pulsing Golden Amber (`WORKING`), and the footer transitions to Amber.
+4. **Live File Mutations (Editing State):** As the agent edits code, the card transitions to Tangerine Orange (`EDITING`), streaming the active file name and live line delta. The center pane diff inspector updates in real time.
+5. **Debounce & Verification (Analyzing State):** When file writes pause, the watcher extracts git diffs, and the footer transitions to Violet (`AI SYNTHESIZING`).
+6. **Fidelity Audit & Drift Guard:** The system independently evaluates prompt intent vs. actual code diffs using OpenRouter (strictly bound to `.env`) or offline heuristics.
+   - **Aligned Case:** The card turns Sapphire Blue (`COMPLETED`), showing `100% ALIGNED` with verified badges.
+   - **Diverged Case:** If unrequested changes or design downgrades occurred, the card turns Crimson Red (`CRITICAL DRIFT`), displaying an urgent alert banner with exact discrepancies and suggested remedies.
+7. **Inspection & Telemetry:** The developer reviews the 3-pane workbench:
+   - Left: Chronological traces with filter search and project path copy button.
+   - Center: Active file inspector with unified diffs, line counts, and mechanical change analysis.
+   - Right: Prompt card, Drift Guard audit, AI model synthesis, agent checklist steps, mechanical harness checks, and execution telemetry.
+8. **Live Observability Drawer:** Clicking the footer ticker opens a slide-up terminal console displaying timestamped category logs (`[MUTATION]`, `[PROTOCOL]`, `[HARNESS]`, `[DRIFT]`, `[TRACE]`).
+9. **Architectural Mind Map:** Clicking **Mind Map** opens a full-screen modal with an interactive Mermaid subsystem graph, flaw scanner, and systemic recommendations.
+
+---
 
 ## Screens and Layout
-A unified, single-screen dashboard optimized for side-by-side tiling with an IDE:
 
-- **Top Status Bar**: Shows project connection path, active watcher pulse (`Listening for AI edits...`), and an overall project health/drift indicator.
-- **Left Side Pane (Chronological Timeline)**:
-  - Vertical list of change tiles sorted by timestamp (newest first).
-  - Each tile displays: timestamp, one-line plain English highlight, files touched badge, and risk tag (`Safe` vs. `Drift Alert`).
-  - Clicking any tile selects it and focuses the main canvas on that event.
-- **Main Canvas (Causal Inspector & Fishbone Breakdown)**:
-  - **Header Card**: Primary action highlight in plain language, followed by a clear, accessible summary of the AI's actions.
-  - **Interactive Fishbone Breakdown**: A structured visual breakdown using expandable horizontal bars/cards:
-    - *Cause / Prompt Trigger*: The user's intended prompt or action.
-    - *System Layers Touched*: Grouped into Database, Application Logic, Configuration, and Permissions/Security.
-    - *Downstream Effects*: What this change enables, plus any detected unintended consequences.
-  - **Code & File Diff Drawer**: Expandable accordion listing each modified file with inline visual diffs showing exactly what lines were added, removed, or changed.
+A unified, 3-pane edge-to-edge resizable workbench optimized for side-by-side tiling with an IDE:
 
-## Look and Feel
-- **Palette**: Strictly minimalist monochrome—rich deep blacks, charcoal greys, and crisp whites.
-- **Glassmorphism**: Translucent panels with subtle backdrop blur, light 1px border outlines, and sleek hover elevations.
-- **Typography**: Clean, highly legible modern sans-serif font (e.g., Inter or Outfit) with strict typographic hierarchy.
-- **Tone & Copy**: Direct, clear, and informative. Zero marketing buzzwords or AI hype; focus on plain-language engineering clarity that a non-technical stakeholder can immediately understand.
-- **Accents**: Subtle semantic indicators only (emerald green for clean changes, warning amber for unexpected drifts/permission shifts).
+- **Top Navigation Bar:**
+  - VibeTrace brand logo with live pulse indicator.
+  - Action buttons: **Mind Map** modal trigger, **Rescan Diffs**, and Dark/Light Theme toggle.
+- **Left Pane (Chronological Execution Traces Feed):**
+  - Repository header with project name, branch tag (`main`), and click-to-copy path bar.
+  - Live search/filter bar to filter traces by task, file, or keyword.
+  - Trace counter and chronological sort tag.
+  - Borderless trace cards with 4 distinct CSS status gradients:
+    - 🟡 Working (Golden Amber)
+    - 🟠 Editing (Tangerine Orange)
+    - 🔵 Completed (Sapphire Blue)
+    - 🔴 Difference / Diverged (Crimson Red)
+- **Center Pane (Active File & Diff Inspector):**
+  - Trace title and status badges.
+  - File pills for quick file jumping.
+  - "Trace Change & Impact Intelligence" summary box (What Changed, What Was Affected, Systemic Ripple Effect).
+  - File Mutation Card showing active file status, line deltas, symbols, affected functions, and downstream impact.
+  - Inline unified diff viewer with line additions/deletions and syntax highlighting.
+- **Right Pane (Dual-Perspective AI & Harness Intelligence):**
+  - **Section 0: Declared Prompt & Task Intent:** Shows prompt text, intent synthesis, agent name, and copy button.
+  - **Section 1: Independent Prompt vs Output Drift Guard:** Alignment score badge (0–100%), risk pill (LOW/MEDIUM/HIGH/CRITICAL), divergence alert box, What Prompt Gave vs. What Output Did comparison, discrepancy tags, risk assessment, and suggested remedy.
+  - **Section 2: AI Model Synthesis:** Plain-English overview, mechanical changes bullet list, affected feature chips, downstream impact, and model badge.
+  - **Section 3: Agent Execution Plan & Harness Checklist:** Interactive step checkboxes read from `vibetrace.md` (`- [x]` completed / `- [ ]` pending), notes, and mechanical checks (Syntax Check, AST Integrity, Sensitive Files, File Count, Line Delta).
+  - **Section 4: Performance Telemetry:** Latency meter, model used, timestamp, git branch, and commit hash.
+- **Bottom Status Bar & Live Observability Drawer:**
+  - 6-state pulsing status dot and label (`WORKING`, `EDITING`, `ANALYZING`, `COMPLETED`, `DIFFERENCE`, `IDLE`).
+  - Active log ticker streaming timestamped events.
+  - Live Logs Drawer button with unread counter badge.
+  - Slide-up terminal console (`#logs-drawer`) with live stream indicator, clear controls, and auto-scrolling log stream.
+- **Mind Map Modal:**
+  - Full-screen glassmorphic overlay with dynamic Mermaid architecture diagram, flaw & risk cards, and recommendations.
 
-## Features and Behavior
+---
 
-### 1. Live Project Watcher & Ingestion
-Source: `scope.md > The Core Loop`
-- The system connects to the local workspace and listens for filesystem/git changes in real time.
-- Changes trigger automatic logging without page reloads.
-- **Acceptance Criteria**:
-  - [ ] Touching/saving a file in the watched directory produces a new event tile in under 1 second.
-  - [ ] If the watched folder is empty or not found, an informative connection card prompts for a valid path.
+## Product Decisions & Guardrails
 
-### 2. Timeline Tile Feed (Side Pane)
-Source: `scope.md > The Core Loop`
-- Lists each detected AI interaction chronologically.
-- **Acceptance Criteria**:
-  - [ ] Tiles are ordered by time, with the latest change auto-selected.
-  - [ ] Clicking any historical tile switches the main view to display that past event.
-  - [ ] Drift warnings display a visible alert badge on the tile.
-
-### 3. Plain-English Summary & Causal Highlight
-Source: `scope.md > What "Working" Looks Like`
-- Translates code diffs into clear, human-understandable summaries so non-technical users understand what happened in the black box.
-- **Acceptance Criteria**:
-  - [ ] Displays a top-level highlight of the primary action (e.g. *"Created Database Table: orders"*).
-  - [ ] Provides a 2–3 sentence plain-language explanation of what changed and why.
-
-### 4. Interactive Fishbone Causal Breakdown
-Source: `scope.md > The Unique Kernel`
-- A visual breakdown connecting Cause ➔ System Touched ➔ Resulting Effects.
-- Expandable dropdowns/bars for each system layer.
-- **Acceptance Criteria**:
-  - [ ] Visual bars group changes by subsystem (Database, Logic, Config, Security).
-  - [ ] Clicking any bar expands/collapses detailed breakdown and rationale.
-  - [ ] Unintended side-effects (e.g. permission mutations or config tampering) are flagged with an explicit warning banner and risk explanation.
-
-### 5. File & Code Diff Inspector
-Source: `scope.md > What "Working" Looks Like`
-- Detailed view of affected files and code changes.
-- **Acceptance Criteria**:
-  - [ ] Lists all touched files with indicators for additions/deletions.
-  - [ ] Expandable code blocks show the exact lines modified.
-
-## States and Boundaries
-
-- **Empty / Initial State**: Displays a clean glassmorphic banner: *"Connected to [Workspace Path]. Watching for AI changes..."* along with an option to load an interactive demo scenario (e.g., the *Database Table + Silent Permission Drift* scenario) for instant verification.
-- **Active Change State**: A tile appears with an animated subtle pulse, populating the plain summary and expanding the fishbone tree.
-- **Drift Warning State**: When an out-of-scope or sensitive change occurs (permissions, credentials, environment keys), the event card prominently highlights an alert banner with recommended developer action.
-- **Disconnected / Error State**: Clear, non-technical notification indicating if the watcher loses connection or the project directory is inaccessible.
-
-## Product Decisions
-- **Monochrome & Minimalist Glassmorphism**: Chosen to keep developer attention on code clarity and avoid sensory fatigue during extended side-by-side coding sessions.
-- **Plain-Language Summaries alongside Diffs**: Decided specifically so developers and non-technical stakeholders alike can demystify black-box AI behavior without needing to parse complex ASTs.
-- **Pre-Loaded Interactive Demo Scenario**: Included directly in the PoC so the user can demonstrate the silent permission drift edge case reliably in a 60-second video demo.
-
-## What We're Building
-- A local-first web dashboard running on `localhost`.
-- Real-time watcher tracking local file/git mutations.
-- Side pane with chronological event tiles.
-- Main canvas with plain-language summary card and interactive expandable fishbone bars.
-- Drift warning detection specifically highlighting unauthorized permission/security alterations.
-- Interactive scenario loader for instant testing.
-
-## Deferred From the POC
-- Cloud database syncing and multi-seat team access.
-- Direct bidirectional rollback buttons that execute git commands from the web UI.
-- Native VS Code / Cursor extension marketplace integration.
-
-## Non-Goals
-- Building an entire IDE or code editor replacement.
-- Building a full CI/CD pipeline or deployment manager.
-
-## Open Questions
-- Specific method of AI summary generation in `4-spec` (lightweight local heuristic engine vs. direct Google Gemini API call with fallback).
+1. **Strict OpenRouter `.env` Binding:** OpenRouter is strictly locked to `process.env.OPENROUTER_API_MODEL`. Zero unauthorized fallback models or surprise token consumption.
+2. **Resilient Local Heuristics:** If OpenRouter API key is missing or upstream limits return HTTP 429, VibeTrace seamlessly switches to local AST heuristics with 0 downtime.
+3. **No False-Positive Red Alarms:** Red styling is strictly reserved for genuine divergence or critical drift. Aligned and verified code displays clean Sapphire Blue or Emerald Green.
+4. **Persistent SQLite Telemetry:** Using Node.js native `node:sqlite`, all historical events are saved to `vibetrace.db` without heavy third-party ORM dependencies.
+5. **Clean Interface Separation:** The dashboard focuses purely on passive observability, drift auditing, and telemetry—it is not an agent chat prompt runner.

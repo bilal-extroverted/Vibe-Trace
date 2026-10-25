@@ -13,7 +13,7 @@ Build mode: fast
   Becomes usable: The local Node.js/Express server boots up on `http://localhost:3000` with the complete monochrome glassmorphic single-page dashboard: top status bar, left timeline pane, main fishbone canvas with expandable cards, and SSE listener connection established.
   Why now: Bootstraps the project and delivers an immediate visual, working surface on `localhost:3000` side-by-side with the IDE so every subsequent backend component has a live screen to render onto.
   PRD ref: `prd.md > Screens and Layout`, `prd.md > Look and Feel`
-  Spec ref: `spec.md > Stack`, `spec.md > Components > 5. Glassmorphic Timeline & Fishbone Dashboard`, `spec.md > File Structure`
+  Spec ref: `spec.md > Stack`, `spec.md > Components > 5. Glassmorphic Timeline & Fishbone Dashboard`
   Build: Initialize `package.json` with dependencies (`express`, `dotenv`), create `server/index.js` and `server/sse.js`, and build `public/index.html`, `public/style.css`, and `public/app.js` with responsive side-by-side layout, glassmorphic styling, and empty state.
   Verify (mechanical): Start the server, perform an HTTP GET request to `http://localhost:3000` and check for 200 OK and valid HTML payload with `#timeline-pane` and `#main-canvas`.
   Learner check: Open `http://localhost:3000` in your browser alongside your editor and confirm the monochrome glassmorphic layout loads cleanly with the "Listening for AI edits" pulse.
@@ -59,6 +59,26 @@ Build mode: fast
   Learner check: Update `vibetrace.md` status, observe the live status pulse and task name in the top bar and right pane, and view the captured trace in the left pane.
   Commit: `feat: implement vibetrace.md agent communication protocol, live task tracking, and skills guide`
 
+- [x] **6. 4-State Status Gradient Cards, Independent Drift Guard & Architectural Mind Map**
+  Becomes usable: Left pane execution traces visually reflect lifecycle states via 4 vibrant CSS gradients: Golden Amber for Working (`status: working`/`in_progress`), Tangerine Orange for Editing (`active_file` mutation), Sapphire Blue for Completed (verified fidelity), and Crimson Alert for Difference/Diverged (Drift Guard warning). The Independent Drift Guard audits prompt intent vs mechanical diffs using OpenRouter or local heuristics. The full-screen Mind Map visualizes subsystems and scans architectural flaws.
+  Why now: Elevates VibeTrace from passive logger to an active engineering safety harness with instant visual recognition and root-cause intelligence.
+  PRD ref: `prd.md > Look and Feel`, `prd.md > 4. Interactive Fishbone Causal Breakdown`
+  Spec ref: `spec.md > Components > 2.3 Independent Prompt-to-Output Drift Guard`, `spec.md > 2.7 3-Pane Edge-to-Edge Workbench`
+  Build: Implemented `server/driftAnalyzer.js`, `server/mindMapEngine.js`, Mermaid modal, and 4-state card gradient styles in `public/style.css`.
+  Verify (mechanical): Tested divergent file mutations triggering Crimson Red drift alert and verified matching prompt triggering Sapphire Blue alignment.
+  Learner check: Prompt the agent to make a targeted change and watch the card transition smoothly from amber to orange to blue upon verified completion.
+  Commit: `feat: implement 4-state card gradients, independent drift guard, and architectural mind map`
+
+- [x] **7. 6-State Footer Observability Engine, Live Observability Logs Drawer & Strict OpenRouter .env Lock**
+  Becomes usable: Footer status bar reflects 6 live system states (`WORKING`, `EDITING`, `ANALYZING`, `COMPLETED`, `DIFFERENCE`, `IDLE`) with animated pulses and a real-time timestamped log ticker. Clicking the footer opens a slide-up Live Observability Logs Drawer console (`#logs-drawer`) with category pills (`[MUTATION]`, `[PROTOCOL]`, `[HARNESS]`, `[DRIFT]`, `[TRACE]`). OpenRouter queries are strictly locked to `process.env.OPENROUTER_API_MODEL` with zero unauthorized fallback cascades.
+  Why now: Provides full operational transparency into background harness activity, eliminates misleading UI alarms, and ensures strict API consumption governance.
+  PRD ref: `prd.md > Screens and Layout`, `prd.md > Product Decisions & Guardrails`
+  Spec ref: `spec.md > Components > 2.3 Independent Prompt-to-Output Drift Guard`, `spec.md > 2.6 Real-Time SSE Telemetry Broadcaster`
+  Build: Added footer status engine and logs drawer in `public/index.html`, `public/style.css`, `public/app.js`, and strictly bound `server/analyzer.js`, `server/driftAnalyzer.js`, `server/queryEngine.js`, and `server/mindMapEngine.js` to `process.env.OPENROUTER_API_MODEL`.
+  Verify (mechanical): Verified `node --check` across all server files and confirmed `/api/status` reflects single `.env` model.
+  Learner check: Click the bottom footer ticker to view the live terminal drawer streaming timestamped workspace events.
+  Commit: `feat: synchronize footer status bar with active states and stream live activity logs`
+
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — Real-time debounced file watcher & OpenRouter causal intelligence
@@ -66,18 +86,20 @@ Build mode: fast
 
 ## Final Review
 
-- [x] Final review complete — Clean light-theme 3-pane UI, SQLite persistence, and mechanical AI harness engineering verified and ready to ship
+- [x] Final review complete — 3-pane resizable workbench, 4-state gradient cards, independent Drift Guard, 6-state footer logs drawer, SQLite persistence, and strict OpenRouter environment binding verified and ready to ship.
 
 ## Code Tour and App Map
 
 - [x] Learning activity complete — Verified end-to-end telemetry loop, agent-harness protocol, and dual AI/agent perspective isolation
 - [x] devpost/app-map.html generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: [to be recorded upon completion]
-Route and stops: [to be recorded upon completion]
-Edit outcome: [to be recorded upon completion]
-Reflection: [to be recorded upon completion]
-Activity mode: [to be recorded upon completion]
-
-## Revisions
-
+Activity and evidence: End-to-end telemetry verified: Agent updates `vibetrace.md` ➔ Watcher batches mutations via sliding debouncing ➔ Drift Guard audits prompt intent vs mechanical diffs ➔ Dashboard streams real-time card transitions (Amber -> Orange -> Blue) and logs drawer updates.
+Route and stops:
+1. `vibetrace.md`: Shared protocol bus between agent and harness.
+2. `server/watcher.js`: Sliding-window debouncer and git diff aggregator.
+3. `server/driftAnalyzer.js`: Independent prompt-to-output fidelity and risk auditor.
+4. `server/db.js`: Native SQLite storage for persistent trace telemetry.
+5. `public/app.js`: Reactive 3-pane workbench and 6-state footer status engine.
+Edit outcome: Clean separation of VibeTrace engineering harness from Devpost competition artifacts, comprehensive README with MIT License, and enterprise agent skill guardrails.
+Reflection: The most critical practice when pairing AI coding agents with an observability harness is establishing an explicit, machine-readable protocol (`vibetrace.md`). When an agent declares its intent before modifying code, the harness can perform proactive drift detection rather than reactive guesswork.
+Activity mode: fast

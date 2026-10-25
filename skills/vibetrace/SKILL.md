@@ -1,64 +1,163 @@
 ---
 name: vibetrace
-description: Connects AI coding agents to VibeTrace observability harness. Ensures VibeTrace server is running, maintains vibetrace.md communication protocol, and tracks task lifecycle (started, in_progress, completed).
+description: Connects AI coding agents to the VibeTrace observability harness. Ensures the VibeTrace daemon is active, manages the vibetrace.md inter-agent communication protocol, tracks active file mutations, enforces strict drift-prevention guardrails, and synchronizes task lifecycle states (working, editing, completed, diverged).
 ---
 
-# VibeTrace Agent Observability & Harness Skill
+# VibeTrace AI Agent Observability & Harness Protocol Skill
 
-Use this skill whenever working on this repository or any codebase with VibeTrace. It establishes a real-time communication channel between you (the coding agent) and the VibeTrace observability server.
+Equips AI coding agents (Antigravity, Cursor, Claude Code, GitHub Copilot) to communicate seamlessly with the local **VibeTrace Observability Harness**.
 
-## Workflow
+By following this skill, your actions will stream live into the VibeTrace dashboard (`http://localhost:3000`), populate the 3-pane workbench, animate the real-time footer status ticker, and pass the independent OpenRouter **Drift Guard** audit with a 100% alignment score.
 
-### 1. Ensure VibeTrace Server is Running
-Before making code changes, check if the VibeTrace server is active on `http://localhost:3000`.
-If it is not running, start it in the background:
-```bash
-node server/index.js
-```
-The dashboard will be live at `http://localhost:3000`.
+---
 
-### 2. Update `vibetrace.md` at Task Start
-When you receive a coding instruction or user request, update `vibetrace.md` in the repository root to inform the harness and other agents:
+## 🧭 The 4 Task Lifecycle States
+
+Every user prompt transitions through 4 visual card states in VibeTrace:
+
+| State | Visual Card | Trigger in `vibetrace.md` | Meaning |
+|---|---|---|---|
+| **Working** | 🟡 Golden Amber | `status: in_progress` or `status: working` | Agent received user prompt and is planning steps |
+| **Editing** | 🟠 Tangerine Orange | `active_file: "path/to/file"` | Agent is actively mutating code in the repository |
+| **Completed** | 🔵 Sapphire Blue | `status: completed` | Task finished; 100% aligned with user prompt |
+| **Diverged** | 🔴 Crimson Red Alert | Unrequested changes / scope drift | Drift Guard detected discrepancy between prompt and output |
+
+---
+
+## ⚡ Agent Step-by-Step Workflow
+
+### Step 1: Verify VibeTrace Server is Active
+Before writing code, verify that the VibeTrace server is running:
+- Check `http://localhost:3000/api/status`.
+- If not running, start it as a background daemon:
+  ```bash
+  node server/index.js &
+  ```
+
+### Step 2: Initialize `vibetrace.md` at Task Inception
+**CRITICAL:** Update `vibetrace.md` in the repository root **immediately** upon receiving a user prompt, *before* creating or editing code files.
 
 ```markdown
 ---
 status: in_progress
-task: "<Short description of what the user requested>"
-agent: "<Agent Name (e.g. Antigravity, Cursor, Claude)>"
-started_at: "<ISO timestamp>"
-updated_at: "<ISO timestamp>"
+task: "<Short 5-8 word description of what the user requested>"
+agent: "<Agent Name (e.g. Antigravity AI, Cursor, Claude)>"
+active_file: "<Primary file you will inspect or modify first>"
+file_action: "Inspecting codebase and planning implementation steps"
+file_summary: "Planning changes to fulfill user prompt"
+started_at: "<ISO 8601 Timestamp, e.g. 2026-10-25T11:00:00.000Z>"
+updated_at: "<ISO 8601 Timestamp>"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Describe in 1-2 sentences what code changes or refactoring you are performing.
+> 1-2 sentences summarizing the exact user prompt intent and expected changes.
 
 ## Execution Plan & Steps
-- [ ] Step 1: Modify file X
+- [ ] Step 1: Inspect existing implementation in file X
 - [ ] Step 2: Implement logic Y
-- [ ] Step 3: Run harness verification
+- [ ] Step 3: Verify syntax and test functionality
 
 ## Inter-Agent & Harness Communication Notes
-- Notes for other agents, constraints, or test requirements.
+- State any technical constraints, dependencies, or scope boundaries here.
 ```
 
-### 3. Update Progress While Coding
-As you complete individual steps, update the checkboxes in `vibetrace.md`:
+### Step 3: Broadcast Progress & Active File Transitions
+As you touch files in the codebase, update `vibetrace.md` to inform the dashboard:
+- Update `active_file` to the file you are currently modifying.
+- Update `file_action` with a concise summary of the action (e.g., `"Adding rate-limiting middleware"`).
+- Update `file_summary` explaining the architectural impact.
+- Check off completed steps in the execution plan (`- [ ]` ➔ `- [x]`).
+
 ```markdown
-- [x] Step 1: Modify file X
-- [ ] Step 2: Implement logic Y
+active_file: "server/middleware/rateLimiter.js"
+file_action: "Added sliding window rate limiting middleware"
+file_summary: "Protects API endpoints against repeated HTTP 429 quota exhaustion"
 ```
 
-### 4. Mark Task Completion
-When you finish your changes, update the frontmatter in `vibetrace.md`:
+### Step 4: Finalize Task Completion
+When all planned edits are done and verified:
+1. Update `vibetrace.md` with `status: completed`.
+2. Ensure all completed steps are marked `- [x]`.
+3. Add a `completed_at` ISO timestamp.
+
 ```markdown
 ---
 status: completed
-task: "<Description>"
-agent: "<Agent Name>"
-completed_at: "<ISO timestamp>"
+task: "<Exact prompt description>"
+agent: "Antigravity AI"
+active_file: "<Final file modified>"
+file_action: "Finalized changes and verified correctness"
+file_summary: "All execution steps verified without regressions"
+started_at: "2026-10-25T11:00:00.000Z"
+completed_at: "2026-10-25T11:10:00.000Z"
+updated_at: "2026-10-25T11:10:00.000Z"
 ---
 ```
 
-When you set `status: completed`, VibeTrace immediately detects the completion, aggregates all Git diffs, runs the harness verification checks, and publishes the permanent execution trace to the dashboard.
+Setting `status: completed` instructs VibeTrace's watcher to immediately extract git diffs, execute mechanical harness checks, run the Drift Guard audit, and publish the verified trace.
+
+---
+
+## 🛡️ Strict Agent Guardrails
+
+To prevent the **Drift Guard** from triggering a **High Alert (Red Card)**, agents must strictly adhere to these 5 guardrails:
+
+### Guardrail 1: Strict Scope Containment (Zero Unrequested Touches)
+- If the user requested a **frontend styling or layout fix**, do **NOT** modify server routes, database schemas, or backend configs.
+- If the user requested a **backend API change**, do **NOT** restyle frontend components or modify CSS.
+- *Why:* Drift Guard inspects modified file extensions against prompt keywords. Modifying `server/` during a styling task will immediately trigger a `Significant Divergence Detected` alert.
+
+### Guardrail 2: Preserve Visual Assets, Gradients & Typography
+- **Never delete or strip existing visual styling** (such as CSS `linear-gradient`, `radial-gradient`, or custom token variables) unless the user explicitly used the words `"remove gradient"` or `"delete styling"`.
+- *Why:* Unsolicited design downgrades are treated as high-severity regressions.
+
+### Guardrail 3: Respect Environment Variables & Never Hardcode Models
+- When calling external APIs (such as OpenRouter), **always** read credentials and model configurations dynamically from `process.env`:
+  ```javascript
+  const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
+  const model = (process.env.OPENROUTER_API_MODEL || '').trim();
+  ```
+- Never hardcode model strings (e.g. `"gpt-4o"` or `"claude-3-5"`) into application code.
+- If credentials or models are missing, fall back gracefully to local heuristic engines.
+
+### Guardrail 4: Never Start Silently
+- If you start writing code *before* setting `vibetrace.md` to `status: in_progress`, VibeTrace will evaluate your code changes against the **previous task** left in `vibetrace.md`. This will cause an immediate false-positive drift alert!
+
+### Guardrail 5: Clean Code Hygiene & Syntax Validation
+- Always validate JavaScript/Node.js syntax with `node --check <file>` before signaling task completion.
+- Maintain documentation integrity: Preserve existing comments and docstrings.
+
+---
+
+## 📋 Full `vibetrace.md` Specification Reference
+
+```yaml
+---
+# REQUIRED FIELDS:
+status: "in_progress" | "completed" | "working"
+task: string           # Max 10 words. Clear summary of user intent.
+agent: string          # Name of the AI agent executing the task.
+
+# OPTIONAL / RECOMMENDED FIELDS:
+active_file: string    # Relative path of file currently being modified.
+file_action: string    # 1-sentence action summary (e.g., "Refactoring SSE broadcast loop").
+file_summary: string   # 1-2 sentence mechanical change explanation.
+started_at: string     # ISO 8601 string when task began.
+completed_at: string   # ISO 8601 string when task completed.
+updated_at: string     # ISO 8601 string of last modification.
+---
+
+# VibeTrace Agent-Harness Communication Protocol
+
+## Current Task Intent
+> User prompt intent and high-level architectural rationale.
+
+## Execution Plan & Steps
+- [x] Step 1: Completed step
+- [ ] Step 2: In-progress step
+
+## Inter-Agent & Harness Communication Notes
+- Contextual information for secondary agents, human reviewers, or harness auditors.
+```
