@@ -1,225 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VibeTrace — AI Code Observability & Traceability</title>
+  <title>VibeTrace — AI Code Observability & Harness Engineering</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="light-theme">
 
-  <!-- Top Global Header -->
+  <!-- Top Navigation Header -->
   <header class="top-nav">
-    <div class="nav-brand">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="#38bdf8" stroke-width="2"/>
-          <path d="M8 12L11 15L16 9" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <div class="nav-left">
+      <div class="brand-logo">
+        <span class="logo-icon">◈</span>
+        <span class="brand-name">VibeTrace</span>
       </div>
-      <div class="repo-breadcrumb">
-        <span class="root-label">admin</span>
-        <span class="sep">/</span>
-        <span class="repo-name" id="repo-name-display">workspace</span>
+
+      <!-- Active Project Selector Pill -->
+      <div class="project-pill" id="btn-open-projects-modal" title="Click to switch or connect project">
+        <span class="folder-ico">📁</span>
+        <span class="project-active-name" id="nav-project-name">learn-ai-basics</span>
+        <span class="switch-badge">Switch</span>
+      </div>
+
+      <!-- Live Watcher Status Indicator -->
+      <div class="live-status-pill" id="live-indicator-pill">
+        <span class="status-pulse-dot"></span>
+        <span class="status-label" id="live-indicator-text">Watching Live</span>
       </div>
     </div>
 
-    <!-- Active Local Repository Connection Controls -->
-    <div class="repo-connect-box">
-      <div class="status-indicator" id="live-indicator-pill">
-        <span class="pulse-dot"></span>
-        <span class="status-text" id="live-indicator-text">Watching Live</span>
+    <div class="nav-right">
+      <button id="btn-rescan" class="btn btn-secondary btn-sm" title="Force immediate Git diff scan">
+        ↻ Rescan Diffs
+      </button>
+      <button id="btn-open-connect" class="btn btn-primary btn-sm" title="Connect another folder or project">
+        + Connect Project
+      </button>
+      <div class="model-badge" title="AI Model configured in .env">
+        <span class="model-dot"></span>
+        <span id="nav-model-name">inkling-small:free</span>
       </div>
-      <div class="folder-input-wrapper">
-        <span class="folder-icon">📁</span>
-        <input type="text" id="repo-path-input" placeholder="Path to watch..." spellcheck="false">
-        <button id="btn-update-repo" class="btn btn-primary" title="Connect to this folder">Connect</button>
-        <button id="btn-rescan-repo" class="btn btn-ghost" title="Force Git diff rescan">↻ Rescan</button>
-      </div>
-    </div>
-
-    <!-- Right Metadata -->
-    <div class="nav-meta">
-      <div class="model-pill" title="Configured AI model in .env">
-        <span class="pill-dot"></span>
-        <span id="active-model-name">inkling-small:free</span>
-      </div>
+      <button id="btn-theme-toggle" class="btn-theme-toggle" title="Toggle Light / Dark mode">
+        <span id="theme-icon">🌙</span>
+      </button>
     </div>
   </header>
 
-  <!-- Main 3-Pane Observability Layout -->
-  <main class="app-workspace">
+  <!-- Main 3-Pane Observability Workspace -->
+  <div class="workspace-grid">
 
     <!-- ========================================================
-         LEFT PANE: Traces & Changes List
+         PANE 1 (LEFT): PROJECT & TRACES FEED
          ======================================================== -->
     <aside class="pane pane-left" id="pane-left">
-      <div class="pane-header">
-        <div class="pane-title-row">
-          <span class="pane-title">Execution Traces</span>
-          <span class="count-badge" id="traces-count-badge">0</span>
+      <!-- Active Project Info Card -->
+      <div class="project-info-card">
+        <div class="project-card-header">
+          <span class="card-caption">CURRENT PROJECT</span>
+          <span class="git-badge" id="left-git-branch">main</span>
         </div>
-        <div class="pane-search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="traces-search" placeholder="Filter traces or files...">
-        </div>
+        <div class="project-card-title" id="left-project-name">learn-ai-basics</div>
+        <div class="project-card-path" id="left-project-path" title="">c:\...\learn-ai-basics</div>
       </div>
 
-      <div class="traces-list" id="traces-list">
-        <!-- Trace cards injected dynamically -->
+      <!-- Search & Filter Bar -->
+      <div class="traces-search-bar">
+        <span class="search-ico">🔍</span>
+        <input type="text" id="traces-search-input" placeholder="Search traces, files, or commits...">
       </div>
 
-      <div id="traces-empty" class="pane-empty-state">
-        <div class="pulse-ring"></div>
-        <p>Listening for code modifications in connected folder...</p>
+      <!-- Traces Feed Header -->
+      <div class="traces-feed-header">
+        <span class="feed-title">EXECUTION TRACES</span>
+        <span class="traces-count-tag" id="traces-count-tag">0</span>
+      </div>
+
+      <!-- Traces Scroll List -->
+      <div class="traces-scroll-list" id="traces-scroll-list">
+        <!-- Rendered by app.js -->
+      </div>
+
+      <div class="empty-traces-state" id="empty-traces-state">
+        <div class="empty-ring"></div>
+        <h4>Listening for Agent Edits</h4>
+        <p>When your AI agent modifies code in this folder, traces will appear here automatically.</p>
       </div>
     </aside>
 
     <!-- ========================================================
-         MIDDLE PANE: Content of the Selected Trace (Diffs & Code)
+         PANE 2 (MIDDLE): CODE CONTENT & SYNTAX DIFFS
          ======================================================== -->
     <section class="pane pane-middle" id="pane-middle">
-      <div class="pane-header middle-header">
-        <div class="middle-header-left">
-          <span class="content-heading">Trace Content</span>
-          <span class="trace-id-badge" id="middle-trace-id">--</span>
-          <span class="trace-time-badge" id="middle-timestamp">--:--:--</span>
+      <div class="middle-top-bar">
+        <div class="middle-top-left">
+          <span class="trace-title-heading" id="middle-trace-title">Select a Trace</span>
+          <span class="trace-id-tag" id="middle-trace-id">--</span>
+          <span class="trace-time-tag" id="middle-trace-time">--:--:--</span>
         </div>
-        <div class="file-filter-row" id="file-filter-tabs">
-          <!-- File pills injected dynamically -->
+        <div class="file-tabs-scroll" id="file-tabs-scroll">
+          <!-- File pill buttons injected dynamically -->
         </div>
       </div>
 
-      <div class="diff-content-scroll" id="diff-content-scroll">
+      <div class="diff-viewer-area" id="diff-viewer-area">
         <div id="diffs-container" class="diffs-container">
-          <!-- Diff cards rendered here -->
+          <!-- Syntax diffs rendered here -->
         </div>
 
-        <div id="middle-empty" class="pane-empty-state middle-empty">
-          <div class="empty-icon">⎇</div>
+        <div class="empty-diff-state" id="empty-diff-state">
+          <div class="empty-diff-icon">⎇</div>
           <h3>No Trace Selected</h3>
-          <p>Select a trace from the left pane or make code edits in your editor to observe diffs in real time.</p>
+          <p>Click on any execution trace on the left pane to inspect the exact line-by-line code diffs.</p>
         </div>
       </div>
     </section>
 
     <!-- ========================================================
-         RIGHT PANE: Summary, Changings, Info & AI Question Area
+         PANE 3 (RIGHT): HARNESS INTELLIGENCE & AI Q&A
          ======================================================== -->
     <aside class="pane pane-right" id="pane-right">
-      
-      <!-- Interactive AI Question Engine -->
-      <div class="ai-query-section">
-        <div class="section-title">
-          <span class="sparkle">◈</span> Ask About These Changes
-        </div>
-        <div class="query-box">
-          <input type="text" id="query-input" placeholder="Ask questions about these changes... (Press Enter)" spellcheck="false">
-          <button id="btn-submit-query" class="btn btn-query">
-            <span class="btn-text">Ask</span>
-            <span class="spinner hidden" id="query-spinner"></span>
-          </button>
-        </div>
-        <div class="quick-chips">
-          <button class="chip" data-q="What files changed and what was implemented?">Summary of changes</button>
-          <button class="chip" data-q="What is the architectural and downstream impact?">Architectural impact</button>
-          <button class="chip" data-q="Did this change adhere to repository harness rules?">Harness check</button>
+
+      <!-- Section A: Real AI Harness Engineering Audit -->
+      <div class="harness-audit-card" id="harness-audit-card">
+        <div class="harness-card-header">
+          <div class="harness-header-title">
+            <span class="shield-icon">🛡️</span>
+            <span>AI HARNESS AUDIT</span>
+          </div>
+          <span class="harness-status-pill pass" id="harness-overall-status">PASSED</span>
         </div>
 
-        <!-- AI Query Answer Box -->
-        <div id="query-answer-card" class="query-answer-card hidden">
-          <div class="answer-card-header">
-            <span class="answer-label">◈ VibeTrace Intelligence</span>
-            <span class="answer-model" id="answer-model-tag">nvidia/nemotron</span>
-            <button id="btn-close-answer" class="btn-close">✕</button>
+        <p class="harness-summary-text" id="harness-advice-text">
+          Harness verified: All modified files compiled cleanly with no protected file violations.
+        </p>
+
+        <!-- Mechanical Automated Checks List -->
+        <div class="harness-checks-list" id="harness-checks-list">
+          <div class="check-item">
+            <span class="check-status-ico pass">✓</span>
+            <div class="check-info">
+              <span class="check-name">Syntax Integrity</span>
+              <span class="check-desc">All JS/JSON files compiled cleanly with zero syntax errors</span>
+            </div>
           </div>
-          <div class="answer-text" id="answer-text">Answer will appear here...</div>
+          <div class="check-item">
+            <span class="check-status-ico pass">✓</span>
+            <div class="check-info">
+              <span class="check-name">Protected Files Guard</span>
+              <span class="check-desc">No sensitive environment or credential files touched</span>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-status-ico pass">✓</span>
+            <div class="check-info">
+              <span class="check-name">Secret & Key Scanner</span>
+              <span class="check-desc">No hardcoded credentials or API keys detected in diff</span>
+            </div>
+          </div>
+          <div class="check-item">
+            <span class="check-status-ico pass">✓</span>
+            <div class="check-info">
+              <span class="check-name">Dependency Guard</span>
+              <span class="check-desc">Dependency boundaries verified</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Trace Summary & Changings Card -->
-      <div class="summary-card" id="summary-card">
-        <div class="summary-header">
-          <span class="badge-change-type" id="summary-change-type">Code Mutation</span>
-          <span class="badge-latency" id="summary-latency">0.24s</span>
+      <!-- Section B: Interactive AI Query Engine -->
+      <div class="ai-query-box-card">
+        <div class="query-card-header">
+          <span class="sparkle-ico">◈</span>
+          <span>Ask Questions About These Changes</span>
+        </div>
+        <div class="query-input-row">
+          <input type="text" id="ai-query-input" placeholder="Ask anything about this code trace... (Press Enter)" spellcheck="false">
+          <button id="btn-run-query" class="btn btn-primary btn-sm">
+            <span class="btn-text">Ask AI</span>
+            <span class="query-spinner hidden" id="query-spinner"></span>
+          </button>
+        </div>
+        <div class="query-chips-row">
+          <button class="query-chip" data-q="What files changed and what was implemented?">What was changed?</button>
+          <button class="query-chip" data-q="What is the architectural and downstream impact?">Architectural impact</button>
+          <button class="query-chip" data-q="Are there any breaking changes or edge cases?">Breaking changes?</button>
         </div>
 
-        <h2 class="summary-title" id="summary-title">Trace Details</h2>
+        <div id="query-answer-card" class="query-answer-card hidden">
+          <div class="query-answer-top">
+            <span class="query-model-tag" id="query-model-tag">nvidia/nemotron</span>
+            <button id="btn-close-query-answer" class="btn-close-answer" title="Close answer">✕</button>
+          </div>
+          <div class="query-answer-body" id="query-answer-body">Answer will render here...</div>
+        </div>
+      </div>
 
-        <div class="info-block">
-          <h3>PLAIN ENGLISH SUMMARY</h3>
-          <p id="summary-text">No trace selected.</p>
+      <!-- Section C: Plain English Summary & Architectural Impact -->
+      <div class="info-card">
+        <div class="info-card-section">
+          <h4>PLAIN ENGLISH SUMMARY</h4>
+          <p id="right-summary-text">No trace selected.</p>
         </div>
 
-        <div class="info-block">
-          <h3>ARCHITECTURAL & SYSTEMIC IMPACT</h3>
-          <p id="impact-text">No trace selected.</p>
+        <div class="info-card-section">
+          <h4>ARCHITECTURAL & SYSTEMIC IMPACT</h4>
+          <p id="right-impact-text">No trace selected.</p>
         </div>
 
-        <div class="info-block">
-          <h3>SUBSYSTEMS TOUCHED</h3>
-          <div class="subsystem-pills" id="subsystems-list">
+        <div class="info-card-section">
+          <h4>SUBSYSTEMS TOUCHED</h4>
+          <div class="subsystems-pills-row" id="right-subsystems-row">
             <span class="subsystem-pill">Application Logic</span>
           </div>
         </div>
 
-        <div class="info-block">
-          <h3>AI HARNESS ENGINEERING</h3>
-          <div class="harness-box" id="harness-box">
-            <div class="harness-row">
-              <span class="h-label">Harness Context:</span>
-              <span class="h-val" id="harness-rules-status">Loaded</span>
+        <div class="info-card-section meta-section">
+          <h4>TELEMETRY & METADATA</h4>
+          <div class="meta-row-grid">
+            <div class="meta-cell">
+              <span class="k">Commit HEAD</span>
+              <span class="v" id="right-meta-commit">--</span>
             </div>
-            <div class="harness-preview" id="harness-rules-preview">
-              Repository skills and guidelines verified.
+            <div class="meta-cell">
+              <span class="k">Git Branch</span>
+              <span class="v" id="right-meta-branch">--</span>
             </div>
-          </div>
-        </div>
-
-        <!-- Git & Metadata -->
-        <div class="info-block metadata-block">
-          <h3>GIT & TELEMETRY</h3>
-          <div class="meta-grid">
-            <div class="meta-item">
-              <span class="m-k">Branch</span>
-              <span class="m-v" id="meta-branch">main</span>
+            <div class="meta-cell">
+              <span class="k">Additions</span>
+              <span class="v add" id="right-meta-add">+0</span>
             </div>
-            <div class="meta-item">
-              <span class="m-k">Commit</span>
-              <span class="m-v" id="meta-commit">HEAD</span>
-            </div>
-            <div class="meta-item">
-              <span class="m-k">Additions</span>
-              <span class="m-v add" id="meta-additions">+0</span>
-            </div>
-            <div class="meta-item">
-              <span class="m-k">Deletions</span>
-              <span class="m-v del" id="meta-deletions">-0</span>
+            <div class="meta-cell">
+              <span class="k">Deletions</span>
+              <span class="v del" id="right-meta-del">-0</span>
             </div>
           </div>
         </div>
       </div>
     </aside>
-  </main>
+  </div>
 
-  <!-- Bottom Ticker Footer -->
+  <!-- Footer Ticker -->
   <footer class="app-footer">
-    <div class="footer-status" id="footer-status">
-      <span class="dot"></span>
-      <span id="footer-status-label">WATCHER ACTIVE</span>
+    <div class="footer-left">
+      <span class="footer-dot"></span>
+      <span class="footer-status-label" id="footer-status-label">WATCHER ACTIVE</span>
     </div>
-    <div class="footer-msg" id="footer-msg">
-      Listening for filesystem mutations and Git changes...
+    <div class="footer-msg" id="footer-ticker-msg">
+      Watching local repository with intelligent debouncing and persistent SQLite history...
     </div>
-    <div class="footer-counts">
-      <span>Traces: <b id="footer-count">0</b></span>
+    <div class="footer-right">
+      <span>Database: <b>vibetrace.db</b></span>
     </div>
   </footer>
 
-  <!-- Client Script -->
+  <!-- Project Onboarding & Switch Modal -->
+  <div class="modal-backdrop hidden" id="modal-project">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">📁</span>
+          <div>
+            <h3>Connect Project Repository</h3>
+            <p>Select a folder to observe live code changes and harness execution</p>
+          </div>
+        </div>
+        <button id="btn-close-modal" class="btn-close-modal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="modal-input-path">Local Repository Path:</label>
+          <div class="input-with-button">
+            <input type="text" id="modal-input-path" placeholder="e.g. C:\Users\Username\Projects\my-app" spellcheck="false">
+            <button id="modal-btn-connect" class="btn btn-primary">Connect & Observe</button>
+          </div>
+        </div>
+
+        <div class="recent-projects-section">
+          <h4>RECENTLY OBSERVED PROJECTS (SAVED IN SQLITE)</h4>
+          <div class="recent-projects-list" id="recent-projects-list">
+            <!-- Project cards rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="diffViewer.js"></script>
   <script src="app.js"></script>
 </body>

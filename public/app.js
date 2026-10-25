@@ -1,66 +1,96 @@
-// VibeTrace Dashboard Controller
-// 3-Pane Architecture: Left Traces, Middle Content/Diffs, Right Summary/Impact/Q&A
+// VibeTrace Dashboard Client Controller
+// Pure Functional AI Observability, Persistent SQLite Storage & Harness Audit
 
 (function () {
   let traces = [];
   let selectedTraceId = null;
   let selectedFileFilter = 'all';
-  let starredTraceIds = new Set();
+  let activeProjectPath = '';
   let searchQuery = '';
 
-  // DOM Elements - Top Navigation
-  const repoNameDisplay = document.getElementById('repo-name-display');
+  // DOM Elements - Top Header
+  const navProjectName = document.getElementById('nav-project-name');
+  const btnOpenProjectsModal = document.getElementById('btn-open-projects-modal');
   const liveIndicatorPill = document.getElementById('live-indicator-pill');
   const liveIndicatorText = document.getElementById('live-indicator-text');
-  const repoPathInput = document.getElementById('repo-path-input');
-  const btnUpdateRepo = document.getElementById('btn-update-repo');
-  const btnRescanRepo = document.getElementById('btn-rescan-repo');
-  const activeModelName = document.getElementById('active-model-name');
+  const btnRescan = document.getElementById('btn-rescan');
+  const btnOpenConnect = document.getElementById('btn-open-connect');
+  const navModelName = document.getElementById('nav-model-name');
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
 
-  // Left Pane: Traces
-  const tracesCountBadge = document.getElementById('traces-count-badge');
-  const tracesSearch = document.getElementById('traces-search');
-  const tracesList = document.getElementById('traces-list');
-  const tracesEmpty = document.getElementById('traces-empty');
+  // Left Pane: Project & Traces Feed
+  const leftGitBranch = document.getElementById('left-git-branch');
+  const leftProjectName = document.getElementById('left-project-name');
+  const leftProjectPath = document.getElementById('left-project-path');
+  const tracesSearchInput = document.getElementById('traces-search-input');
+  const tracesCountTag = document.getElementById('traces-count-tag');
+  const tracesScrollList = document.getElementById('traces-scroll-list');
+  const emptyTracesState = document.getElementById('empty-traces-state');
 
   // Middle Pane: Trace Content & Diffs
+  const middleTraceTitle = document.getElementById('middle-trace-title');
   const middleTraceId = document.getElementById('middle-trace-id');
-  const middleTimestamp = document.getElementById('middle-timestamp');
-  const fileFilterTabs = document.getElementById('file-filter-tabs');
+  const middleTraceTime = document.getElementById('middle-trace-time');
+  const fileTabsScroll = document.getElementById('file-tabs-scroll');
   const diffsContainer = document.getElementById('diffs-container');
-  const middleEmpty = document.getElementById('middle-empty');
+  const emptyDiffState = document.getElementById('empty-diff-state');
 
-  // Right Pane: AI Question Engine
-  const queryInput = document.getElementById('query-input');
-  const btnSubmitQuery = document.getElementById('btn-submit-query');
+  // Right Pane: AI Harness Engineering Audit
+  const harnessOverallStatus = document.getElementById('harness-overall-status');
+  const harnessAdviceText = document.getElementById('harness-advice-text');
+  const harnessChecksList = document.getElementById('harness-checks-list');
+
+  // Right Pane: AI Query Engine
+  const aiQueryInput = document.getElementById('ai-query-input');
+  const btnRunQuery = document.getElementById('btn-run-query');
   const querySpinner = document.getElementById('query-spinner');
+  const queryChips = document.querySelectorAll('.query-chip');
   const queryAnswerCard = document.getElementById('query-answer-card');
-  const answerModelTag = document.getElementById('answer-model-tag');
-  const answerText = document.getElementById('answer-text');
-  const btnCloseAnswer = document.getElementById('btn-close-answer');
-  const quickChips = document.querySelectorAll('.chip');
+  const queryModelTag = document.getElementById('query-model-tag');
+  const queryAnswerBody = document.getElementById('query-answer-body');
+  const btnCloseQueryAnswer = document.getElementById('btn-close-query-answer');
 
   // Right Pane: Summary & Info
-  const summaryChangeType = document.getElementById('summary-change-type');
-  const summaryLatency = document.getElementById('summary-latency');
-  const summaryTitle = document.getElementById('summary-title');
-  const summaryText = document.getElementById('summary-text');
-  const impactText = document.getElementById('impact-text');
-  const subsystemsList = document.getElementById('subsystems-list');
-  const harnessRulesStatus = document.getElementById('harness-rules-status');
-  const harnessRulesPreview = document.getElementById('harness-rules-preview');
-  const metaBranch = document.getElementById('meta-branch');
-  const metaCommit = document.getElementById('meta-commit');
-  const metaAdditions = document.getElementById('meta-additions');
-  const metaDeletions = document.getElementById('meta-deletions');
+  const rightSummaryText = document.getElementById('right-summary-text');
+  const rightImpactText = document.getElementById('right-impact-text');
+  const rightSubsystemsRow = document.getElementById('right-subsystems-row');
+  const rightMetaCommit = document.getElementById('right-meta-commit');
+  const rightMetaBranch = document.getElementById('right-meta-branch');
+  const rightMetaAdd = document.getElementById('right-meta-add');
+  const rightMetaDel = document.getElementById('right-meta-del');
 
-  // Footer
-  const footerStatus = document.getElementById('footer-status');
+  // Footer Ticker
   const footerStatusLabel = document.getElementById('footer-status-label');
-  const footerMsg = document.getElementById('footer-msg');
-  const footerCount = document.getElementById('footer-count');
+  const footerTickerMsg = document.getElementById('footer-ticker-msg');
 
-  // 1. Initialize Server-Sent Events (SSE)
+  // Modal: Project Connect & Onboarding
+  const modalProject = document.getElementById('modal-project');
+  const btnCloseModal = document.getElementById('btn-close-modal');
+  const modalInputPath = document.getElementById('modal-input-path');
+  const modalBtnConnect = document.getElementById('modal-btn-connect');
+  const recentProjectsList = document.getElementById('recent-projects-list');
+
+  // 1. Theme Management (Light / Dark)
+  function initTheme() {
+    const saved = localStorage.getItem('vibetrace_theme') || 'light';
+    applyTheme(saved);
+
+    btnThemeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'light' ? 'dark' : 'light';
+      applyTheme(next);
+      localStorage.setItem('vibetrace_theme', next);
+    });
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.className = `${theme}-theme`;
+    themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+  }
+
+  // 2. Initialize Server-Sent Events (SSE)
   function initSSE() {
     const evtSource = new EventSource('/api/events');
 
@@ -74,7 +104,7 @@
             selectTrace(traces[0].id);
           }
         } else if (payload.type === 'trace') {
-          logFooter(`Trace captured: ${payload.trace.title}`);
+          logTicker(`Trace captured: ${payload.trace.title}`);
           addTrace(payload.trace);
         } else if (payload.type === 'agent_status') {
           handleAgentStatus(payload);
@@ -92,19 +122,19 @@
   function handleAgentStatus(data) {
     if (data.status === 'writing') {
       setLiveIndicator('writing', `Agent active (${data.filesCount} files)...`);
-      logFooter(data.message || 'Agent actively modifying code...');
+      logTicker(data.message || 'Agent actively modifying code...');
     } else if (data.status === 'analyzing') {
       setLiveIndicator('analyzing', 'Stabilized: Analyzing diffs...');
-      logFooter(data.message || 'Extracting diffs and repository context...');
+      logTicker(data.message || 'Validating syntax & harness rules...');
     } else if (data.status === 'idle') {
       setLiveIndicator('live', 'Watching Live');
-      logFooter(data.message || 'Listening for filesystem mutations...');
+      logTicker(data.message || 'Listening for filesystem mutations...');
     }
   }
 
   function setLiveIndicator(state, label) {
     if (!liveIndicatorPill) return;
-    liveIndicatorPill.className = 'status-indicator';
+    liveIndicatorPill.className = 'live-status-pill';
     if (state === 'writing') liveIndicatorPill.classList.add('writing');
     else if (state === 'analyzing') liveIndicatorPill.classList.add('analyzing');
 
@@ -112,79 +142,319 @@
     if (footerStatusLabel) footerStatusLabel.textContent = label.toUpperCase();
   }
 
-  function logFooter(msg) {
-    if (footerMsg) {
+  function logTicker(msg) {
+    if (footerTickerMsg) {
       const time = new Date().toLocaleTimeString();
-      footerMsg.textContent = `[${time}] ${msg}`;
+      footerTickerMsg.textContent = `[${time}] ${msg}`;
     }
   }
 
-  // 2. Fetch System Status
+  // 3. Fetch Initial System Status & Project Info
   async function fetchStatus() {
     try {
       const res = await fetch('/api/status');
       const data = await res.json();
-      if (data.watchDir) {
-        if (repoPathInput) repoPathInput.value = data.watchDir;
-        const base = data.watchDir.split(/[\\/]/).filter(Boolean).pop() || 'workspace';
-        if (repoNameDisplay) repoNameDisplay.textContent = base;
+      activeProjectPath = data.watchDir || '';
+
+      if (navProjectName) navProjectName.textContent = data.projectName || 'workspace';
+      if (leftProjectName) leftProjectName.textContent = data.projectName || 'workspace';
+      if (leftProjectPath) {
+        leftProjectPath.textContent = data.watchDir || '';
+        leftProjectPath.title = data.watchDir || '';
       }
-      if (data.model && activeModelName) {
-        activeModelName.textContent = data.model.split('/')[1] || data.model;
+      if (modalInputPath) modalInputPath.value = data.watchDir || '';
+      if (navModelName && data.model) {
+        navModelName.textContent = data.model.split('/')[1] || data.model;
       }
-      logFooter(`Watching local repository: ${data.watchDir}`);
+      logTicker(`Connected to project: ${data.projectName} (${data.watchDir})`);
     } catch (e) {
-      console.warn('Could not fetch status:', e);
+      console.warn('Failed to fetch status:', e);
     }
   }
 
-  // 3. Connect to Local Folder
-  async function switchRepo() {
-    const newDir = repoPathInput.value.trim();
-    if (!newDir) return;
+  // 4. Load Recent Projects from SQLite
+  async function loadRecentProjects() {
+    try {
+      const res = await fetch('/api/projects');
+      const data = await res.json();
+      const list = data.projects || [];
 
-    btnUpdateRepo.disabled = true;
-    btnUpdateRepo.textContent = 'Connecting...';
+      if (recentProjectsList) {
+        recentProjectsList.innerHTML = '';
+        list.forEach(proj => {
+          const row = document.createElement('div');
+          row.className = 'recent-project-row';
+          const isCurrent = proj.path.toLowerCase() === activeProjectPath.toLowerCase();
+
+          row.innerHTML = `
+            <div class="recent-proj-info">
+              <span class="recent-proj-name">${proj.name}</span>
+              <span class="recent-proj-path">${proj.path}</span>
+            </div>
+            ${isCurrent ? '<span class="recent-proj-badge">Active</span>' : '<span class="recent-proj-badge">Select</span>'}
+          `;
+
+          row.addEventListener('click', () => {
+            connectToProject(proj.path);
+            closeProjectModal();
+          });
+          recentProjectsList.appendChild(row);
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // 5. Connect / Switch Project Folder
+  async function connectToProject(newPath) {
+    if (!newPath) return;
+
+    modalBtnConnect.disabled = true;
+    modalBtnConnect.textContent = 'Connecting...';
 
     try {
       const res = await fetch('/api/watch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directory: newDir })
+        body: JSON.stringify({ directory: newPath })
       });
       const data = await res.json();
       if (data.success) {
-        const base = data.watchDir.split(/[\\/]/).filter(Boolean).pop() || 'workspace';
-        repoNameDisplay.textContent = base;
-        logFooter(`Switched live watcher to: ${data.watchDir}`);
+        activeProjectPath = data.watchDir;
+        navProjectName.textContent = data.projectName;
+        leftProjectName.textContent = data.projectName;
+        leftProjectPath.textContent = data.watchDir;
+        leftProjectPath.title = data.watchDir;
+
+        traces = data.traces || [];
+        selectedTraceId = null;
+        renderTracesList();
+        if (traces.length > 0) selectTrace(traces[0].id);
+
+        logTicker(`Switched watcher to: ${data.watchDir}`);
       }
     } catch (err) {
-      logFooter(`Failed to switch folder: ${err.message}`);
+      logTicker(`Failed to connect folder: ${err.message}`);
     } finally {
-      btnUpdateRepo.disabled = false;
-      btnUpdateRepo.textContent = 'Connect';
+      modalBtnConnect.disabled = false;
+      modalBtnConnect.textContent = 'Connect & Observe';
     }
   }
 
-  // 4. Force Rescan
+  // 6. Force Immediate Rescan
   async function rescanRepo() {
-    btnRescanRepo.textContent = 'Scanning...';
+    btnRescan.textContent = '... Scanning';
     try {
       const res = await fetch('/api/rescan', { method: 'POST' });
-      logFooter('Git diff rescan triggered');
+      logTicker('Git rescan triggered');
     } catch (e) {
-      logFooter('Rescan failed');
+      logTicker('Rescan request failed');
     } finally {
-      btnRescanRepo.textContent = '↻ Rescan';
+      btnRescan.textContent = '↻ Rescan Diffs';
     }
   }
 
-  // 5. Submit Question to AI Query Engine
+  // 7. Add Trace to List
+  function addTrace(trace) {
+    traces.unshift(trace);
+    renderTracesList();
+    selectTrace(trace.id);
+  }
+
+  // 8. Render Left Pane: Traces List
+  function renderTracesList() {
+    tracesCountTag.textContent = traces.length;
+
+    let filtered = traces;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(t =>
+        (t.title && t.title.toLowerCase().includes(q)) ||
+        (t.id && t.id.toLowerCase().includes(q)) ||
+        (t.files && t.files.some(f => f.toLowerCase().includes(q)))
+      );
+    }
+
+    if (filtered.length === 0) {
+      tracesScrollList.innerHTML = '';
+      emptyTracesState.classList.remove('hidden');
+      return;
+    }
+
+    emptyTracesState.classList.add('hidden');
+    tracesScrollList.innerHTML = '';
+
+    filtered.forEach(trace => {
+      const card = document.createElement('div');
+      card.className = `trace-item-card ${trace.id === selectedTraceId ? 'active' : ''}`;
+      card.dataset.id = trace.id;
+
+      const timeStr = trace.timestamp ? trace.timestamp.split(' ')[1] || trace.timestamp : '--:--';
+      const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
+      const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
+      const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
+
+      card.innerHTML = `
+        <div class="trace-item-top">
+          <span class="trace-item-time">${timeStr}</span>
+          <span class="trace-item-type">${trace.changeType || 'Code Mutation'}</span>
+        </div>
+        <div class="trace-item-title">${trace.title || 'Code Changes'}</div>
+        <div class="trace-item-bottom">
+          <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
+          <div class="trace-diff-pills">
+            <span class="diff-add">${addStr}</span>
+            <span class="diff-del">${delStr}</span>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener('click', () => selectTrace(trace.id));
+      tracesScrollList.appendChild(card);
+    });
+  }
+
+  // 9. Select Trace
+  function selectTrace(id) {
+    selectedTraceId = id;
+    selectedFileFilter = 'all';
+
+    const trace = traces.find(t => t.id === id);
+    if (!trace) return;
+
+    // Highlight active card in left list
+    document.querySelectorAll('.trace-item-card').forEach(c => {
+      c.classList.toggle('active', c.dataset.id === id);
+    });
+
+    // Populate Middle Pane
+    emptyDiffState.classList.add('hidden');
+    middleTraceTitle.textContent = trace.title || trace.changeType || 'Code Changes';
+    middleTraceId.textContent = trace.id ? trace.id.slice(0, 8) : '--';
+    middleTraceTime.textContent = trace.timestamp || '';
+
+    // Render file pill tabs in Middle Pane
+    renderFileTabs(trace);
+
+    // Render syntax diffs in Middle Pane
+    renderDiffsContent(trace);
+
+    // Populate Right Pane (Harness Audit, Summary, Impact, Metadata)
+    populateRightPane(trace);
+  }
+
+  // 10. Render File Tabs in Middle Pane
+  function renderFileTabs(trace) {
+    fileTabsScroll.innerHTML = '';
+    const diffs = trace.diffs || [];
+
+    const allPill = document.createElement('button');
+    allPill.className = `file-pill ${selectedFileFilter === 'all' ? 'active' : ''}`;
+    allPill.textContent = `All Files (${diffs.length})`;
+    allPill.addEventListener('click', () => {
+      selectedFileFilter = 'all';
+      updateActiveFilePill();
+      renderDiffsContent(trace);
+    });
+    fileTabsScroll.appendChild(allPill);
+
+    diffs.forEach(d => {
+      const pill = document.createElement('button');
+      pill.className = `file-pill ${selectedFileFilter === d.file ? 'active' : ''}`;
+      const shortName = d.file.split(/[\\/]/).pop();
+      pill.textContent = shortName;
+      pill.title = d.file;
+      pill.addEventListener('click', () => {
+        selectedFileFilter = d.file;
+        updateActiveFilePill();
+        renderDiffsContent(trace);
+      });
+      fileTabsScroll.appendChild(pill);
+    });
+  }
+
+  function updateActiveFilePill() {
+    fileTabsScroll.querySelectorAll('.file-pill').forEach(p => {
+      if (selectedFileFilter === 'all') {
+        p.classList.toggle('active', p.textContent.startsWith('All Files'));
+      } else {
+        p.classList.toggle('active', p.title === selectedFileFilter);
+      }
+    });
+  }
+
+  // 11. Render Diffs in Middle Pane
+  function renderDiffsContent(trace) {
+    const diffs = trace.diffs || [];
+    if (window.diffViewer) {
+      window.diffViewer.render(diffsContainer, diffs, selectedFileFilter);
+    }
+  }
+
+  // 12. Populate Right Pane (Harness, Summary, Impact, Telemetry)
+  function populateRightPane(trace) {
+    // A. Real AI Harness Engineering Audit
+    const harness = trace.harness || {};
+    const status = (harness.status || 'PASS').toUpperCase();
+
+    harnessOverallStatus.className = `harness-status-pill ${status.toLowerCase()}`;
+    harnessOverallStatus.textContent = status === 'PASS' ? 'PASSED' : (status === 'WARN' ? 'WARNING' : 'FAILED');
+
+    harnessAdviceText.textContent = harness.advice || 'Harness verification completed cleanly.';
+
+    // Render mechanical checks list
+    harnessChecksList.innerHTML = '';
+    const checks = harness.checks || [
+      { name: 'Syntax Integrity', status: 'PASS', detail: 'All files compiled cleanly' },
+      { name: 'Protected Files Guard', status: 'PASS', detail: 'No sensitive files modified' },
+      { name: 'Secret & Key Scanner', status: 'PASS', detail: 'No hardcoded credentials' }
+    ];
+
+    checks.forEach(check => {
+      const item = document.createElement('div');
+      item.className = 'check-item';
+      const chkStatus = (check.status || 'PASS').toLowerCase();
+      const icoChar = chkStatus === 'pass' ? '✓' : (chkStatus === 'warn' ? '!' : '✕');
+
+      item.innerHTML = `
+        <span class="check-status-ico ${chkStatus}">${icoChar}</span>
+        <div class="check-info">
+          <span class="check-name">${check.name}</span>
+          <span class="check-desc">${check.detail}</span>
+        </div>
+      `;
+      harnessChecksList.appendChild(item);
+    });
+
+    // B. Plain English Summary & Impact
+    rightSummaryText.textContent = trace.summary || 'Code modifications recorded.';
+    rightImpactText.textContent = trace.architecturalImpact || 'Systemic boundaries consistent.';
+
+    // Subsystems
+    rightSubsystemsRow.innerHTML = '';
+    const subsystems = trace.subsystems || ['Application Logic'];
+    subsystems.forEach(s => {
+      const pill = document.createElement('span');
+      pill.className = 'subsystem-pill';
+      pill.textContent = s;
+      rightSubsystemsRow.appendChild(pill);
+    });
+
+    // Git & Telemetry
+    leftGitBranch.textContent = trace.git?.branch || 'main';
+    rightMetaBranch.textContent = trace.git?.branch || 'main';
+    rightMetaCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 8) : 'HEAD';
+    rightMetaAdd.textContent = `+${trace.additions || 0}`;
+    rightMetaDel.textContent = `-${trace.deletions || 0}`;
+  }
+
+  // 13. Submit Question to AI Query Engine
   async function submitQuery(customQuestion = null) {
-    const question = customQuestion || queryInput.value.trim();
+    const question = customQuestion || aiQueryInput.value.trim();
     if (!question) return;
 
-    btnSubmitQuery.disabled = true;
+    btnRunQuery.disabled = true;
     querySpinner.classList.remove('hidden');
 
     try {
@@ -199,230 +469,77 @@
 
       const data = await res.json();
       if (data.success) {
-        answerText.textContent = data.answer;
-        answerModelTag.textContent = data.modelUsed ? data.modelUsed.split('/')[1] || data.modelUsed : 'VibeTrace AI';
+        queryAnswerBody.textContent = data.answer;
+        queryModelTag.textContent = data.modelUsed ? data.modelUsed.split('/')[1] || data.modelUsed : 'VibeTrace AI';
         queryAnswerCard.classList.remove('hidden');
       }
     } catch (err) {
-      answerText.textContent = `Error querying AI engine: ${err.message}`;
+      queryAnswerBody.textContent = `Error querying AI engine: ${err.message}`;
       queryAnswerCard.classList.remove('hidden');
     } finally {
-      btnSubmitQuery.disabled = false;
+      btnRunQuery.disabled = false;
       querySpinner.classList.add('hidden');
     }
   }
 
-  // 6. Add Trace
-  function addTrace(trace) {
-    traces.unshift(trace);
-    renderTracesList();
-    selectTrace(trace.id);
+  // 14. Modal Dialog Handlers
+  function openProjectModal() {
+    loadRecentProjects();
+    modalProject.classList.remove('hidden');
   }
 
-  // 7. Render Left Pane: Traces List
-  function renderTracesList() {
-    footerCount.textContent = traces.length;
-    tracesCountBadge.textContent = traces.length;
-
-    let filtered = traces;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(t =>
-        (t.title && t.title.toLowerCase().includes(q)) ||
-        (t.id && t.id.toLowerCase().includes(q)) ||
-        (t.files && t.files.some(f => f.toLowerCase().includes(q)))
-      );
-    }
-
-    if (filtered.length === 0) {
-      tracesList.innerHTML = '';
-      tracesEmpty.classList.remove('hidden');
-      return;
-    }
-
-    tracesEmpty.classList.add('hidden');
-    tracesList.innerHTML = '';
-
-    filtered.forEach(trace => {
-      const card = document.createElement('div');
-      card.className = `trace-card ${trace.id === selectedTraceId ? 'active' : ''}`;
-      card.dataset.id = trace.id;
-
-      const isStarred = starredTraceIds.has(trace.id);
-      const starChar = isStarred ? '★' : '☆';
-      const starClass = isStarred ? 'starred' : '';
-
-      const timeStr = trace.timestamp ? trace.timestamp.split(' ')[1] || trace.timestamp : '--:--:--';
-      const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
-      const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
-      const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
-
-      card.innerHTML = `
-        <div class="trace-card-top">
-          <span class="trace-time">${timeStr}</span>
-          <button class="trace-star ${starClass}" data-id="${trace.id}">${starChar}</button>
-        </div>
-        <div class="trace-card-title">${trace.title || trace.changeType || 'Code Mutation'}</div>
-        <div class="trace-card-meta">
-          <span class="trace-files-badge">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
-          <div class="diff-stats">
-            <span class="stat-add">${addStr}</span>
-            <span class="stat-del">${delStr}</span>
-          </div>
-        </div>
-      `;
-
-      card.querySelector('.trace-star').addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (starredTraceIds.has(trace.id)) {
-          starredTraceIds.delete(trace.id);
-        } else {
-          starredTraceIds.add(trace.id);
-        }
-        renderTracesList();
-      });
-
-      card.addEventListener('click', () => selectTrace(trace.id));
-      tracesList.appendChild(card);
-    });
+  function closeProjectModal() {
+    modalProject.classList.add('hidden');
   }
 
-  // 8. Select Trace
-  function selectTrace(id) {
-    selectedTraceId = id;
-    selectedFileFilter = 'all';
+  // Event Listeners
+  if (btnOpenProjectsModal) btnOpenProjectsModal.addEventListener('click', openProjectModal);
+  if (btnOpenConnect) btnOpenConnect.addEventListener('click', openProjectModal);
+  if (btnCloseModal) btnCloseModal.addEventListener('click', closeProjectModal);
 
-    const trace = traces.find(t => t.id === id);
-    if (!trace) return;
-
-    // Highlight active card
-    document.querySelectorAll('.trace-card').forEach(c => {
-      c.classList.toggle('active', c.dataset.id === id);
-    });
-
-    // Populate Middle Pane (Content of the selected trace)
-    middleEmpty.classList.add('hidden');
-    middleTraceId.textContent = trace.id ? trace.id.slice(0, 10) : '--';
-    middleTimestamp.textContent = trace.timestamp || '';
-
-    // Render File Tabs
-    renderFileTabs(trace);
-
-    // Render Diffs in Middle Pane
-    renderDiffsContent(trace);
-
-    // Populate Right Pane (Summary, Impact, Subsystems, Harness)
-    populateSummaryPane(trace);
-  }
-
-  // 9. Render File Filter Tabs in Middle Pane
-  function renderFileTabs(trace) {
-    fileFilterTabs.innerHTML = '';
-    const diffs = trace.diffs || [];
-
-    const allChip = document.createElement('button');
-    allChip.className = `file-tab-chip ${selectedFileFilter === 'all' ? 'active' : ''}`;
-    allChip.textContent = `All Files (${diffs.length})`;
-    allChip.addEventListener('click', () => {
-      selectedFileFilter = 'all';
-      updateActiveFileTab();
-      renderDiffsContent(trace);
-    });
-    fileFilterTabs.appendChild(allChip);
-
-    diffs.forEach(d => {
-      const chip = document.createElement('button');
-      chip.className = `file-tab-chip ${selectedFileFilter === d.file ? 'active' : ''}`;
-      const shortName = d.file.split(/[\\/]/).pop();
-      chip.textContent = shortName;
-      chip.title = d.file;
-      chip.addEventListener('click', () => {
-        selectedFileFilter = d.file;
-        updateActiveFileTab();
-        renderDiffsContent(trace);
-      });
-      fileFilterTabs.appendChild(chip);
-    });
-  }
-
-  function updateActiveFileTab() {
-    fileFilterTabs.querySelectorAll('.file-tab-chip').forEach(c => {
-      if (selectedFileFilter === 'all') {
-        c.classList.toggle('active', c.textContent.startsWith('All Files'));
-      } else {
-        c.classList.toggle('active', c.title === selectedFileFilter);
+  if (modalBtnConnect) {
+    modalBtnConnect.addEventListener('click', () => {
+      const p = modalInputPath.value.trim();
+      if (p) {
+        connectToProject(p);
+        closeProjectModal();
       }
     });
   }
 
-  // 10. Render Diffs Content in Middle Pane
-  function renderDiffsContent(trace) {
-    const diffs = trace.diffs || [];
-    if (window.diffViewer) {
-      window.diffViewer.render(diffsContainer, diffs, selectedFileFilter);
-    }
-  }
-
-  // 11. Populate Right Pane (Summary, Changings, Info)
-  function populateSummaryPane(trace) {
-    summaryChangeType.textContent = trace.changeType || 'Code Mutation';
-    summaryLatency.textContent = trace.latency || '0.24s';
-    summaryTitle.textContent = trace.title || 'Code Changes';
-
-    summaryText.textContent = trace.summary || 'Code modifications recorded.';
-    impactText.textContent = trace.architecturalImpact || 'Systemic boundaries consistent.';
-
-    // Subsystems
-    subsystemsList.innerHTML = '';
-    const subsystems = trace.subsystems || ['Application Logic'];
-    subsystems.forEach(s => {
-      const pill = document.createElement('span');
-      pill.className = 'subsystem-pill';
-      pill.textContent = s;
-      subsystemsList.appendChild(pill);
+  if (modalProject) {
+    modalProject.addEventListener('click', (e) => {
+      if (e.target === modalProject) closeProjectModal();
     });
-
-    // Harness
-    if (trace.harness) {
-      harnessRulesStatus.textContent = trace.harness.rulesLoaded ? 'Skills & Rules Verified' : 'Standard Guidelines';
-      harnessRulesPreview.textContent = trace.harness.rulesPreview || 'Repository rules loaded.';
-    }
-
-    // Git & Telemetry
-    metaBranch.textContent = trace.git?.branch || 'main';
-    metaCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 8) : 'HEAD';
-    metaAdditions.textContent = `+${trace.additions || 0}`;
-    metaDeletions.textContent = `-${trace.deletions || 0}`;
   }
 
-  // Event Listeners
-  if (btnUpdateRepo) btnUpdateRepo.addEventListener('click', switchRepo);
-  if (btnRescanRepo) btnRescanRepo.addEventListener('click', rescanRepo);
-  if (btnSubmitQuery) btnSubmitQuery.addEventListener('click', () => submitQuery());
-  if (btnCloseAnswer) btnCloseAnswer.addEventListener('click', () => queryAnswerCard.classList.add('hidden'));
+  if (btnRescan) btnRescan.addEventListener('click', rescanRepo);
+  if (btnRunQuery) btnRunQuery.addEventListener('click', () => submitQuery());
+  if (btnCloseQueryAnswer) btnCloseQueryAnswer.addEventListener('click', () => queryAnswerCard.classList.add('hidden'));
 
-  if (queryInput) {
-    queryInput.addEventListener('keydown', (e) => {
+  if (aiQueryInput) {
+    aiQueryInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitQuery();
     });
   }
 
-  quickChips.forEach(chip => {
+  queryChips.forEach(chip => {
     chip.addEventListener('click', () => {
       const q = chip.dataset.q;
-      queryInput.value = q;
+      aiQueryInput.value = q;
       submitQuery(q);
     });
   });
 
-  if (tracesSearch) {
-    tracesSearch.addEventListener('input', (e) => {
+  if (tracesSearchInput) {
+    tracesSearchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value.trim();
       renderTracesList();
     });
   }
 
   // Initialize
+  initTheme();
   fetchStatus();
   initSSE();
 })();

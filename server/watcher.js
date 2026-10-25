@@ -169,8 +169,13 @@ class WorkspaceWatcher {
         prompt,
         diffs,
         gitContext: { branch, filesChanged: files },
+        watchDir: this.watchDir,
         harnessRules
       });
+
+      // Persist permanently to SQLite database
+      const db = require('./db');
+      db.saveTrace(analysis, this.watchDir);
 
       if (this.onEventCallback) {
         this.onEventCallback(analysis);

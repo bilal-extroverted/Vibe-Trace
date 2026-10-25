@@ -1,7 +1,8 @@
 // VibeTrace Observability & Trace Engine
-// Analyzes real filesystem mutations, Git diffs, and repository harness context
+// Analyzes real filesystem mutations, Git diffs, and executes AI Harness verification
 
 const crypto = require('crypto');
+const harnessEngine = require('./harness/harnessEngine');
 
 function generateTraceId() {
   return crypto.randomBytes(12).toString('hex');
@@ -13,7 +14,7 @@ function formatTimestamp(d = new Date()) {
 }
 
 // Generate real trace object from git diffs and context
-function generateTraceObject({ prompt, diffs = [], gitContext = {}, harnessRules = '', aiResponse = null, latencyMs = 240, modelUsed = 'heuristic-tracer' }) {
+function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '.', aiResponse = null, latencyMs = 240, modelUsed = 'heuristic-tracer' }) {
   const files = diffs.map(d => d.file || '');
   const diffContent = diffs.map(d => d.content || '').join('\n');
   const additions = (diffContent.match(/^\+[^+]/gm) || []).length;
@@ -30,11 +31,14 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, harnessRules
   let changeType = 'Code Mutation';
   if (dbFiles.length > 0) changeType = 'Database Update';
   else if (configFiles.length > 0 && logicFiles.length === 0) changeType = 'Config Update';
-  else if (additions > 50 && deletions > 30) changeType = 'Architectural Refactor';
+  else if (additions > 40 && deletions > 25) changeType = 'Architectural Refactor';
 
   const summary = aiResponse?.summary || `Observed code modifications across ${files.length} file(s). Added ${additions} line(s), removed ${deletions} line(s).`;
   const architecturalImpact = aiResponse?.architecturalImpact || `Files modified in ${files.slice(0, 3).join(', ')}. Code structure updated with consistent boundaries.`;
   const title = aiResponse?.title || `${changeType} (${files.length} file${files.length === 1 ? '' : 's'})`;
+
+  // Real AI Harness Engineering Validation
+  const harnessReport = harnessEngine.validate({ files, diffs, watchDir });
 
   return {
     id: traceId,
@@ -59,10 +63,7 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, harnessRules
       commit: gitContext.commitHash || 'HEAD',
       prompt: prompt || 'Automatic File Watcher Ingestion'
     },
-    harness: {
-      rulesLoaded: Boolean(harnessRules && harnessRules.length > 10),
-      rulesPreview: (harnessRules || 'Standard workspace guidelines').slice(0, 300)
-    },
+    harness: harnessReport,
     diffs
   };
 }
@@ -127,7 +128,7 @@ ${diffSummary.slice(0, 3500)}`;
   return null;
 }
 
-async function analyze({ prompt, diffs = [], gitContext = {}, harnessRules = '' }) {
+async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', harnessRules = '' }) {
   const startTime = Date.now();
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
   const configuredModel = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
@@ -147,7 +148,7 @@ async function analyze({ prompt, diffs = [], gitContext = {}, harnessRules = '' 
         prompt,
         diffs,
         gitContext,
-        harnessRules,
+        watchDir,
         aiResponse: aiResult.parsed,
         latencyMs,
         modelUsed: aiResult.modelUsed
@@ -160,7 +161,7 @@ async function analyze({ prompt, diffs = [], gitContext = {}, harnessRules = '' 
     prompt,
     diffs,
     gitContext,
-    harnessRules,
+    watchDir,
     latencyMs: 120,
     modelUsed: 'heuristic-tracer'
   });

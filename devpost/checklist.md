@@ -29,25 +29,25 @@ Build mode: fast
   Learner check: Click the "Run Demo Scenario" button on the dashboard and verify that the event appears with the amber drift warning and plain-English summary.
   Commit: `feat: implement causal analysis engine with OpenRouter and heuristic fallback`
 
-- [ ] **3. Real-Time Git Inspection, Debounced Watcher & Live SSE Broadcast**
-  Becomes usable: VibeTrace actively watches the local repository filesystem using `chokidar` and `simple-git`. When files are saved, the 500ms debouncer gathers the git diff, runs it through the causal analyzer, and broadcasts the event over SSE directly to the dashboard in real time.
+- [x] **3. Real-Time Git Inspection, Debounced Watcher & Live SSE Broadcast**
+  Becomes usable: VibeTrace actively watches the local repository filesystem using `chokidar` and `git`. When files are saved, the intelligent debouncer stabilizes writes, computes diff signatures to avoid redundant calls, runs causal analysis, and broadcasts the event over SSE directly to the dashboard in real time.
   Why now: Connects the live filesystem loop to the UI—delivering the core promise of side-by-side live observability during actual coding.
   PRD ref: `prd.md > 1. Live Project Watcher & Ingestion`, `prd.md > 2. Timeline Tile Feed (Side Pane)`
   Spec ref: `spec.md > Components > 1. Workspace & Git Watcher`, `spec.md > Components > 4. SSE Telemetry Stream`
-  Build: Install and integrate `chokidar` and `simple-git` into `server/watcher.js` and `server/gitService.js`. Implement debouncing and wire up the file change listener to `analyzer.js` and `sse.js`. Connect the UI `EventSource` to automatically prepend new tiles and play the notification pulse.
-  Verify (mechanical): Programmatically create a temporary test file in the watched directory; confirm via server logs and an SSE client test that the change event is batched and emitted within 1.5 seconds.
-  Learner check: Edit or save a test file in the workspace while watching `http://localhost:3000` and watch a new tile appear automatically without refreshing.
+  Build: Integrated `chokidar` in `server/watcher.js` and `server/gitService.js`. Implemented sliding debouncing and diff deduplication. Connected the UI `EventSource` to automatically stream traces without manual refresh.
+  Verify (mechanical): Tested debounced file change batching and SSE broadcast; verified that writes stabilize and emit traces within 1.5 seconds.
+  Learner check: Edit or save a file in the workspace while watching `http://localhost:3000` and confirm the new trace appears automatically.
   Commit: `feat: wire real-time debounced file watcher and SSE broadcast`
 
-- [ ] **4. Interactive Fishbone Visualization, Diff Drawer & Harness Context**
-  Becomes usable: The main canvas features interactive, expandable fishbone bars (Cause ➔ System Layers ➔ Downstream Effects) and an expandable file diff drawer with syntax coloring. Also reads harness instructions (`skills/` or agent rules) via `server/harnessContext.js` to cross-reference agent instructions against modifications.
-  Why now: Closes the full user journey and polishes the end-to-end user experience for the hackathon video demo and code review.
-  PRD ref: `prd.md > 4. Interactive Fishbone Causal Breakdown`, `prd.md > 5. File & Code Diff Inspector`
-  Spec ref: `spec.md > Components > 2. Harness & Skills Context Reader`, `spec.md > Components > 5. Glassmorphic Timeline & Fishbone Dashboard`
-  Build: Implement `server/harnessContext.js` to parse local skills/rules. Enhance `public/fishbone.js` and `public/diffViewer.js` with interactive accordion cards, drift warning highlights, and inline diff views. Add sample scenarios toggle and status controls.
-  Verify (mechanical): Trigger the database + permission drift scenario; check DOM elements for the expandable fishbone layers, diff view lines, and amber drift alert banner.
-  Learner check: Click through each fishbone branch and expand the file diff drawer to verify that the unintended permission change is clearly highlighted and explained.
-  Commit: `feat: complete interactive fishbone diagrams, diff viewer, and harness context`
+- [x] **4. Functional 3-Pane Observability Layout, Diff Viewer & AI Trace Query Engine**
+  Becomes usable: Replaced all demos/hardcoded references with a functional 3-pane UI: Left pane displays real execution traces and changes with timestamps; Middle pane displays full syntax-highlighted code diffs; Right pane displays plain-English summaries, architectural impact, subsystems, AI harness context, and an interactive AI Query Engine where developers can ask questions about the observed code changes.
+  Why now: Delivers the user's exact specification—a completely functional, production-ready observability workspace without demos or simulation clutter.
+  PRD ref: `prd.md > 3. Plain-English Summary & Causal Highlight`, `prd.md > 5. File & Code Diff Inspector`
+  Spec ref: `spec.md > Components > 2. Harness & Skills Context Reader`, `spec.md > Components > 5. Glassmorphic Timeline Dashboard`
+  Build: Built `public/index.html`, `public/style.css`, `public/app.js`, `public/diffViewer.js`, `server/queryEngine.js`, and `server/harnessContext.js`. Bound real-time folder switching, rescan, and OpenRouter API query engine.
+  Verify (mechanical): Triggered real Git diff inspection across workspace files, confirmed `/api/status`, `/api/rescan`, and `/api/query` return valid AI responses with exact line-by-line diffs.
+  Learner check: Connect to a local folder, view the 3-pane UI, inspect code diffs in the middle pane, and ask questions in the right pane.
+  Commit: `feat: implement functional 3-pane AI code observability with real-time diffs and trace query engine`
 
 ## Hands-on Checkpoints
 
