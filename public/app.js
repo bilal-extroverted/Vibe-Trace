@@ -204,7 +204,7 @@
     };
 
     evtSource.onerror = function () {
-      setTopBarStatus('idle', 'Reconnecting', 'Connection lost, retrying...');
+      setTopBarStatus('idle', 'RECONNECTING', 'Connection lost, retrying...');
     };
   }
 
@@ -215,7 +215,7 @@
     const status = (proto.status || 'idle').toLowerCase();
     if (protoStatusTag) {
       protoStatusTag.className = `agent-status-pill status-${status}`;
-      protoStatusTag.textContent = status === 'in_progress' ? 'In progress' : (status === 'completed' ? 'Completed' : 'Idle');
+      protoStatusTag.textContent = status === 'in_progress' ? 'IN PROGRESS' : status.toUpperCase();
     }
 
     if (protoTaskIntent) {
@@ -246,9 +246,9 @@
 
     // Reflect in Top Live Status Indicator
     if (status === 'in_progress') {
-      setTopBarStatus('working', 'Agent working', proto.task || 'Active coding task...');
+      setTopBarStatus('working', 'AGENT WORKING', proto.task || 'Active coding task...');
     } else if (status === 'completed') {
-      setTopBarStatus('completed', 'Task completed', proto.task || 'Agent finished task');
+      setTopBarStatus('completed', 'TASK COMPLETED', proto.task || 'Agent finished task');
     }
   }
 
@@ -265,19 +265,19 @@
   function handleAgentStatus(data) {
     const status = data.status;
     if (status === 'working') {
-      setTopBarStatus('working', 'Agent working', data.task || data.message || 'Modifying codebase...');
+      setTopBarStatus('working', 'AGENT WORKING', data.task || data.message || 'Modifying codebase...');
       logTicker(data.message || 'Agent active...');
     } else if (status === 'completed') {
-      setTopBarStatus('completed', 'Task completed', data.task || 'Agent signaled task completion');
-      logTicker(`Task completed: ${data.task || ''}`);
+      setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
+      logTicker(`Task Completed: ${data.task || ''}`);
     } else if (status === 'analyzing') {
-      setTopBarStatus('analyzing', 'AI synthesizing', 'OpenRouter model analyzing code impact...');
+      setTopBarStatus('analyzing', 'AI SYNTHESIZING', 'OpenRouter model analyzing code impact...');
       logTicker(data.message || 'Validating syntax & synthesizing impact...');
     } else if (status === 'trace_created') {
-      setTopBarStatus('completed', 'Trace created', data.task || 'Trace saved to SQLite');
+      setTopBarStatus('completed', 'TRACE CREATED', data.task || 'Trace saved to SQLite');
       logTicker(`Trace saved to SQLite: ${data.task || ''}`);
     } else if (status === 'idle') {
-      setTopBarStatus('idle', 'Harness ready', 'Standing by for agent task');
+      setTopBarStatus('idle', 'HARNESS READY', 'Standing by for agent task');
       logTicker(data.message || 'Watching local repository...');
     }
   }
@@ -331,7 +331,7 @@
       logTicker('Rescan request failed');
     } finally {
       btnRescan.classList.remove('loading');
-      btnRescan.querySelector('span:last-child').textContent = 'Rescan diffs';
+      btnRescan.querySelector('span:last-child').textContent = 'Rescan Diffs';
     }
   }
 
@@ -383,7 +383,7 @@
         <div class="trace-item-header">
           <span class="trace-item-time">${timeStr}</span>
           <span class="trace-item-tag ${isAgentTask ? 'tag-agent' : ''}">
-            ${isAgentTask ? 'Agent task' : (trace.changeType || 'Code change')}
+            ${isAgentTask ? 'AGENT TASK' : (trace.changeType || 'CODE MUTATION')}
           </span>
         </div>
         <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
@@ -504,8 +504,7 @@
       heroStatFiles.textContent = `${cnt} file${cnt === 1 ? '' : 's'}`;
     }
     if (heroStatRisk) {
-      const rawRisk = synth.riskLevel || 'Low';
-      heroStatRisk.textContent = rawRisk.charAt(0).toUpperCase() + rawRisk.slice(1).toLowerCase();
+      heroStatRisk.textContent = (synth.riskLevel || 'LOW').toUpperCase();
     }
 
     // Plain-English Summary
@@ -546,9 +545,9 @@
 
     // Risk Assessment Badge
     if (aiRiskBadge) {
-      const risk = synth.riskLevel || 'Low';
+      const risk = (synth.riskLevel || 'Low').toUpperCase();
       aiRiskBadge.className = `risk-badge risk-${risk.toLowerCase()}`;
-      aiRiskBadge.textContent = `${risk} risk`;
+      aiRiskBadge.textContent = `${risk} RISK`;
     }
 
     // Model Tag
@@ -565,7 +564,7 @@
       if (protoTaskIntent) protoTaskIntent.textContent = agentProto.task;
       if (protoStatusTag) {
         protoStatusTag.className = 'agent-status-pill status-completed';
-        protoStatusTag.textContent = 'Completed';
+        protoStatusTag.textContent = 'COMPLETED';
       }
     }
 
@@ -577,7 +576,7 @@
 
     if (harnessOverallStatus) {
       harnessOverallStatus.className = `harness-badge ${hStatus.toLowerCase()}`;
-      harnessOverallStatus.textContent = hStatus === 'PASS' ? 'Passed' : (hStatus === 'WARN' ? 'Warning' : 'Failed');
+      harnessOverallStatus.textContent = hStatus === 'PASS' ? 'PASSED' : (hStatus === 'WARN' ? 'WARNING' : 'FAILED');
     }
 
     if (harnessAdviceText) {

@@ -36,14 +36,12 @@ class DiffViewer {
       // File Card Header
       const header = document.createElement('div');
       header.className = 'diff-file-header';
-        const rawStatus = diffItem.status || 'modified';
-        const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
-        header.innerHTML = `
+      header.innerHTML = `
         <div class="diff-header-left">
           <span class="file-icon">📄</span>
           <span class="diff-filename">${this.escapeHtml(diffItem.file)}</span>
         </div>
-        <span class="diff-status-tag ${rawStatus.toLowerCase()}">${formattedStatus}</span>
+        <span class="diff-status-tag ${diffItem.status || 'modified'}">${(diffItem.status || 'modified').toUpperCase()}</span>
       `;
       fileCard.appendChild(header);
 
