@@ -335,25 +335,7 @@ body.resizing {
   transition: all 0.15s ease;
 }
 
-.pill-btn.project-pill {
-  background: var(--bg-surface);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
-  font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
 
-.pill-btn.project-pill .pill-icon {
-  display: inline-flex;
-  align-items: center;
-  color: var(--text-muted);
-}
-
-.pill-btn.project-pill .pill-text {
-  color: var(--text-primary);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
 
 .pill-btn.action-btn {
   cursor: pointer;
