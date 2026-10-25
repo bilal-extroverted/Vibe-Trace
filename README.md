@@ -179,18 +179,24 @@ npx skills add bilal-extroverted/Vibe-Trace --all -y
 ```
 *(Or add specifically the VibeTrace observability skill: `npx skills add bilal-extroverted/Vibe-Trace vibetrace -y`)*
 
+> **Important Note:** VibeTrace operates by observing Git diffs and branch mutations. The project **MUST** be a Git repository (`git init`). Without Git, VibeTrace cannot extract diffs or evaluate drift and will not work! The agent must use Git to track and commit code changes.
+>
+> When this command is run, project skills are loaded into `.agents/skills/`. The agent automatically creates or updates a default `.gitignore` to shield your project, ignoring `.agents/`, `.env`, `node_modules/`, `vibetrace.db*`, and `vibetrace.md` so that introduced skills and logs never pollute your Git history.
+
 ### What the Agent Does Behind the Scenes
 Once the skill is installed into your project, you do not need to configure anything manually. When you give your AI agent any task:
-1. **OpenRouter API Key Setup:** The agent checks if `.env` exists and has `OPENROUTER_API_KEY`. If not, it asks you directly for your key to configure `.env` (or you can skip to use built-in offline heuristics).
-2. **Auto-Daemon Setup:** The agent checks `http://localhost:3000/api/status`. If VibeTrace is not yet running, it automatically boots up the dashboard in the background (`npx -y github:bilal-extroverted/Vibe-Trace &`) watching your project directory.
-3. **Auto-Protocol Initializer:** The agent automatically creates `vibetrace.md` in your project root, logging prompt intent, planned steps, and active file targets.
-4. **Real-Time Telemetry & Drift Prevention:** As the agent edits code, it updates `active_file` and checks off steps. On completion, VibeTrace automatically runs mechanical AST checks and audits prompt-to-diff alignment.
+1. **Git Repository & .gitignore Guard:** The agent verifies that the project is a Git repository (`git rev-parse --is-inside-work-tree`). If not, it automatically runs `git init`. It then creates or updates a default `.gitignore` to isolate `.agents/`, `.env`, `node_modules/`, `vibetrace.db*`, and `vibetrace.md`.
+2. **OpenRouter API Key Setup:** The agent checks if `.env` exists and has `OPENROUTER_API_KEY`. If not, it asks you directly for your key to configure `.env` (or you can skip to use built-in offline heuristics).
+3. **Auto-Daemon Setup:** The agent checks `http://localhost:3000/api/status`. If VibeTrace is not yet running, it automatically boots up the dashboard in the background (`npx -y github:bilal-extroverted/Vibe-Trace &`) watching your project directory.
+4. **Auto-Protocol Initializer:** The agent automatically creates `vibetrace.md` in your project root, logging prompt intent, planned steps, and active file targets.
+5. **Real-Time Telemetry & Drift Prevention:** As the agent edits code, it updates `active_file` and checks off steps. On completion, VibeTrace automatically runs mechanical AST checks and audits prompt-to-diff alignment.
 
 ### Zero-Mess Repository Isolation (How Your Project Stays Clean)
 When using VibeTrace with any external codebase:
+- **Default .gitignore Protection:** All folders and files introduced by the skill or harness (such as `.agents/`, `.env`, `node_modules/`, and `vibetrace.db*`) are automatically placed in `.gitignore` by default so they never pollute your repository commits or diffs.
 - **Only One Skill File Added:** `npx skills add` only extracts the tiny `.agents/skills/vibetrace/SKILL.md` (7 KB). It never clones or copies VibeTrace repository code into your project.
 - **External Global Cache Execution:** When VibeTrace runs via `npx`, npm executes the daemon in memory from your computer's global cache (`~/.npm/_npx/`). Zero `node_modules`, `server/`, or `public/` files are dumped into your project.
-- **Minimal Workspace Footprint:** The only file created in your project root is `vibetrace.md`, a lightweight communication scratchpad between your agent and the dashboard. (Add `vibetrace.md` to `.gitignore` if you prefer not to commit it).
+- **Minimal Workspace Footprint:** The only communication file created in your project root is `vibetrace.md`, a lightweight communication scratchpad between your agent and the dashboard, which is also ignored by `.gitignore`.
 - **Untouched Dependencies:** Your project's `package.json`, build configurations, and scripts remain 100% untouched.
 
 ### How It Works (Sequence Flow)

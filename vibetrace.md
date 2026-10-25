@@ -1,27 +1,27 @@
 ---
 status: completed
-task: "Add automatic user prompt for OpenRouter API key setup in skill files"
+task: "Enforce mandatory Git repo requirement and default .gitignore isolation"
 agent: "Antigravity AI"
-active_file: "skills/vibetrace/SKILL.md"
-file_action: "Updated skills/vibetrace/SKILL.md and README.md to instruct agents to ask for OPENROUTER_API_KEY when missing in .env"
-file_summary: "Agents equipped with vibetrace skill now proactively ask the user for their OpenRouter key to setup .env on first task"
-started_at: "2026-10-25T15:01:00.000Z"
-completed_at: "2026-10-25T15:02:00.000Z"
-updated_at: "2026-10-25T15:02:00.000Z"
+active_file: "README.md"
+file_action: "Added gitService.ensureRepoAndGitignore, updated skill files, .gitignore, and documented Git requirement note in README"
+file_summary: "VibeTrace now guarantees Git initialization, auto-creates default .gitignore shielding .agents/ and harness files, and documents requirements in README"
+started_at: "2026-10-25T16:31:00.000Z"
+completed_at: "2026-10-25T16:35:00.000Z"
+updated_at: "2026-10-25T16:35:00.000Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Configure skills/vibetrace/SKILL.md, .agents/skills/vibetrace/SKILL.md, and README.md so that any AI agent equipped with the skill prompts the user for their OpenRouter API key if not already configured in .env.
+> Enforce mandatory Git repository initialization and default .gitignore shielding for .agents/ and harness files across skills, server auto-setup, and README documentation.
 
 ## Execution Plan & Steps
-- [x] Step 1: Update devpost/prd.md with Features Over Time evolution graph and Interactive Analysis Q&A engine
-- [x] Step 2: Update devpost/scope.md unique kernel and POC boundary
-- [x] Step 3: Update devpost/spec.md architecture diagram, subsystems 2.7-2.9, and tech stack table
-- [x] Step 4: Update devpost/checklist.md with Slice 8 reflecting features over time and AST query engine
-- [x] Step 5: Update README.md features, repo structure, clone command, and REST/SSE API table
-- [x] Step 6: Configure git remote to https://github.com/bilal-extroverted/Vibe-Trace and push
+- [x] Step 1: Add ensureRepoAndGitignore to server/gitService.js and wire in server/index.js
+- [x] Step 2: Update skills/vibetrace/SKILL.md with mandatory Git requirement and default .gitignore isolation
+- [x] Step 3: Update .agents/skills/vibetrace/SKILL.md with Git init and .gitignore rules
+- [x] Step 4: Add Note in README.md explaining Git requirement and default .gitignore shielding
+- [x] Step 5: Update workspace .gitignore to ignore .agents/ and vibetrace.md
+- [x] Step 6: Push changes to GitHub repository
 
 ## Inter-Agent & Harness Communication Notes
-- All documentation files are strictly synchronized with code implementations without mock/placeholder references. Ready for remote push.
+- VibeTrace now guarantees that any watched project is initialized as a Git repository and shielded with a default .gitignore covering .agents/ and temporary files.

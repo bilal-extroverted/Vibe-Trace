@@ -26,10 +26,35 @@ Every user prompt transitions through 4 visual card states in VibeTrace:
 
 ## Agent Step-by-Step Workflow
 
-### Step 1: Check OpenRouter API Key & Auto-Setup Daemon
+### Step 1: Ensure Git Repository, .gitignore Isolation & Auto-Setup
 Before writing code or editing files:
 
-1. **Check for OpenRouter API Key in `.env`:**
+1. **Mandatory Git Repository Requirement (CRITICAL):**
+   VibeTrace extracts mechanical diffs, branch states, and file mutations strictly using Git.
+   - The project **MUST** be a Git repository. Without Git, VibeTrace will not work!
+   - The agent must check: `git rev-parse --is-inside-work-tree`.
+   - If not a Git repository, the agent **MUST** run:
+     ```bash
+     git init
+     ```
+   - The agent **must use Git** to track and commit code changes throughout the task lifecycle.
+
+2. **Default `.gitignore` File Creation & Shielding:**
+   The agent **MUST** ensure a `.gitignore` file exists in the project root to prevent newly introduced files (such as `.agents/`) and local harness files from cluttering the user's project history.
+   - If `.gitignore` does not exist, create it with:
+     ```
+     # VibeTrace & Agent Isolation
+     .agents/
+     .env
+     .env.*
+     !.env.example
+     node_modules/
+     vibetrace.db*
+     vibetrace.md
+     ```
+   - If `.gitignore` already exists, append `.agents/`, `.env`, `node_modules/`, `vibetrace.db*`, and `vibetrace.md` if they are missing.
+
+3. **Check for OpenRouter API Key in `.env`:**
    Inspect the project root for `.env`. If `.env` is missing or `OPENROUTER_API_KEY` is not set:
    - Ask the user directly:
      > *"Would you like to provide an OpenRouter API key to configure AI-powered causal summaries and drift auditing in your `.env`? (Reply with your key or 'skip' to use zero-cost offline heuristic mode)."*
@@ -41,7 +66,7 @@ Before writing code or editing files:
      ```
    - If the user replies with 'skip' or declines, proceed in offline heuristic mode.
 
-2. **Verify & Auto-Start VibeTrace Observability Server:**
+4. **Verify & Auto-Start VibeTrace Observability Server:**
    - Check `http://localhost:3000/api/status`.
    - If not running, start it in the background:
      - Inside this repository: `node server/index.js &`

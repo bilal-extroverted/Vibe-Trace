@@ -24,6 +24,52 @@ class GitService {
     });
   }
 
+  // Ensure workspace is initialized as a Git repo and default .gitignore protects workspace
+  async ensureRepoAndGitignore(targetDir = this.cwd) {
+    const dir = path.resolve(targetDir);
+
+    // 1. Ensure Git repository is initialized
+    try {
+      const isRepo = await this.execGit('rev-parse --is-inside-work-tree');
+      if (isRepo !== 'true') {
+        await this.execGit('init');
+        console.log('[GitService] Initialized new Git repository in', dir);
+      }
+    } catch (e) {
+      console.warn('[GitService] Git init check warning:', e.message);
+    }
+
+    // 2. Ensure default .gitignore exists with necessary isolation rules
+    try {
+      const gitignorePath = path.join(dir, '.gitignore');
+      const defaultRules = [
+        '# VibeTrace & Agent Isolation',
+        '.agents/',
+        '.env',
+        '.env.*',
+        '!.env.example',
+        'node_modules/',
+        'vibetrace.db*',
+        'vibetrace.md'
+      ];
+
+      if (!fs.existsSync(gitignorePath)) {
+        fs.writeFileSync(gitignorePath, defaultRules.join('\n') + '\n', 'utf8');
+        console.log('[GitService] Created default .gitignore in', dir);
+      } else {
+        const existing = fs.readFileSync(gitignorePath, 'utf8');
+        const missingRules = defaultRules.filter(r => !r.startsWith('#') && !existing.includes(r.replace('!', '')));
+        if (missingRules.length > 0) {
+          const appendContent = '\n# VibeTrace & Agent Isolation\n' + missingRules.join('\n') + '\n';
+          fs.appendFileSync(gitignorePath, appendContent, 'utf8');
+          console.log('[GitService] Appended isolation rules to .gitignore in', dir);
+        }
+      }
+    } catch (e) {
+      console.warn('[GitService] .gitignore isolation check warning:', e.message);
+    }
+  }
+
   // Get current active branch
   async getCurrentBranch() {
     const branch = await this.execGit('branch --show-current');

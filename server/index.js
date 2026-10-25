@@ -10,6 +10,7 @@ const { answerQuestion } = require('./queryEngine');
 const { generateAiMindMap } = require('./mindMapEngine');
 const { analyzeDrift } = require('./driftAnalyzer');
 const featureTimelineEngine = require('./featureTimelineEngine');
+const gitService = require('./gitService');
 require('dotenv').config();
 
 const app = express();
@@ -19,9 +20,10 @@ let WATCH_DIR = path.resolve(process.env.WATCH_DIR || '.');
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Register initial project in SQLite and ensure vibetrace.md exists
+// Register initial project in SQLite, ensure Git repo, default .gitignore, and vibetrace.md exist
 db.upsertProject(WATCH_DIR);
 protocol.ensureExists(WATCH_DIR);
+gitService.ensureRepoAndGitignore(WATCH_DIR);
 
 // Initialize features evolution table in SQLite from existing historical traces
 try {

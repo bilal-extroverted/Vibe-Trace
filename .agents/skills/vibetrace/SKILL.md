@@ -9,9 +9,22 @@ Use this skill whenever working on this repository or any codebase with VibeTrac
 
 ## Workflow
 
-### 1. Check OpenRouter API Key & Ensure Server is Running
+### 1. Ensure Git Repository, .gitignore Isolation & OpenRouter Setup
 Before making code changes:
-- Check if `.env` exists and has `OPENROUTER_API_KEY`. If missing, ask the user:
+- **Mandatory Git Repository Requirement:** VibeTrace operates by observing mechanical Git diffs. The project **MUST** be a Git repository. Without Git, VibeTrace will not work! The agent must verify `git rev-parse --is-inside-work-tree` and run `git init` if not a git repository. The agent must use Git to track and commit code changes.
+- **Default `.gitignore` Creation:** Ensure a default `.gitignore` exists in the project root containing:
+  ```
+  # VibeTrace & Agent Isolation
+  .agents/
+  .env
+  .env.*
+  !.env.example
+  node_modules/
+  vibetrace.db*
+  vibetrace.md
+  ```
+  This shields the project so introduced files (like `.agents/`) are ignored by Git.
+- **OpenRouter Key Check:** Check if `.env` exists and has `OPENROUTER_API_KEY`. If missing, ask the user:
   > *"Would you like to provide an OpenRouter API key to configure AI-powered causal summaries and drift auditing in your `.env`? (Reply with your key or 'skip' to use offline heuristic mode)."*
   If provided, write it to `.env`:
   ```ini
@@ -19,7 +32,7 @@ Before making code changes:
   OPENROUTER_API_MODEL=recursive/flint-v1.0:free
   PORT=3000
   ```
-- Check if the VibeTrace server is active on `http://localhost:3000`. If not, start it in the background:
+- **Ensure Server is Running:** Check if the VibeTrace server is active on `http://localhost:3000`. If not, start it in the background:
   - Inside this repository: `node server/index.js &`
   - In any other project (installed via `npx skills add bilal-extroverted/Vibe-Trace --all -y`): `npx -y github:bilal-extroverted/Vibe-Trace &`
 - Ensure `vibetrace.md` exists in the project root (auto-create if missing).
