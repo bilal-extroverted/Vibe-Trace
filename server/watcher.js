@@ -21,7 +21,7 @@ class WorkspaceWatcher {
     this.activeTrace = null;
   }
 
-  ensureActiveTrace(proto = null, changedFile = null) {
+  ensureActiveTrace(proto = null, changedFile = null, isChanging = false) {
     if (!proto) proto = protocol.read(this.watchDir);
     const activeFile = proto.active_file || proto.current_file || changedFile || (this.pendingChangedFiles.size > 0 ? Array.from(this.pendingChangedFiles)[0] : 'vibetrace.md');
     const fileAction = proto.file_action || proto.current_action || (changedFile ? `Modifying ${changedFile}` : 'Executing task steps...');
@@ -49,6 +49,8 @@ class WorkspaceWatcher {
       id: 'trace-live-active',
       inProgress: true,
       status: 'in_progress',
+      substatus: isChanging ? 'changing' : 'working',
+      changing: isChanging,
       title: proto.task || proto.intent || 'Active Agent Task',
       timestamp: formattedTime,
       activeFile: activeFile,
@@ -58,7 +60,7 @@ class WorkspaceWatcher {
       diffs: placeholderDiffs,
       additions: 0,
       deletions: 0,
-      changeType: 'IN PROGRESS',
+      changeType: isChanging ? 'CHANGING' : 'WORKING',
       agentProtocol: {
         ...proto,
         active_file: activeFile,
@@ -67,7 +69,7 @@ class WorkspaceWatcher {
       },
       synthesis: {
         overview: fileSummary,
-        summary: `Agent is actively modifying ${activeFile}: ${fileAction}`,
+        summary: isChanging ? `Agent is actively modifying ${activeFile}: ${fileAction}` : `Agent working on task: ${proto.task || proto.intent}`,
         riskLevel: 'LOW',
         whatChanged: [
           `Active File: ${activeFile}`,
@@ -148,28 +150,29 @@ class WorkspaceWatcher {
         });
 
         if (proto.status === 'in_progress') {
-          this.ensureActiveTrace(proto);
+          const isChanging = this.pendingChangedFiles.size > 0;
+          this.ensureActiveTrace(proto, null, isChanging);
           sse.broadcast({
             type: 'agent_status',
-            status: 'working',
+            status: isChanging ? 'writing' : 'working',
+            substatus: isChanging ? 'changing' : 'working',
             task: proto.task || proto.intent,
             active_file: proto.active_file,
-            file_action: proto.file_action,
+            file_action: proto.file_action || (isChanging ? 'Modifying files' : 'Planning task steps...'),
             file_summary: proto.file_summary,
             filesCount: this.pendingChangedFiles.size,
-            message: `Agent Working on ${proto.active_file || 'task'}: ${proto.task || proto.intent}`
+            message: `Agent ${isChanging ? 'changing files' : 'working on task'}: ${proto.task || proto.intent}`
           });
         } else if (proto.status === 'completed') {
           // Agent explicitly signaled completion! Trigger batch immediately
           console.log(`[VibeTrace Protocol] Agent signaled completion for: "${proto.task}". Processing trace...`);
-          this.activeTrace = null;
-          sse.broadcast({
-            type: 'trace_completed',
-            id: 'trace-live-active'
-          });
+          if (this.activeTrace) {
+            this.activeTrace.substatus = 'completing';
+          }
           sse.broadcast({
             type: 'agent_status',
             status: 'completed',
+            substatus: 'completed',
             task: proto.task,
             active_file: proto.active_file,
             file_action: proto.file_action,
@@ -191,7 +194,7 @@ class WorkspaceWatcher {
       // Check current protocol task
       const currentProto = protocol.read(this.watchDir);
       if (currentProto.status === 'in_progress') {
-        this.ensureActiveTrace(currentProto, relPath);
+        this.ensureActiveTrace(currentProto, relPath, true);
       }
 
       const activeFileName = currentProto.active_file || relPath;
@@ -201,6 +204,7 @@ class WorkspaceWatcher {
       sse.broadcast({
         type: 'agent_status',
         status: 'writing',
+        substatus: 'changing',
         filesCount: this.pendingChangedFiles.size,
         lastFile: relPath,
         active_file: activeFileName,
@@ -329,6 +333,20 @@ class WorkspaceWatcher {
         fileSummary: proto.file_summary || null
       };
 
+      // Persist permanently to SQLite database
+      const db = require('./db');
+      db.saveTrace(analysis, this.watchDir);
+
+      if (this.onEventCallback) {
+        this.onEventCallback(analysis);
+      }
+
+      // Broadcast permanent completed trace to dashboard first (in-place transition to Sapphire Blue)
+      sse.broadcast({
+        type: 'trace',
+        trace: analysis
+      });
+
       const currentProto = protocol.read(this.watchDir);
       if (currentProto.status !== 'in_progress') {
         this.activeTrace = null;
@@ -340,20 +358,6 @@ class WorkspaceWatcher {
         // Keep active trace alive and broadcast fresh state
         this.ensureActiveTrace(currentProto);
       }
-
-      // Persist permanently to SQLite database
-      const db = require('./db');
-      db.saveTrace(analysis, this.watchDir);
-
-      if (this.onEventCallback) {
-        this.onEventCallback(analysis);
-      }
-
-      // Broadcast permanent trace to dashboard
-      sse.broadcast({
-        type: 'trace',
-        trace: analysis
-      });
 
       sse.broadcast({
         type: 'agent_status',

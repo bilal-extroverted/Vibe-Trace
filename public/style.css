@@ -712,16 +712,30 @@ body.resizing {
   display: none !important;
 }
 
-/* 2. COMPLETED / AGENT TASK: Crisp White Card with Leaf/Emerald Left Indicator (NOT Black!) */
+/* =========================================================
+   STATE 3: TASK COMPLETED — SAPPHIRE BLUE (CLEAN, ELEVATED)
+   ========================================================= */
+.trace-item-row.status-completed {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-medium) !important;
+  border-left: 3.5px solid #2563eb !important;
+  color: var(--text-primary) !important;
+  animation: none !important;
+}
+
+.trace-item-row.status-completed:hover {
+  border-color: #2563eb !important;
+}
+
 .trace-item-row.active.status-completed,
 .trace-item-row.active:not(.in-progress):not(.status-architectural):not(.status-mutation) {
   background: var(--bg-surface) !important;
-  border: 1.5px solid #10b981 !important;
-  border-left: 3.5px solid #10b981 !important;
-  box-shadow: 0 2px 8px -1px rgba(16, 185, 129, 0.16) !important;
+  border: 1.5px solid #2563eb !important;
+  border-left: 3.5px solid #2563eb !important;
+  box-shadow: 0 2px 10px -2px rgba(37, 99, 235, 0.22) !important;
 }
 
-/* 3. ARCHITECTURAL / REFACTOR: Crisp White Card with Sapphire Blue Left Indicator */
+/* Architectural / Refactor: Sapphire Blue Left Indicator */
 .trace-item-row.active.status-architectural {
   background: var(--bg-surface) !important;
   border: 1.5px solid #2563eb !important;
@@ -729,7 +743,7 @@ body.resizing {
   box-shadow: 0 2px 8px -1px rgba(37, 99, 235, 0.16) !important;
 }
 
-/* 4. CODE MUTATION: Crisp White Card with Slate Left Indicator */
+/* Code Mutation: Crisp White Card with Slate Left Indicator */
 .trace-item-row.active.status-mutation {
   background: var(--bg-surface) !important;
   border: 1.5px solid #475569 !important;
@@ -737,12 +751,14 @@ body.resizing {
   box-shadow: 0 2px 8px -1px rgba(71, 85, 105, 0.14) !important;
 }
 
-/* Selected Card Typography & Elements (Clear, Crisp, Dark Text in Light Mode) */
+/* Completed Card Typography & Elements */
+.trace-item-row.status-completed .trace-item-time,
 .trace-item-row.active:not(.in-progress) .trace-item-time {
   color: var(--text-muted) !important;
   font-weight: 500 !important;
 }
 
+.trace-item-row.status-completed .trace-item-title,
 .trace-item-row.active:not(.in-progress) .trace-item-title {
   color: var(--text-primary) !important;
   font-weight: 500 !important;
@@ -750,43 +766,182 @@ body.resizing {
   line-height: 1.25;
 }
 
+.trace-item-row.status-completed .trace-item-files,
 .trace-item-row.active:not(.in-progress) .trace-item-files {
   color: var(--text-muted) !important;
   font-weight: 400 !important;
 }
 
-/* Dark Mode Overrides for Active Cards */
-[data-theme="dark"] .trace-item-row.active:not(.in-progress),
-body.dark-theme .trace-item-row.active:not(.in-progress) {
+.trace-item-tag.tag-completed,
+.trace-item-tag.tag-agent {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+  font-weight: 500 !important;
+}
+
+/* Dark Mode Overrides for Completed Cards */
+[data-theme="dark"] .trace-item-row.status-completed,
+body.dark-theme .trace-item-row.status-completed {
   background: #172136 !important;
+  border-color: var(--border-medium) !important;
+  border-left-color: #3b82f6 !important;
   color: var(--text-primary) !important;
 }
 
 [data-theme="dark"] .trace-item-row.active.status-completed,
 body.dark-theme .trace-item-row.active.status-completed {
-  border-color: #34d399 !important;
-  border-left-color: #34d399 !important;
+  background: #172136 !important;
+  border-color: #3b82f6 !important;
+  border-left-color: #3b82f6 !important;
+  box-shadow: 0 2px 10px -2px rgba(59, 130, 246, 0.3) !important;
 }
 
-[data-theme="dark"] .trace-item-row.active.status-architectural,
-body.dark-theme .trace-item-row.active.status-architectural {
-  border-color: #60a5fa !important;
-  border-left-color: #60a5fa !important;
-}
-
-[data-theme="dark"] .trace-item-row.active.status-mutation,
-body.dark-theme .trace-item-row.active.status-mutation {
-  border-color: #94a3b8 !important;
-  border-left-color: #94a3b8 !important;
+[data-theme="dark"] .trace-item-tag.tag-completed,
+[data-theme="dark"] .trace-item-tag.tag-agent {
+  background: rgba(37, 99, 235, 0.15) !important;
+  color: #93c5fd !important;
+  border-color: rgba(37, 99, 235, 0.35) !important;
 }
 
 /* =========================================================
-   WORKING / IN-PROGRESS TRACE:
-   DYNAMIC LIVING ANIMATED GRADIENT MESH, BEAM SWEEP & GLOW
-   (NOT a static gradient! Visible living motion while active)
+   STATE 1: TASK STARTED / WORKING — WARM YELLOW / AMBER
+   (Calm, steady indicator showing agent active before file changes)
    ========================================================= */
-.trace-item-row.in-progress,
-.trace-item-row.active.in-progress {
+.trace-item-row.is-working,
+.trace-item-row.status-working {
+  background: #fffdf5 !important;
+  border: 1.5px solid #f59e0b !important;
+  border-left: 3.5px solid #f59e0b !important;
+  box-shadow: 0 2px 10px -2px rgba(245, 158, 11, 0.25) !important;
+  color: var(--text-primary) !important;
+  animation: none !important;
+}
+
+.trace-item-row.is-working::before,
+.trace-item-row.status-working::before {
+  display: none !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working,
+[data-theme="dark"] .trace-item-row.status-working,
+body.dark-theme .trace-item-row.is-working,
+body.dark-theme .trace-item-row.status-working {
+  background: #1c180e !important;
+  border-color: #d97706 !important;
+  border-left-color: #f59e0b !important;
+  color: #fef3c7 !important;
+}
+
+.trace-item-row.is-working .trace-item-time,
+.trace-item-row.status-working .trace-item-time {
+  color: #92400e !important;
+  font-weight: 500 !important;
+}
+
+.trace-item-row.is-working .trace-item-title,
+.trace-item-row.status-working .trace-item-title {
+  color: #78350f !important;
+  font-weight: 500 !important;
+  font-size: 9.5px !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working .trace-item-title,
+[data-theme="dark"] .trace-item-row.status-working .trace-item-title,
+body.dark-theme .trace-item-row.is-working .trace-item-title,
+body.dark-theme .trace-item-row.status-working .trace-item-title {
+  color: #fef3c7 !important;
+}
+
+.trace-item-row.is-working .trace-item-files,
+.trace-item-row.status-working .trace-item-files {
+  color: #92400e !important;
+  font-weight: 400 !important;
+}
+
+.trace-item-tag.tag-working {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border: 1px solid #fde68a !important;
+  font-weight: 500 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-theme="dark"] .trace-item-tag.tag-working {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.pill-amber-dot,
+.working-amber-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 4px #f59e0b;
+  flex-shrink: 0;
+}
+
+.diff-pill-working {
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 8.5px;
+  font-weight: 500;
+}
+
+.trace-item-row.is-working .trace-item-active-file .active-file-dot,
+.trace-item-row.status-working .trace-item-active-file .active-file-dot {
+  color: #d97706 !important;
+}
+
+.trace-item-row.is-working .trace-item-active-file .active-file-label,
+.trace-item-row.status-working .trace-item-active-file .active-file-label {
+  color: #92400e !important;
+}
+
+.trace-item-row.is-working .trace-item-active-file .active-file-name,
+.trace-item-row.status-working .trace-item-active-file .active-file-name {
+  color: #78350f !important;
+  background: #fef3c7 !important;
+  border: 1px solid #fde68a !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working .trace-item-active-file .active-file-dot,
+[data-theme="dark"] .trace-item-row.status-working .trace-item-active-file .active-file-dot,
+body.dark-theme .trace-item-row.is-working .trace-item-active-file .active-file-dot,
+body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-file-dot {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working .trace-item-active-file .active-file-label,
+[data-theme="dark"] .trace-item-row.status-working .trace-item-active-file .active-file-label,
+body.dark-theme .trace-item-row.is-working .trace-item-active-file .active-file-label,
+body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-file-label {
+  color: #fef3c7 !important;
+}
+
+[data-theme="dark"] .trace-item-row.is-working .trace-item-active-file .active-file-name,
+[data-theme="dark"] .trace-item-row.status-working .trace-item-active-file .active-file-name,
+body.dark-theme .trace-item-row.is-working .trace-item-active-file .active-file-name,
+body.dark-theme .trace-item-row.status-working .trace-item-active-file .active-file-name {
+  color: #fbbf24 !important;
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* =========================================================
+   STATE 2: FILES MUTATING / CHANGING — ANIMATED LIVING GRADIENT MESH
+   (Triggers when agent writes/mutates files in real time)
+   ========================================================= */
+.trace-item-row.is-changing,
+.trace-item-row.status-changing {
   background: linear-gradient(125deg, #14532d 0%, #16a34a 25%, #4ade80 50%, #22c55e 75%, #15803d 100%) !important;
   background-size: 260% 260% !important;
   animation: liveWorkingMesh 3.2s ease infinite, liveWorkingPulse 2s ease-in-out infinite !important;
@@ -797,9 +952,9 @@ body.dark-theme .trace-item-row.active.status-mutation {
   overflow: hidden;
 }
 
-/* Moving Light Beam Ray Across The Working Card */
-.trace-item-row.in-progress::before,
-.trace-item-row.active.in-progress::before {
+/* Moving Light Beam Ray Across The Changing Card */
+.trace-item-row.is-changing::before,
+.trace-item-row.status-changing::before {
   content: '';
   position: absolute;
   top: 0;
@@ -831,27 +986,27 @@ body.dark-theme .trace-item-row.active.status-mutation {
   100% { left: 160%; }
 }
 
-.trace-item-row.in-progress .trace-item-time,
-.trace-item-row.active.in-progress .trace-item-time {
+.trace-item-row.is-changing .trace-item-time,
+.trace-item-row.status-changing .trace-item-time {
   color: rgba(255, 255, 255, 0.9) !important;
   font-weight: 400 !important;
 }
 
-.trace-item-row.in-progress .trace-item-title,
-.trace-item-row.active.in-progress .trace-item-title {
+.trace-item-row.is-changing .trace-item-title,
+.trace-item-row.status-changing .trace-item-title {
   color: #ffffff !important;
   font-weight: 400 !important;
   font-size: 9.5px !important;
   line-height: 1.25;
 }
 
-.trace-item-row.in-progress .trace-item-files,
-.trace-item-row.active.in-progress .trace-item-files {
+.trace-item-row.is-changing .trace-item-files,
+.trace-item-row.status-changing .trace-item-files {
   color: rgba(255, 255, 255, 0.9) !important;
   font-weight: 400 !important;
 }
 
-.trace-item-tag.tag-in-progress {
+.trace-item-tag.tag-changing {
   background: rgba(255, 255, 255, 0.25) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -875,8 +1030,8 @@ body.dark-theme .trace-item-row.active.status-mutation {
   50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px #ffffff; }
 }
 
-/* In-Progress Trace When NOT Actively Selected: Light Soft Surface (No solid dark green) */
-.trace-item-row.in-progress:not(.active) {
+/* Changing Trace When NOT Actively Selected: Light Soft Surface (No solid dark green) */
+.trace-item-row.is-changing:not(.active) {
   background: #f0fdf4 !important;
   border: 1.5px solid #22c55e !important;
   box-shadow: 0 1px 4px rgba(34, 197, 94, 0.15) !important;
@@ -884,44 +1039,44 @@ body.dark-theme .trace-item-row.active.status-mutation {
   animation: none !important;
 }
 
-.trace-item-row.in-progress:not(.active)::before {
+.trace-item-row.is-changing:not(.active)::before {
   display: none !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-time {
+.trace-item-row.is-changing:not(.active) .trace-item-time {
   color: #15803d !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-title {
+.trace-item-row.is-changing:not(.active) .trace-item-title {
   color: #166534 !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-tag.tag-in-progress {
+.trace-item-row.is-changing:not(.active) .trace-item-tag.tag-changing {
   background: #dcfce7 !important;
   color: #15803d !important;
   border-color: #86efac !important;
 }
 
-.trace-item-row.in-progress:not(.active) .live-dot-pulse {
+.trace-item-row.is-changing:not(.active) .live-dot-pulse {
   background: #16a34a !important;
   box-shadow: 0 0 6px #16a34a !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-active-file .active-file-dot {
+.trace-item-row.is-changing:not(.active) .trace-item-active-file .active-file-dot {
   color: #16a34a !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-active-file .active-file-label {
+.trace-item-row.is-changing:not(.active) .trace-item-active-file .active-file-label {
   color: #15803d !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-active-file .active-file-name {
+.trace-item-row.is-changing:not(.active) .trace-item-active-file .active-file-name {
   background: #ffffff !important;
   color: #166534 !important;
   border-color: #bbf7d0 !important;
 }
 
-.trace-item-row.in-progress:not(.active) .trace-item-files {
+.trace-item-row.is-changing:not(.active) .trace-item-files {
   color: #15803d !important;
 }
 
@@ -1069,10 +1224,52 @@ body.dark-theme .trace-item-row.active.status-mutation {
 }
 
 .middle-meta-badge.tag-agent {
-  background: #ecfdf5;
-  color: #047857;
-  border-color: #a7f3d0;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
   font-weight: 500;
+}
+
+.middle-meta-badge.tag-working {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .middle-meta-badge.tag-working,
+body.dark-theme .middle-meta-badge.tag-working {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.middle-meta-badge.tag-changing {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .middle-meta-badge.tag-changing,
+body.dark-theme .middle-meta-badge.tag-changing {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.middle-meta-badge.tag-completed {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .middle-meta-badge.tag-completed,
+body.dark-theme .middle-meta-badge.tag-completed {
+  background: rgba(37, 99, 235, 0.15);
+  color: #93c5fd;
+  border-color: rgba(37, 99, 235, 0.35);
 }
 
 .middle-actions-row {

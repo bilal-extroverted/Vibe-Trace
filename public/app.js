@@ -217,6 +217,9 @@
         const payload = JSON.parse(e.data);
         if (payload.type === 'protocol_update') {
           renderProtocol(payload.protocol);
+          if (payload.protocol && payload.protocol.status === 'in_progress') {
+            ensureActiveTraceFromProtocol(payload.protocol);
+          }
         } else if (payload.type === 'trace_active') {
           handleActiveTrace(payload.trace);
         } else if (payload.type === 'trace_completed') {
@@ -234,17 +237,32 @@
         } else if (payload.type === 'trace') {
           logTicker(`Trace captured: ${payload.trace.title}`);
           const completedTask = payload.trace.agentProtocol?.task || payload.trace.title;
-          traces = traces.filter(t => {
-            if (t.id === 'trace-live-active' || t.inProgress) return false;
-            if (completedTask && (t.agentProtocol?.task === completedTask || t.title === completedTask)) {
-              return false;
-            }
+
+          // Morph active card into completed Sapphire Blue trace in-place!
+          const activeIdx = traces.findIndex(t => t.id === 'trace-live-active' || t.inProgress || (completedTask && (t.agentProtocol?.task === completedTask || t.title === completedTask)));
+
+          const completedTrace = {
+            ...payload.trace,
+            inProgress: false,
+            status: 'completed',
+            substatus: 'completed'
+          };
+
+          if (activeIdx !== -1) {
+            traces[activeIdx] = completedTrace;
+          } else {
+            traces.unshift(completedTrace);
+          }
+
+          // Clean up any other duplicates
+          traces = traces.filter((t, i) => {
+            if (t.id === 'trace-live-active' && i !== (activeIdx !== -1 ? activeIdx : 0)) return false;
             return true;
           });
-          addTrace(payload.trace);
-          // Automatically select the newly created completed trace
+
+          renderTracesList();
           selectTrace(payload.trace.id);
-          setTopBarStatus('completed', 'TRACE CREATED', payload.trace.agentProtocol?.task || payload.trace.title);
+          setTopBarStatus('completed', 'TRACE CREATED', completedTask);
         } else if (payload.type === 'agent_status') {
           handleAgentStatus(payload);
         }
@@ -258,24 +276,65 @@
     };
   }
 
+  function ensureActiveTraceFromProtocol(proto) {
+    if (!proto || proto.status !== 'in_progress') return;
+    const taskName = proto.task || proto.intent || 'Active Agent Task';
+    let activeItem = traces.find(t => t.id === 'trace-live-active' || t.inProgress);
+    if (!activeItem) {
+      activeItem = {
+        id: 'trace-live-active',
+        inProgress: true,
+        status: 'in_progress',
+        substatus: 'working',
+        changing: false,
+        title: taskName,
+        timestamp: formatTraceTime(proto.started_at || new Date().toISOString()),
+        activeFile: proto.active_file || 'vibetrace.md',
+        files: [proto.active_file || 'vibetrace.md'],
+        diffs: [{
+          file: proto.active_file || 'vibetrace.md',
+          content: `@@ -1,1 +1,1 @@\n+ // [Task Active] ${proto.file_action || 'Working on task...'}\n`,
+          status: 'modified'
+        }],
+        additions: 0,
+        deletions: 0,
+        changeType: 'WORKING',
+        agentProtocol: proto
+      };
+      traces.unshift(activeItem);
+      renderTracesList();
+      selectTrace(activeItem.id);
+    } else {
+      activeItem.agentProtocol = proto;
+      if (proto.task) activeItem.title = proto.task;
+      if (proto.active_file) activeItem.activeFile = proto.active_file;
+      renderTracesList();
+    }
+  }
+
   function handleActiveTrace(activeTrace) {
     if (!activeTrace) return;
     const activeTaskName = activeTrace.agentProtocol?.task || activeTrace.title;
 
-    // Filter out any past duplicate trace with the same task name or existing inProgress
-    traces = traces.filter(t => {
-      if (t.id === activeTrace.id || t.inProgress) return false;
-      if (activeTaskName && (t.agentProtocol?.task === activeTaskName || t.title === activeTaskName)) {
-        return false;
-      }
-      return true;
-    });
+    // In-place update if active trace already exists in memory
+    const existingIdx = traces.findIndex(t => t.id === activeTrace.id || t.id === 'trace-live-active' || t.inProgress);
+    if (existingIdx !== -1) {
+      traces[existingIdx] = {
+        ...traces[existingIdx],
+        ...activeTrace
+      };
+    } else {
+      // Remove any historical duplicate with same task name before unshifting
+      traces = traces.filter(t => {
+        if (activeTaskName && (t.agentProtocol?.task === activeTaskName || t.title === activeTaskName)) {
+          return false;
+        }
+        return true;
+      });
+      traces.unshift(activeTrace);
+    }
 
-    traces.unshift(activeTrace);
     renderTracesList();
-
-    // ALWAYS automatically select the newly created active in-progress trace!
-    // The past trace must NEVER remain selected!
     selectTrace(activeTrace.id);
 
     if (activeTrace.agentProtocol) {
@@ -284,8 +343,12 @@
   }
 
   function handleTraceCompleted(id) {
-    traces = traces.filter(t => t.id !== id && !t.inProgress);
-    renderTracesList();
+    // When completion event arrives, keep the card visible while transitioning to final analysis
+    const item = traces.find(t => t.id === id);
+    if (item) {
+      item.substatus = 'completing';
+      renderTracesList();
+    }
   }
 
   // 4. Render Agent Protocol from `vibetrace.md`
@@ -397,48 +460,67 @@
 
   function handleAgentStatus(data) {
     const status = data.status;
-    if (status === 'working' || status === 'writing') {
-      setTopBarStatus('working', status === 'writing' ? 'AGENT WRITING' : 'AGENT WORKING', data.task || data.message || 'Modifying codebase...');
-      logTicker(data.message || 'Agent active...');
-      const activeFile = data.active_file || data.lastFile || 'workspace';
+    const isChanging = status === 'writing' || data.substatus === 'changing';
+    const isWorking = status === 'working' || data.substatus === 'working';
+
+    if (isWorking || isChanging) {
+      setTopBarStatus('working', isChanging ? 'AGENT WRITING' : 'AGENT WORKING', data.task || data.message || (isChanging ? 'Modifying codebase...' : 'Working on task...'));
+      logTicker(data.message || (isChanging ? 'Agent writing files...' : 'Agent working on task...'));
+      const activeFile = data.active_file || data.lastFile || 'vibetrace.md';
       if (rightActiveFilePath) rightActiveFilePath.textContent = activeFile;
       if (data.file_action && rightFileActionDesc) rightFileActionDesc.textContent = data.file_action;
       if (rightActiveFileCard) rightActiveFileCard.classList.add('is-live');
 
-      // Guarantee single in-progress card is present and selected
-      const activeTaskName = data.task || latestProtocol?.task;
+      const activeTaskName = data.task || latestProtocol?.task || 'Active Agent Task';
 
-      // Filter out any past duplicate trace with the same task name
-      traces = traces.filter(t => {
-        if (t.id === 'trace-live-active' || t.inProgress) return false;
-        if (activeTaskName && (t.agentProtocol?.task === activeTaskName || t.title === activeTaskName)) {
-          return false;
+      let activeItem = traces.find(t => t.id === 'trace-live-active' || t.inProgress);
+      if (activeItem) {
+        // Dynamic in-place mutation of the existing trace card!
+        activeItem.substatus = isChanging ? 'changing' : 'working';
+        activeItem.changing = isChanging;
+        activeItem.changeType = isChanging ? 'CHANGING' : 'WORKING';
+        if (data.task) activeItem.title = data.task;
+        if (activeFile) {
+          activeItem.activeFile = activeFile;
+          if (!activeItem.files) activeItem.files = [activeFile];
+          else if (!activeItem.files.includes(activeFile)) activeItem.files.push(activeFile);
         }
-        return true;
-      });
+      } else {
+        // First creation of the trace card upon starting task
+        traces = traces.filter(t => {
+          if (t.id === 'trace-live-active' || t.inProgress) return false;
+          if (activeTaskName && (t.agentProtocol?.task === activeTaskName || t.title === activeTaskName)) {
+            return false;
+          }
+          return true;
+        });
 
-      const activeItem = {
-        id: 'trace-live-active',
-        inProgress: true,
-        status: 'in_progress',
-        title: activeTaskName || 'Active Agent Task',
-        timestamp: formatTraceTime(latestProtocol?.started_at || new Date().toISOString()),
-        activeFile: activeFile,
-        files: [activeFile],
-        diffs: [{
-          file: activeFile,
-          content: `@@ -1,1 +1,1 @@\n+ // [Live Mutation] Agent actively editing ${activeFile}\n`,
-          status: 'modified'
-        }],
-        additions: 0,
-        deletions: 0,
-        changeType: 'WORKING',
-        agentProtocol: latestProtocol
-      };
-      traces.unshift(activeItem);
+        activeItem = {
+          id: 'trace-live-active',
+          inProgress: true,
+          status: 'in_progress',
+          substatus: isChanging ? 'changing' : 'working',
+          changing: isChanging,
+          title: activeTaskName,
+          timestamp: formatTraceTime(latestProtocol?.started_at || new Date().toISOString()),
+          activeFile: activeFile,
+          files: [activeFile],
+          diffs: [{
+            file: activeFile,
+            content: `@@ -1,1 +1,1 @@\n+ // [Live Mutation] Agent active\n`,
+            status: 'modified'
+          }],
+          additions: 0,
+          deletions: 0,
+          changeType: isChanging ? 'CHANGING' : 'WORKING',
+          agentProtocol: latestProtocol
+        };
+        traces.unshift(activeItem);
+      }
+
       renderTracesList();
 
-      // ALWAYS automatically select the active in-progress trace!
+      // ALWAYS automatically select the active in-progress trace
       selectTrace(activeItem.id);
     } else if (status === 'completed') {
       setTopBarStatus('completed', 'TASK COMPLETED', data.task || 'Agent signaled task completion');
@@ -487,6 +569,9 @@
       const protoData = await resProto.json();
       if (protoData && protoData.protocol) {
         renderProtocol(protoData.protocol);
+        if (protoData.protocol.status === 'in_progress') {
+          ensureActiveTraceFromProtocol(protoData.protocol);
+        }
       }
     } catch (e) {
       console.warn('Failed to fetch status:', e);
@@ -624,6 +709,9 @@
 
     filtered.forEach(trace => {
       const isInProgress = Boolean(trace.inProgress || trace.status === 'in_progress');
+      const isChanging = isInProgress && Boolean(trace.changing || trace.substatus === 'changing');
+      const isWorking = isInProgress && !isChanging;
+
       const timeStr = formatTraceTime(trace.timestamp);
       const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
       const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
@@ -632,44 +720,40 @@
       const isAgentTask = Boolean(trace.agentProtocol?.task);
       const activeFileName = trace.activeFile || (trace.files && trace.files[0]) || (latestProtocol && latestProtocol.active_file) || 'vibetrace.md';
 
-      let tagLabel = 'MUTATION';
-      let tagClass = 'tag-mutation';
-      let statusType = 'mutation';
-
-      if (isInProgress) {
-        tagLabel = 'WORKING';
-        tagClass = 'tag-in-progress';
-        statusType = 'in_progress';
-      } else if (trace.changeType && !trace.changeType.toLowerCase().includes('mutation')) {
-        const ct = trace.changeType.toLowerCase();
-        if (ct.includes('architectural') || ct.includes('refactor')) {
-          statusType = 'architectural';
-          tagClass = 'tag-architectural';
-        } else {
-          statusType = 'completed';
-          tagClass = 'tag-agent';
-        }
-        tagLabel = trace.changeType.toUpperCase().replace(/\s*\(.*\)/, '').slice(0, 14);
-      } else if (isAgentTask) {
-        tagLabel = 'COMPLETED';
-        tagClass = 'tag-agent';
-        statusType = 'completed';
-      } else {
-        statusType = 'mutation';
-        tagClass = 'tag-mutation';
-        tagLabel = 'MUTATION';
-      }
-
       const rowItem = document.createElement('div');
-      rowItem.className = `trace-item-row status-${statusType} ${trace.id === selectedTraceId ? 'active' : ''} ${isInProgress ? 'in-progress' : ''}`;
       rowItem.dataset.id = trace.id;
 
-      if (isInProgress) {
+      if (isWorking) {
+        // STATE 1: TASK STARTED / WORKING (WARM AMBER/YELLOW, CALM, NON-ANIMATING)
+        rowItem.className = `trace-item-row is-working status-working ${trace.id === selectedTraceId ? 'active' : ''}`;
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
-            <span class="trace-item-tag ${tagClass}">
-              <span class="live-dot-pulse"></span> ${tagLabel}
+            <span class="trace-item-tag tag-working">
+              <span class="pill-amber-dot"></span> WORKING
+            </span>
+          </div>
+          <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
+          <div class="trace-item-active-file" title="${escapeHtml(activeFileName)}">
+            <span class="working-amber-dot"></span>
+            <span class="active-file-label">In Progress:</span>
+            <code class="active-file-name">${escapeHtml(activeFileName || 'Planning task & reading files')}</code>
+          </div>
+          <div class="trace-item-footer">
+            <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
+            <div class="trace-diff-pills">
+              <span class="diff-pill-working">TASK STARTED</span>
+            </div>
+          </div>
+        `;
+      } else if (isChanging) {
+        // STATE 2: FILES MUTATING / CHANGING (LIVING ANIMATED GRADIENT MESH)
+        rowItem.className = `trace-item-row in-progress is-changing status-changing ${trace.id === selectedTraceId ? 'active' : ''}`;
+        rowItem.innerHTML = `
+          <div class="trace-item-header">
+            <span class="trace-item-time">${timeStr}</span>
+            <span class="trace-item-tag tag-changing">
+              <span class="live-dot-pulse"></span> CHANGING
             </span>
           </div>
           <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
@@ -687,6 +771,32 @@
           <div class="trace-progress-line-track"><div class="trace-progress-line-bar"></div></div>
         `;
       } else {
+        // STATE 3: TASK COMPLETED (SAPPHIRE BLUE, CRISP, PERMANENT)
+        let tagLabel = 'COMPLETED';
+        let tagClass = 'tag-completed';
+        let statusType = 'completed';
+
+        if (trace.changeType && !trace.changeType.toLowerCase().includes('mutation')) {
+          const ct = trace.changeType.toLowerCase();
+          if (ct.includes('architectural') || ct.includes('refactor')) {
+            statusType = 'architectural';
+            tagClass = 'tag-architectural';
+          } else {
+            statusType = 'completed';
+            tagClass = 'tag-completed';
+          }
+          tagLabel = trace.changeType.toUpperCase().replace(/\s*\(.*\)/, '').slice(0, 14);
+        } else if (isAgentTask) {
+          tagLabel = 'COMPLETED';
+          tagClass = 'tag-completed';
+          statusType = 'completed';
+        } else {
+          statusType = 'completed';
+          tagClass = 'tag-completed';
+          tagLabel = 'COMPLETED';
+        }
+
+        rowItem.className = `trace-item-row status-completed status-${statusType} ${trace.id === selectedTraceId ? 'active' : ''}`;
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
@@ -767,12 +877,19 @@
       if (middleDiffDel) middleDiffDel.textContent = `-${trace.deletions || 0}`;
     }
     if (middleAgentBadge) {
-      if (trace.inProgress) {
-        middleAgentBadge.className = 'middle-meta-badge tag-agent';
-        middleAgentBadge.innerHTML = '<span class="pill-live-dot"></span> In Progress';
+      const isInProgress = Boolean(trace.inProgress || trace.status === 'in_progress');
+      const isChanging = isInProgress && Boolean(trace.changing || trace.substatus === 'changing');
+      const isWorking = isInProgress && !isChanging;
+
+      if (isWorking) {
+        middleAgentBadge.className = 'middle-meta-badge tag-working';
+        middleAgentBadge.innerHTML = '<span class="pill-amber-dot"></span> Working';
+      } else if (isChanging) {
+        middleAgentBadge.className = 'middle-meta-badge tag-changing';
+        middleAgentBadge.innerHTML = '<span class="live-dot-pulse"></span> Changing Files';
       } else {
         const isAgent = Boolean(trace.agentProtocol?.task);
-        middleAgentBadge.className = `middle-meta-badge ${isAgent ? 'tag-agent' : ''}`;
+        middleAgentBadge.className = 'middle-meta-badge tag-completed';
         middleAgentBadge.textContent = isAgent ? 'Completed Task' : (trace.changeType || 'Code Change');
       }
     }
