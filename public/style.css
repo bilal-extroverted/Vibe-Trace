@@ -9,57 +9,126 @@
    ========================================================= */
 
 :root {
-  /* Surfaces & Canvas — Warm Off-White / Light Cool Gray Palette */
-  --bg-canvas: #F2F3F0;
-  --bg-surface: #FFFFFF;
-  --bg-surface-subtle: #FAFAF8;
-  --bg-surface-hover: #EEF0EC;
-  --bg-diff: #F2F3F0;
-  --gutter-bg: #FAFBF9;
+  /* =========================================================
+     PALETTE SYSTEM (DEFINED BY USER SPECIFICATION)
+     ========================================================= */
+  /* Neutrals */
+  --neutral-white: #FFFFFF;
+  --neutral-black: #111318;
+  --neutral-50:  #F9FAFB;
+  --neutral-100: #F3F4F6;
+  --neutral-200: #E5E7EB;
+  --neutral-300: #D1D5DB;
+  --neutral-400: #9CA3AF;
+  --neutral-500: #6B7280;
+  --neutral-600: #4B5563;
+  --neutral-700: #374151;
+  --neutral-800: #1F2937;
+  --neutral-900: #111827;
+
+  /* Red Scale */
+  --red-50:  #FEF2F2;
+  --red-100: #FEE2E2;
+  --red-200: #FECACA;
+  --red-300: #FCA5A5;
+  --red-400: #F87171;
+  --red-500: #EF4444;
+  --red-600: #DC2626;
+  --red-700: #B91C1C;
+  --red-800: #991B1B;
+  --red-900: #7F1D1D;
+
+  /* Green Scale */
+  --green-50:  #F0FDF4;
+  --green-100: #DCFCE7;
+  --green-200: #BBF7D0;
+  --green-300: #86EFAC;
+  --green-400: #4ADE80;
+  --green-500: #22C55E;
+  --green-600: #16A34A;
+  --green-700: #15803D;
+  --green-800: #166534;
+  --green-900: #14532D;
+
+  /* Yellow Scale */
+  --yellow-50:  #FEFCE8;
+  --yellow-100: #FEF9C3;
+  --yellow-200: #FEF08A;
+  --yellow-300: #FDE047;
+  --yellow-400: #FACC15;
+  --yellow-500: #EAB308;
+  --yellow-600: #CA8A04;
+  --yellow-700: #A16207;
+  --yellow-800: #854D0E;
+  --yellow-900: #713F12;
+
+  /* Blue Scale */
+  --blue-50:  #EFF6FF;
+  --blue-100: #DBEAFE;
+  --blue-200: #BFDBFE;
+  --blue-300: #93C5FD;
+  --blue-400: #60A5FA;
+  --blue-500: #3B82F6;
+  --blue-600: #2563EB;
+  --blue-700: #1D4ED8;
+  --blue-800: #1E40AF;
+  --blue-900: #1E3A8A;
+
+  /* =========================================================
+     WHITE THEME (REDEFINED WITH USER PALETTE)
+     ========================================================= */
+  /* Surfaces & Canvas */
+  --bg-canvas: var(--neutral-50);        /* #F9FAFB */
+  --bg-surface: var(--neutral-white);     /* #FFFFFF */
+  --bg-surface-subtle: var(--neutral-50); /* #F9FAFB */
+  --bg-surface-hover: var(--neutral-100); /* #F3F4F6 */
+  --bg-diff: var(--neutral-50);           /* #F9FAFB */
+  --gutter-bg: var(--neutral-50);         /* #F9FAFB */
 
   /* Borders & Dividers */
-  --border-subtle: #F0F2EE;
-  --border-medium: #E7E9E5;
-  --border-strong: #D5D8D2;
-  --border-focus: #28B900;
+  --border-subtle: var(--neutral-100);    /* #F3F4F6 */
+  --border-medium: var(--neutral-200);    /* #E5E7EB */
+  --border-strong: var(--neutral-300);    /* #D1D5DB */
+  --border-focus: var(--green-500);       /* #22C55E */
 
-  /* Gray & Black Combinations (Clean, Small, Not Bold) */
-  --text-primary: #171917;     /* Near-black primary text */
-  --text-secondary: #404440;   /* Charcoal dark gray */
-  --text-muted: #858A85;       /* Slate medium gray */
-  --text-faint: #A4A9A4;       /* Subtle light gray */
+  /* Typography / Text Tokens */
+  --text-primary: var(--neutral-900);     /* #111827 */
+  --text-secondary: var(--neutral-700);   /* #374151 */
+  --text-muted: var(--neutral-500);       /* #6B7280 */
+  --text-faint: var(--neutral-400);       /* #9CA3AF */
 
-  /* Lush Emerald / Leaf Gradient (Applied ONLY to highlighted card in Pane 1) */
-  --gradient-active-card: linear-gradient(140deg, #28B900 0%, #209900 50%, #177300 100%);
-  --shadow-active-card: 0 6px 18px -2px rgba(40, 185, 0, 0.35);
+  /* Semantic Highlight Gradient (Active Card in Pane 1) */
+  --gradient-active-card: linear-gradient(140deg, var(--green-500) 0%, var(--green-600) 50%, var(--green-700) 100%);
+  --shadow-active-card: 0 6px 18px -2px rgba(22, 163, 74, 0.3);
 
-  --emerald-primary: #28B900;
-  --emerald-light: #34d399;
-  --emerald-subtle: #EAF8D7;
-  --emerald-border: rgba(40, 185, 0, 0.25);
+  /* Semantic Accent Scales */
+  --emerald-primary: var(--green-600);    /* #16A34A */
+  --emerald-light: var(--green-400);      /* #4ADE80 */
+  --emerald-subtle: var(--green-50);      /* #F0FDF4 */
+  --emerald-border: var(--green-200);     /* #BBF7D0 */
 
-  --blue-primary: #2563eb;
-  --blue-subtle: #eff6ff;
-  --blue-border: #bfdbfe;
+  --blue-primary: var(--blue-600);        /* #2563EB */
+  --blue-subtle: var(--blue-50);          /* #EFF6FF */
+  --blue-border: var(--blue-200);         /* #BFDBFE */
 
-  --amber-primary: #d97706;
-  --amber-subtle: #fffbeb;
-  --amber-border: #fde68a;
+  --amber-primary: var(--yellow-600);     /* #CA8A04 */
+  --amber-subtle: var(--yellow-50);       /* #FEFCE8 */
+  --amber-border: var(--yellow-200);      /* #FEF08A */
 
-  --rose-primary: #dc2626;
-  --rose-subtle: #fef2f2;
-  --rose-border: #fecaca;
+  --rose-primary: var(--red-600);         /* #DC2626 */
+  --rose-subtle: var(--red-50);           /* #FEF2F2 */
+  --rose-border: var(--red-200);          /* #FECACA */
 
-  --color-accent: #A8F000;
-  --color-green: #28B900;
-  --color-green-soft: #EAF8D7;
-  --color-black-ctrl: #080908;
+  --color-accent: var(--green-600);       /* #16A34A */
+  --color-green: var(--green-600);        /* #16A34A */
+  --color-green-soft: var(--green-50);    /* #F0FDF4 */
+  --color-black-ctrl: var(--neutral-black);/* #111318 */
 
-  /* Guaranteed Sans-Serif Font Stack (Inter primary, Segoe UI Windows native fallback) */
+  /* Guaranteed Sans-Serif Font Stack */
   --font-sans: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, 'Courier New', monospace;
 
-  /* Compact Radii (Preserving exact good sizing) */
+  /* Compact Radii */
   --radius-card: 10px;
   --radius-item: 8px;
   --radius-pill: 9999px;
@@ -268,15 +337,15 @@ body.resizing {
 
 .pill-btn.action-btn {
   cursor: pointer;
-  background: var(--color-black-ctrl, #312F30);
+  background: var(--color-black-ctrl, #111318);
   color: #ffffff;
-  border-color: var(--color-black-ctrl, #312F30);
+  border-color: var(--color-black-ctrl, #111318);
   font-weight: 500;
 }
 
 .pill-btn.action-btn:hover {
-  background: #444242;
-  border-color: #444242;
+  background: var(--neutral-800, #1F2937);
+  border-color: var(--neutral-800, #1F2937);
 }
 
 [data-theme="dark"] .pill-btn.action-btn,
@@ -798,9 +867,9 @@ body.dark-theme .pill-btn.action-btn:hover {
 
 .trace-item-tag.tag-completed,
 .trace-item-tag.tag-agent {
-  background: #ecfdf5 !important;
-  color: #059669 !important;
-  border: 1px solid #a7f3d0 !important;
+  background: var(--green-50, #F0FDF4) !important;
+  color: var(--green-700, #15803D) !important;
+  border: 1px solid var(--green-200, #BBF7D0) !important;
   font-weight: 500 !important;
 }
 
@@ -886,9 +955,9 @@ body.dark-theme .trace-item-row.status-working .trace-item-title {
 }
 
 .trace-item-tag.tag-working {
-  background: #fef3c7 !important;
-  color: #b45309 !important;
-  border: 1px solid #fde68a !important;
+  background: var(--yellow-100, #FEF9C3) !important;
+  color: var(--yellow-800, #854D0E) !important;
+  border: 1px solid var(--yellow-200, #FEF08A) !important;
   font-weight: 500 !important;
   display: inline-flex;
   align-items: center;
