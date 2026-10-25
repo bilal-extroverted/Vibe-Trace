@@ -518,6 +518,19 @@
     if (driftScoreBadge) {
       const score = Math.round(drift.alignmentScore != null ? drift.alignmentScore : 100);
       driftScoreBadge.textContent = `${score}% ALIGNED`;
+      if (score >= 90) {
+        driftScoreBadge.style.color = '#15803d';
+        driftScoreBadge.style.background = '#f0fdf4';
+        driftScoreBadge.style.borderColor = '#bbf7d0';
+      } else if (score >= 70) {
+        driftScoreBadge.style.color = '#854d0e';
+        driftScoreBadge.style.background = '#fef9c3';
+        driftScoreBadge.style.borderColor = '#fef08a';
+      } else {
+        driftScoreBadge.style.color = '#b91c1c';
+        driftScoreBadge.style.background = '#fee2e2';
+        driftScoreBadge.style.borderColor = '#fca5a5';
+      }
     }
 
     // Risk Badge
@@ -531,7 +544,7 @@
     if (driftAlertBanner) {
       if (drift.hasSignificantIssue || drift.riskLevel === 'HIGH' || drift.riskLevel === 'CRITICAL') {
         driftAlertBanner.className = 'drift-alert-banner alert-critical';
-        if (driftAlertTitle) driftAlertTitle.textContent = drift.alertTitle || '⚠️ SIGNIFICANT DIVERGENCE DETECTED';
+        if (driftAlertTitle) driftAlertTitle.textContent = drift.alertTitle || 'SIGNIFICANT DIVERGENCE DETECTED';
         if (driftAlertTag) driftAlertTag.textContent = `${(drift.riskLevel || 'CRITICAL').toUpperCase()} ALERT`;
         if (driftAlertMessage) {
           driftAlertMessage.textContent = drift.alertMessage || 'The output code differs significantly from what your prompt requested.';
@@ -543,7 +556,7 @@
         if (driftAlertMessage) driftAlertMessage.textContent = drift.alertMessage || 'Minor variance between prompt and output.';
       } else {
         driftAlertBanner.className = 'drift-alert-banner alert-success';
-        if (driftAlertTitle) driftAlertTitle.textContent = '✓ PROMPT & OUTPUT FULLY ALIGNED';
+        if (driftAlertTitle) driftAlertTitle.textContent = 'PROMPT & OUTPUT FULLY ALIGNED';
         if (driftAlertTag) driftAlertTag.textContent = 'VERIFIED';
         if (driftAlertMessage) driftAlertMessage.textContent = 'No unrequested modifications or discrepancies detected. Code strictly matches declared prompt.';
       }
@@ -556,13 +569,21 @@
     if (driftActualOutputText) {
       driftActualOutputText.textContent = drift.actualExecution || (trace?.summary ? trace.summary : 'Applied code modifications.');
     }
+    const driftOutputDot = document.getElementById('drift-output-dot');
+    if (driftOutputDot) {
+      if (drift.hasDifference) {
+        driftOutputDot.className = 'comparison-dot output-dot dot-diverged';
+      } else {
+        driftOutputDot.className = 'comparison-dot output-dot';
+      }
+    }
 
     // Difference Analysis
     if (driftDifferenceText) {
       driftDifferenceText.textContent = drift.differenceAnalysis || 'Output aligns with declared requirements.';
     }
 
-    // Discrepancies List
+    // Discrepancies List (Contextual colors: green check for clean, red bullet for discrepancy)
     if (driftDiscrepanciesList) {
       driftDiscrepanciesList.innerHTML = '';
       const items = [];
@@ -578,12 +599,13 @@
 
       if (items.length === 0) {
         const li = document.createElement('li');
-        li.style.color = 'var(--text-muted)';
-        li.textContent = '✓ No unrequested deviations or missing requirements detected.';
+        li.className = 'item-clean';
+        li.textContent = 'No unrequested deviations or missing requirements detected.';
         driftDiscrepanciesList.appendChild(li);
       } else {
         items.forEach(item => {
           const li = document.createElement('li');
+          li.className = 'item-discrepancy';
           li.textContent = item;
           driftDiscrepanciesList.appendChild(li);
         });
@@ -591,16 +613,29 @@
     }
 
     // Risk & Impact
+    const driftRiskBlock = document.getElementById('drift-risk-block');
+    if (driftRiskBlock) {
+      if (drift.hasSignificantIssue || drift.riskLevel === 'HIGH' || drift.riskLevel === 'CRITICAL') {
+        driftRiskBlock.className = 'detail-block drift-risk-block risk-warning';
+      } else {
+        driftRiskBlock.className = 'detail-block drift-risk-block';
+      }
+    }
     if (driftRiskText) {
       driftRiskText.textContent = drift.riskAssessment || 'Systemic boundaries consistent.';
     }
 
-    // Remedy
-    if (driftRemedyContent) {
-      driftRemedyContent.innerHTML = '';
-      const span = document.createElement('span');
-      span.textContent = drift.suggestedRemedy || 'Changes verified. Safe to proceed.';
-      driftRemedyContent.appendChild(span);
+    // Remedy (Only display when there is a divergence to remedy)
+    const driftRemedyBlock = document.getElementById('drift-remedy-block');
+    if (driftRemedyBlock) {
+      if (drift.hasDifference && drift.suggestedRemedy) {
+        driftRemedyBlock.classList.remove('hidden');
+        if (driftRemedyContent) {
+          driftRemedyContent.innerHTML = `<span>${escapeHtml(drift.suggestedRemedy)}</span>`;
+        }
+      } else {
+        driftRemedyBlock.classList.add('hidden');
+      }
     }
 
     // Meta & Model
