@@ -1,6 +1,7 @@
 // VibeTrace Observability & Trace Engine
 // Analyzes real filesystem mutations, Git diffs, and executes AI Harness verification
 
+require('dotenv').config();
 const crypto = require('crypto');
 const harnessEngine = require('./harness/harnessEngine');
 
@@ -110,7 +111,7 @@ ${diffSummary.slice(0, 3500)}`;
   for (const model of modelList) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 20000);
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -127,7 +128,7 @@ ${diffSummary.slice(0, 3500)}`;
             { role: 'user', content: userPrompt }
           ],
           temperature: 0.1,
-          max_tokens: 350
+          max_tokens: 800
         }),
         signal: controller.signal
       });
@@ -136,15 +137,18 @@ ${diffSummary.slice(0, 3500)}`;
 
       if (response.ok) {
         const data = await response.json();
-        const raw = data.choices[0].message.content;
-        const match = raw.match(/\{[\s\S]*\}/);
+        const raw = data.choices?.[0]?.message?.content;
+        const match = raw?.match(/\{[\s\S]*\}/);
         if (match) {
           const parsed = JSON.parse(match[0]);
           return { parsed, modelUsed: model };
         }
+      } else {
+        const errText = await response.text();
+        console.warn(`[OpenRouter ${model} error ${response.status}]:`, errText.slice(0, 150));
       }
     } catch (e) {
-      // try next candidate
+      console.warn(`[OpenRouter ${model} exception]:`, e.message);
     }
   }
 
@@ -154,7 +158,7 @@ ${diffSummary.slice(0, 3500)}`;
 async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', harnessRules = '' }) {
   const startTime = Date.now();
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const configuredModel = (process.env.OPENROUTER_API_MODEL || 'thinkingmachines/inkling-small:free').trim();
+  const configuredModel = (process.env.OPENROUTER_API_MODEL || 'nvidia/nemotron-3.5-lightning:free').trim();
 
   const modelsToTry = [
     configuredModel,
