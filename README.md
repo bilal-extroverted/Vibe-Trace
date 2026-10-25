@@ -181,9 +181,10 @@ npx skills add bilal-extroverted/Vibe-Trace --all -y
 
 ### What the Agent Does Behind the Scenes
 Once the skill is installed into your project, you do not need to configure anything manually. When you give your AI agent any task:
-1. **Auto-Daemon Setup:** The agent checks `http://localhost:3000/api/status`. If VibeTrace is not yet running, it automatically boots up the dashboard in the background (`npx -y github:bilal-extroverted/Vibe-Trace &`) watching your project directory.
-2. **Auto-Protocol Initializer:** The agent automatically creates `vibetrace.md` in your project root, logging prompt intent, planned steps, and active file targets.
-3. **Real-Time Telemetry & Drift Prevention:** As the agent edits code, it updates `active_file` and checks off steps. On completion, VibeTrace automatically runs mechanical AST checks and audits prompt-to-diff alignment.
+1. **OpenRouter API Key Setup:** The agent checks if `.env` exists and has `OPENROUTER_API_KEY`. If not, it asks you directly for your key to configure `.env` (or you can skip to use built-in offline heuristics).
+2. **Auto-Daemon Setup:** The agent checks `http://localhost:3000/api/status`. If VibeTrace is not yet running, it automatically boots up the dashboard in the background (`npx -y github:bilal-extroverted/Vibe-Trace &`) watching your project directory.
+3. **Auto-Protocol Initializer:** The agent automatically creates `vibetrace.md` in your project root, logging prompt intent, planned steps, and active file targets.
+4. **Real-Time Telemetry & Drift Prevention:** As the agent edits code, it updates `active_file` and checks off steps. On completion, VibeTrace automatically runs mechanical AST checks and audits prompt-to-diff alignment.
 
 ### Zero-Mess Repository Isolation (How Your Project Stays Clean)
 When using VibeTrace with any external codebase:

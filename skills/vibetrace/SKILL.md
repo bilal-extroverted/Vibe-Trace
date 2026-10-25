@@ -1,6 +1,6 @@
 ---
 name: vibetrace
-description: Connects AI coding agents to the VibeTrace observability harness. Ensures the VibeTrace daemon is active, manages the vibetrace.md inter-agent communication protocol, tracks active file mutations, enforces strict drift-prevention guardrails, and synchronizes task lifecycle states (working, editing, completed, diverged).
+description: Connects AI coding agents to the VibeTrace observability harness. Prompts user to configure OPENROUTER_API_KEY in .env on first run, ensures VibeTrace daemon is active, manages the vibetrace.md inter-agent communication protocol, tracks active file mutations, enforces strict drift-prevention guardrails, and synchronizes task lifecycle states (working, editing, completed, diverged).
 ---
 
 # VibeTrace AI Agent Observability & Harness Protocol Skill
@@ -11,34 +11,42 @@ By following this skill, your actions will stream live into the VibeTrace dashbo
 
 ---
 
-## 🧭 The 4 Task Lifecycle States
+## The 4 Task Lifecycle States
 
 Every user prompt transitions through 4 visual card states in VibeTrace:
 
 | State | Visual Card | Trigger in `vibetrace.md` | Meaning |
 |---|---|---|---|
-| **Working** | 🟡 Golden Amber | `status: in_progress` or `status: working` | Agent received user prompt and is planning steps |
-| **Editing** | 🟠 Tangerine Orange | `active_file: "path/to/file"` | Agent is actively mutating code in the repository |
-| **Completed** | 🔵 Sapphire Blue | `status: completed` | Task finished; 100% aligned with user prompt |
-| **Diverged** | 🔴 Crimson Red Alert | Unrequested changes / scope drift | Drift Guard detected discrepancy between prompt and output |
+| **Working** | Golden Amber | `status: in_progress` or `status: working` | Agent received user prompt and is planning steps |
+| **Editing** | Tangerine Orange | `active_file: "path/to/file"` | Agent is actively mutating code in the repository |
+| **Completed** | Sapphire Blue | `status: completed` | Task finished; 100% aligned with user prompt |
+| **Diverged** | Crimson Red Alert | Unrequested changes / scope drift | Drift Guard detected discrepancy between prompt and output |
 
 ---
 
-## ⚡ Agent Step-by-Step Workflow
+## Agent Step-by-Step Workflow
 
-### Step 1: Verify & Auto-Setup VibeTrace Daemon
-Before writing code, verify that the VibeTrace observability server is running:
-- Check `http://localhost:3000/api/status`.
-- If not running, the agent automatically starts it in the background:
-  - Inside the VibeTrace repository:
-    ```bash
-    node server/index.js &
-    ```
-  - In any other project (where skill was added via `npx skills add bilal-extroverted/Vibe-Trace --all -y`):
-    ```bash
-    npx -y github:bilal-extroverted/Vibe-Trace &
-    ```
-- Ensure `vibetrace.md` exists in the project root (auto-create it if missing).
+### Step 1: Check OpenRouter API Key & Auto-Setup Daemon
+Before writing code or editing files:
+
+1. **Check for OpenRouter API Key in `.env`:**
+   Inspect the project root for `.env`. If `.env` is missing or `OPENROUTER_API_KEY` is not set:
+   - Ask the user directly:
+     > *"Would you like to provide an OpenRouter API key to configure AI-powered causal summaries and drift auditing in your `.env`? (Reply with your key or 'skip' to use zero-cost offline heuristic mode)."*
+   - If the user provides an API key, create or update `.env`:
+     ```ini
+     OPENROUTER_API_KEY=provided_key_here
+     OPENROUTER_API_MODEL=recursive/flint-v1.0:free
+     PORT=3000
+     ```
+   - If the user replies with 'skip' or declines, proceed in offline heuristic mode.
+
+2. **Verify & Auto-Start VibeTrace Observability Server:**
+   - Check `http://localhost:3000/api/status`.
+   - If not running, start it in the background:
+     - Inside this repository: `node server/index.js &`
+     - In any other project (installed via `npx skills add bilal-extroverted/Vibe-Trace --all -y`): `npx -y github:bilal-extroverted/Vibe-Trace &`
+   - Ensure `vibetrace.md` exists in the project root (auto-create it if missing).
 
 ### Step 2: Initialize `vibetrace.md` at Task Inception
 **CRITICAL:** Update `vibetrace.md` in the repository root **immediately** upon receiving a user prompt, *before* creating or editing code files.

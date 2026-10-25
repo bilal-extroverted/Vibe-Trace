@@ -1,19 +1,19 @@
 ---
 status: completed
-task: "Add Zero-Mess Repository Isolation guide and clean emojis in README"
+task: "Add automatic user prompt for OpenRouter API key setup in skill files"
 agent: "Antigravity AI"
-active_file: "README.md"
-file_action: "Added Zero-Mess Repository Isolation section, removed all emojis except title ⚡, and preserved GitHub banner image"
-file_summary: "README is cleanly formatted, free of emojis, includes external project isolation guide, and is ready for push"
-started_at: "2026-10-25T14:56:00.000Z"
-completed_at: "2026-10-25T14:58:00.000Z"
-updated_at: "2026-10-25T14:58:00.000Z"
+active_file: "skills/vibetrace/SKILL.md"
+file_action: "Updated skills/vibetrace/SKILL.md and README.md to instruct agents to ask for OPENROUTER_API_KEY when missing in .env"
+file_summary: "Agents equipped with vibetrace skill now proactively ask the user for their OpenRouter key to setup .env on first task"
+started_at: "2026-10-25T15:01:00.000Z"
+completed_at: "2026-10-25T15:02:00.000Z"
+updated_at: "2026-10-25T15:02:00.000Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Add the Zero-Mess Repository Isolation guide to README.md, remove all emojis across the document except the title ⚡, and ensure remote changes from GitHub are cleanly merged.
+> Configure skills/vibetrace/SKILL.md, .agents/skills/vibetrace/SKILL.md, and README.md so that any AI agent equipped with the skill prompts the user for their OpenRouter API key if not already configured in .env.
 
 ## Execution Plan & Steps
 - [x] Step 1: Update devpost/prd.md with Features Over Time evolution graph and Interactive Analysis Q&A engine

@@ -9,18 +9,20 @@ Use this skill whenever working on this repository or any codebase with VibeTrac
 
 ## Workflow
 
-### 1. Ensure VibeTrace Server is Running
-Before making code changes, check if the VibeTrace server is active on `http://localhost:3000`.
-If it is not running, start it in the background:
-- Inside this repository:
-  ```bash
-  node server/index.js &
+### 1. Check OpenRouter API Key & Ensure Server is Running
+Before making code changes:
+- Check if `.env` exists and has `OPENROUTER_API_KEY`. If missing, ask the user:
+  > *"Would you like to provide an OpenRouter API key to configure AI-powered causal summaries and drift auditing in your `.env`? (Reply with your key or 'skip' to use offline heuristic mode)."*
+  If provided, write it to `.env`:
+  ```ini
+  OPENROUTER_API_KEY=your_key_here
+  OPENROUTER_API_MODEL=recursive/flint-v1.0:free
+  PORT=3000
   ```
-- In any other project (installed via `npx skills add bilal-extroverted/Vibe-Trace --all -y`):
-  ```bash
-  npx -y github:bilal-extroverted/Vibe-Trace &
-  ```
-The dashboard will be live at `http://localhost:3000`. Ensure `vibetrace.md` exists in the project root.
+- Check if the VibeTrace server is active on `http://localhost:3000`. If not, start it in the background:
+  - Inside this repository: `node server/index.js &`
+  - In any other project (installed via `npx skills add bilal-extroverted/Vibe-Trace --all -y`): `npx -y github:bilal-extroverted/Vibe-Trace &`
+- Ensure `vibetrace.md` exists in the project root (auto-create if missing).
 
 ### 2. Update `vibetrace.md` at Task Start
 When you receive a coding instruction or user request, update `vibetrace.md` in the repository root to inform the harness and other agents:
