@@ -14,6 +14,82 @@ function formatTimestamp(d = new Date()) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+function inferDetailedFileAnalysis(file, content = '') {
+  const lines = (content || '').split(/\r?\n/);
+  const added = lines.filter(l => l.startsWith('+') && !l.startsWith('+++')).map(l => l.slice(1).trim());
+  const deleted = lines.filter(l => l.startsWith('-') && !l.startsWith('---')).map(l => l.slice(1).trim());
+  const allTouched = [...added, ...deleted];
+
+  // Extract functions and symbols
+  const symbols = new Set();
+  allTouched.forEach(line => {
+    const fnM = line.match(/(?:function\s+|const\s+|let\s+|var\s+)([a-zA-Z0-9_$]+)\s*(?:=\s*(?:async\s*)?\(|\()/);
+    if (fnM && !['if', 'for', 'while', 'switch', 'catch', 'setTimeout', 'setInterval', 'require'].includes(fnM[1])) {
+      symbols.add(fnM[1] + '()');
+    }
+    const methM = line.match(/^\s*([a-zA-Z0-9_$]+)\s*\([^)]*\)\s*\{/);
+    if (methM && !['if', 'for', 'while', 'switch', 'catch'].includes(methM[1])) {
+      symbols.add(methM[1] + '()');
+    }
+    const clsM = line.match(/class\s+([a-zA-Z0-9_$]+)/);
+    if (clsM) symbols.add('class ' + clsM[1]);
+    if (file.endsWith('.css')) {
+      const cssM = line.match(/\.([a-zA-Z0-9_-]{3,})/g);
+      if (cssM) cssM.slice(0, 3).forEach(c => symbols.add(c));
+    }
+  });
+
+  const symbolList = Array.from(symbols).slice(0, 4);
+  const filename = file.split(/[\\/]/).pop();
+
+  let whatChanged = '';
+  let affectedScope = [];
+  let downstreamImpact = '';
+
+  if (file.endsWith('.css')) {
+    whatChanged = `Updated styles & layout rules (+${added.length} / -${deleted.length} lines). Modified visual tokens, responsive rules, and micro-design.`;
+    affectedScope = symbolList.length ? symbolList : ['UI Styling', 'Responsive Design', 'Tokens'];
+    downstreamImpact = `Changes visual layout, typography, and component styling across the workbench.`;
+  } else if (file.endsWith('.html')) {
+    whatChanged = `Updated DOM structure and layout sections (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = ['HTML Structure', 'Workbench Panes', 'DOM Nodes'];
+    downstreamImpact = `Updates interactive anchors and inspector containers for client-side JavaScript binding.`;
+  } else if (file.includes('watcher')) {
+    whatChanged = `Updated filesystem watcher, active file tracking, and live telemetry broadcast (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = symbolList.length ? symbolList : ['Watcher Service', 'Active Trace Generator', 'SSE Stream'];
+    downstreamImpact = `Alters how file mutations are detected, batched, and pushed live to the browser dashboard.`;
+  } else if (file.includes('protocol')) {
+    whatChanged = `Enhanced agent protocol parser for active_file, file_action, and execution steps (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = symbolList.length ? symbolList : ['Protocol Manager', 'vibetrace.md Parser', 'Inter-Agent State'];
+    downstreamImpact = `Controls synchronization of declared agent intents and active file status with the dashboard.`;
+  } else if (file.includes('diffViewer')) {
+    whatChanged = `Updated syntax diff viewer component and change insight overlays (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = symbolList.length ? symbolList : ['Diff Inspector', 'Syntax Highlighting', 'File Intelligence'];
+    downstreamImpact = `Improves readability of code diffs and displays exact what-changed insights per file.`;
+  } else if (file.includes('app.js')) {
+    whatChanged = `Updated client-side event handlers, live trace tracking, and panel population (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = symbolList.length ? symbolList : ['Dashboard Logic', 'SSE Telemetry', 'Trace Inspector'];
+    downstreamImpact = `Enables immediate reactive UI updates for active file changes and minimal line animations.`;
+  } else if (file.endsWith('.md')) {
+    whatChanged = `Updated communication protocol documentation and task specification (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = ['Task Specification', 'Execution Plan', 'Harness Directives'];
+    downstreamImpact = `Signals agent status transitions and provides instructions to observing agents and reviewers.`;
+  } else {
+    whatChanged = `Modified ${filename} (+${added.length} / -${deleted.length} lines).`;
+    affectedScope = symbolList.length ? symbolList : [filename.replace(/\.[^.]+$/, '')];
+    downstreamImpact = `Modifications isolated to ${filename}. Systemic integrity preserved.`;
+  }
+
+  return {
+    whatChanged,
+    affectedScope,
+    downstreamImpact,
+    symbols: symbolList,
+    additions: added.length,
+    deletions: deleted.length
+  };
+}
+
 // Generate real trace object from git diffs and context
 function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '.', aiResponse = null, latencyMs = 240, modelUsed = 'heuristic-tracer' }) {
   const files = diffs.map(d => d.file || '');
@@ -23,6 +99,13 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '
 
   const traceId = generateTraceId();
   const timestamp = formatTimestamp();
+
+  // Attach per-file detailed change and impact analysis
+  diffs.forEach(d => {
+    if (!d.analysis) {
+      d.analysis = inferDetailedFileAnalysis(d.file, d.content);
+    }
+  });
 
   // Subsystem classification
   const dbFiles = files.filter(f => /\.(sql|prisma)$|migration|schema|database/i.test(f));
@@ -36,19 +119,25 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '
 
   const harnessReport = harnessEngine.validate({ files, diffs, watchDir });
 
+  // Synthesize intelligent fallback if AI response is missing or rate limited
+  const synthesizedWhatChanged = diffs.map(d => d.analysis ? `${d.file}: ${d.analysis.whatChanged}` : `Modified ${d.file}`).slice(0, 5);
+  const synthesizedAffected = Array.from(new Set(diffs.flatMap(d => d.analysis ? d.analysis.affectedScope : []))).slice(0, 6);
+  const synthesizedDownstream = diffs.length > 0 && diffs[0].analysis
+    ? `${diffs[0].analysis.downstreamImpact} Code modifications safely contained across ${files.length} file(s).`
+    : `Local modifications to ${files.slice(0, 3).join(', ')}. Existing systemic boundaries maintained.`;
+
   const synthesis = {
     summary: aiResponse?.summary || `Observed code modifications across ${files.length} file(s). Added ${additions} line(s), removed ${deletions} line(s).`,
-    whatChanged: Array.isArray(aiResponse?.whatChanged) && aiResponse.whatChanged.length > 0 ? aiResponse.whatChanged : [
-      `Modified ${files.length} file(s): ${files.slice(0, 3).join(', ')}`,
-      `Updated logic with +${additions} / -${deletions} line delta`
-    ],
+    whatChanged: Array.isArray(aiResponse?.whatChanged) && aiResponse.whatChanged.length > 0 ? aiResponse.whatChanged : synthesizedWhatChanged,
     affectedFeatures: Array.isArray(aiResponse?.affectedFeatures) && aiResponse.affectedFeatures.length > 0 ? aiResponse.affectedFeatures : (
-      files.map(f => {
-        const parts = f.replace(/\\/g, '/').split('/');
-        return parts.length > 1 ? parts[0] + ' (' + parts[parts.length - 1].replace(/\.[^.]+$/, '') + ')' : f;
-      }).slice(0, 4)
+      synthesizedAffected.length > 0 ? synthesizedAffected : (
+        files.map(f => {
+          const parts = f.replace(/\\/g, '/').split('/');
+          return parts.length > 1 ? parts[0] + ' (' + parts[parts.length - 1].replace(/\.[^.]+$/, '') + ')' : f;
+        }).slice(0, 4)
+      )
     ),
-    downstreamImpact: aiResponse?.downstreamImpact || aiResponse?.architecturalImpact || `Local modifications to ${files.slice(0, 3).join(', ')}. Existing systemic boundaries maintained.`,
+    downstreamImpact: aiResponse?.downstreamImpact || aiResponse?.architecturalImpact || synthesizedDownstream,
     riskLevel: aiResponse?.riskLevel || (harnessReport.status === 'FAIL' ? 'High' : (harnessReport.status === 'WARN' ? 'Medium' : 'Low'))
   };
 

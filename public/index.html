@@ -135,6 +135,54 @@
       </div>
 
       <div class="diff-viewer-container" id="diff-viewer-area">
+        <!-- GLOBAL TRACE CHANGE & IMPACT INTELLIGENCE BANNER -->
+        <div class="middle-trace-impact-banner" id="middle-trace-impact-banner">
+          <div class="trace-impact-header">
+            <div class="impact-header-left">
+              <span class="impact-sparkle-icon">✦</span>
+              <span class="impact-title">TRACE CHANGE & IMPACT INTELLIGENCE</span>
+              <span class="impact-risk-chip" id="middle-impact-risk">LOW RISK</span>
+            </div>
+            <button type="button" class="btn-toggle-impact" id="btn-toggle-trace-impact" title="Collapse or expand impact summary">
+              <span id="toggle-impact-icon">▲</span>
+              <span id="toggle-impact-label">Hide Summary</span>
+            </button>
+          </div>
+          <div class="trace-impact-body" id="middle-trace-impact-body">
+            <div class="trace-impact-grid">
+              <div class="trace-impact-card">
+                <div class="impact-card-title">
+                  <span class="impact-card-icon">⚡</span>
+                  <span>WHAT CHANGED</span>
+                </div>
+                <ul class="trace-impact-list" id="middle-what-changed-list">
+                  <li>Select a trace to view mechanical changes.</li>
+                </ul>
+              </div>
+
+              <div class="trace-impact-card">
+                <div class="impact-card-title">
+                  <span class="impact-card-icon">🎯</span>
+                  <span>WHAT WAS AFFECTED</span>
+                </div>
+                <div class="trace-affected-chips" id="middle-affected-features-chips">
+                  <span class="impact-chip">Core Logic</span>
+                </div>
+              </div>
+
+              <div class="trace-impact-card">
+                <div class="impact-card-title">
+                  <span class="impact-card-icon">🌊</span>
+                  <span>SYSTEMIC RIPPLE & DOWNSTREAM EFFECT</span>
+                </div>
+                <div class="trace-downstream-text" id="middle-downstream-desc">
+                  Select an execution trace to inspect systemic ripple effects.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="diffs-container" class="diffs-container"></div>
         <div class="empty-diff-state" id="empty-diff-state">
           <div class="empty-diff-icon">⎇</div>

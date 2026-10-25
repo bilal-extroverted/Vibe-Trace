@@ -1025,6 +1025,164 @@ body.resizing {
   position: relative;
 }
 
+/* =========================================================
+   MIDDLE PANE GLOBAL TRACE CHANGE & IMPACT INTELLIGENCE BANNER
+   ========================================================= */
+.middle-trace-impact-banner {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.trace-impact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-surface-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.impact-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.impact-sparkle-icon {
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.impact-title {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.impact-risk-chip {
+  font-size: 8.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  letter-spacing: 0.03em;
+}
+
+.impact-risk-chip.risk-high {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.impact-risk-chip.risk-medium {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.btn-toggle-impact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle-impact:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.trace-impact-body {
+  padding: 8px 12px;
+}
+
+.trace-impact-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .trace-impact-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.trace-impact-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.impact-card-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.impact-card-icon {
+  font-size: 9.5px;
+}
+
+.trace-impact-list {
+  margin: 0;
+  padding-left: 14px;
+  font-size: 11px;
+  color: var(--text-primary);
+  line-height: 1.35;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.trace-affected-chips {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.impact-chip {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+}
+
+.trace-downstream-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* =========================================================
+   PER-FILE CHANGE & IMPACT INTELLIGENCE BANNER (IN EACH FILE CARD)
+   ========================================================= */
 .diff-file-card {
   border: 1px solid var(--border-medium);
   border-radius: 8px;
@@ -1054,6 +1212,107 @@ body.resizing {
 
 .diff-filename {
   color: var(--text-primary);
+}
+
+.diff-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-file-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+}
+
+.btn-toggle-file-diff {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.btn-toggle-file-diff:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.diff-file-insights {
+  background: var(--bg-surface-subtle);
+  border-bottom: 1px solid var(--border-medium);
+  padding: 7px 12px;
+}
+
+.file-insight-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .file-insight-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.file-insight-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.file-insight-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.insight-label-icon {
+  font-size: 9px;
+}
+
+.file-insight-body {
+  font-size: 11px;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.file-insight-body.subtle {
+  color: var(--text-secondary);
+}
+
+.file-insight-chips {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.file-scope-chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
 }
 
 .diff-status-tag {

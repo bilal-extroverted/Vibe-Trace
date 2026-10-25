@@ -42,6 +42,17 @@
   const diffsContainer = document.getElementById('diffs-container');
   const emptyDiffState = document.getElementById('empty-diff-state');
 
+  // Middle Pane: Trace Impact & Change Intelligence Banner
+  const middleTraceImpactBanner = document.getElementById('middle-trace-impact-banner');
+  const middleTraceImpactBody = document.getElementById('middle-trace-impact-body');
+  const btnToggleTraceImpact = document.getElementById('btn-toggle-trace-impact');
+  const toggleImpactIcon = document.getElementById('toggle-impact-icon');
+  const toggleImpactLabel = document.getElementById('toggle-impact-label');
+  const middleImpactRisk = document.getElementById('middle-impact-risk');
+  const middleWhatChangedList = document.getElementById('middle-what-changed-list');
+  const middleAffectedFeaturesChips = document.getElementById('middle-affected-features-chips');
+  const middleDownstreamDesc = document.getElementById('middle-downstream-desc');
+
   // Right Pane: Inspector
   const paneRight = document.getElementById('pane-right');
   const rightTraceId = document.getElementById('right-trace-id');
@@ -575,6 +586,43 @@
       }
     }
 
+    // Populate Middle Pane Trace Impact Intelligence Banner
+    const synth = trace.synthesis || {};
+    if (middleTraceImpactBanner) {
+      middleTraceImpactBanner.style.display = 'block';
+    }
+    if (middleImpactRisk) {
+      const risk = (synth.riskLevel || 'LOW').toUpperCase();
+      middleImpactRisk.className = `impact-risk-chip risk-${risk.toLowerCase()}`;
+      middleImpactRisk.textContent = `${risk} RISK`;
+    }
+    if (middleWhatChangedList) {
+      middleWhatChangedList.innerHTML = '';
+      const changes = synth.whatChanged && synth.whatChanged.length > 0
+        ? synth.whatChanged
+        : (trace.summary ? [trace.summary] : [`Observed line delta (+${trace.additions || 0} / -${trace.deletions || 0}) across codebase`]);
+      changes.forEach(ch => {
+        const li = document.createElement('li');
+        li.textContent = ch;
+        middleWhatChangedList.appendChild(li);
+      });
+    }
+    if (middleAffectedFeaturesChips) {
+      middleAffectedFeaturesChips.innerHTML = '';
+      const feats = synth.affectedFeatures && synth.affectedFeatures.length > 0
+        ? synth.affectedFeatures
+        : (trace.subsystems?.length ? trace.subsystems : ['Core Logic']);
+      feats.forEach(feat => {
+        const chip = document.createElement('span');
+        chip.className = 'impact-chip';
+        chip.textContent = feat;
+        middleAffectedFeaturesChips.appendChild(chip);
+      });
+    }
+    if (middleDownstreamDesc) {
+      middleDownstreamDesc.textContent = synth.downstreamImpact || trace.architecturalImpact || 'Local modifications safely contained. Systemic boundaries maintained.';
+    }
+
     // Populate Right Pane Coordinates (Relocated from Middle Pane)
     if (rightTraceId) rightTraceId.textContent = `ID: ${trace.id ? trace.id.slice(0, 8) : '--'}`;
     if (rightTraceTime) rightTraceTime.textContent = trace.timestamp || '';
@@ -630,11 +678,11 @@
     });
   }
 
-  // 12. Render Diffs in Middle Pane
+  // 12. Render Diffs in Middle Pane with Trace Intelligence
   function renderDiffsContent(trace) {
     const diffs = trace.diffs || [];
     if (window.diffViewer) {
-      window.diffViewer.render(diffsContainer, diffs, selectedFileFilter);
+      window.diffViewer.render(diffsContainer, diffs, selectedFileFilter, trace);
     }
   }
 
@@ -972,6 +1020,14 @@
           setTimeout(() => { btnCopyActiveFile.textContent = original; }, 1600);
         }
       } catch (e) {}
+    });
+  // Toggle Trace Impact & Change Intelligence Banner
+  if (btnToggleTraceImpact && middleTraceImpactBody) {
+    btnToggleTraceImpact.addEventListener('click', () => {
+      const isHidden = middleTraceImpactBody.style.display === 'none';
+      middleTraceImpactBody.style.display = isHidden ? 'block' : 'none';
+      if (toggleImpactIcon) toggleImpactIcon.textContent = isHidden ? '▲' : '▼';
+      if (toggleImpactLabel) toggleImpactLabel.textContent = isHidden ? 'Hide Summary' : 'Show Summary';
     });
   }
 
