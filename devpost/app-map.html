@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeTrace — Architecture & App Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --border-accent: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --pass: #16a34a;
+      --pass-bg: #f0fdf4;
+      --warn: #d97706;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    p.lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 800px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    ul.check-list {
+      list-style: none;
+      font-size: 13px;
+    }
+    ul.check-list li {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .code-pill {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #1e293b;
+    }
+    .diagram-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 40px;
+    }
+    .diagram-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      border-radius: 8px;
+    }
+    .flow-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+    .flow-content h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .flow-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Architecture & App Map</span>
+      <h1>VibeTrace System Map</h1>
+      <p class="lead">
+        A developer-first observability harness and agent communication protocol that eliminates blind faith in AI code generation through real-time diffs, mechanical integrity checks, and persistent SQLite tracking.
+      </p>
+    </header>
+
+    <section class="diagram-section">
+      <h2>End-to-End Agent Execution Flow</h2>
+      <div class="diagram-flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-content">
+            <h4>Agent Skill Discovery & Initialization</h4>
+            <p>Coding agent loads <span class="code-pill">skills/vibetrace/SKILL.md</span> and confirms the VibeTrace telemetry daemon is listening on <span class="code-pill">http://localhost:3000</span>.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-content">
+            <h4>Task Start & vibetrace.md Synchronization</h4>
+            <p>Agent writes <span class="code-pill">vibetrace.md</span> with <span class="code-pill">status: in_progress</span>, user task intent, and step checklist. VibeTrace SSE broadcasts live status to the UI top bar and right pane.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-content">
+            <h4>Live Debounced File Watching</h4>
+            <p><span class="code-pill">server/watcher.js</span> monitors filesystem mutations with a 1500ms sliding debounce window and diff hash deduplication, stabilizing active file writes.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-content">
+            <h4>Mechanical AI Harness Engineering Audit</h4>
+            <p>Upon completion or stabilization, <span class="code-pill">server/harness/harnessEngine.js</span> executes real mechanical checks: syntax compilation via Node, protected files guard (<span class="code-pill">.env</span>, keys), secret scanning, and dependency boundaries.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <div class="flow-content">
+            <h4>Causal Intelligence & SQLite Persistence</h4>
+            <p>Diffs and metadata are analyzed via OpenRouter (or heuristic fallback) and permanently stored in <span class="code-pill">vibetrace.db</span> via Node.js native <span class="code-pill">node:sqlite</span>.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">6</div>
+          <div class="flow-content">
+            <h4>Developer Observability & Interactive Q&A</h4>
+            <p>Developer inspects the 3-pane light-theme dashboard, examines line-by-line diffs with line numbers, and asks technical questions via the interactive AI query engine.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h3>⚡ Protocol & Skill Layer</h3>
+        <p>Defines how any autonomous coding agent communicates its state, intent, and progress.</p>
+        <ul class="check-list">
+          <li><b>skills/vibetrace/SKILL.md:</b> Agent instructions and workflow specification</li>
+          <li><b>vibetrace.md:</b> Live YAML frontmatter protocol in workspace root</li>
+          <li><b>server/harness/protocol.js:</b> Parser and serializer for protocol synchronization</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🛡️ Mechanical Harness Engine</h3>
+        <p>Automated software engineering verification guards that run without human intervention.</p>
+        <ul class="check-list">
+          <li><b>Syntax Integrity:</b> <span class="code-pill">node --check</span> AST compilation verification</li>
+          <li><b>Protected Files Guard:</b> Blocks modifications to credentials, dotfiles, and keys</li>
+          <li><b>Secret Scanner:</b> Scans diff content for leaked tokens and private keys</li>
+          <li><b>Dependency Guard:</b> Verifies package boundaries and structural imports</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>💾 Persistent Storage</h3>
+        <p>Zero-configuration native SQLite database engine storing complete telemetry history.</p>
+        <ul class="check-list">
+          <li><b>server/db.js:</b> Implemented with Node.js LTS native <span class="code-pill">node:sqlite</span></li>
+          <li><b>vibetrace.db:</b> Normalized schema: <span class="code-pill">projects</span>, <span class="code-pill">traces</span>, <span class="code-pill">diffs</span>, <span class="code-pill">queries</span></li>
+          <li><b>Session Resilience:</b> Retains full trace history across server restarts</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🖥️ 3-Pane Light Theme Dashboard</h3>
+        <p>Clean developer interface optimized for readability, side-by-side IDE use, and diff inspection.</p>
+        <ul class="check-list">
+          <li><b>Left Pane:</b> Project metadata card, search bar, and historical traces feed</li>
+          <li><b>Middle Pane:</b> Commit tags, file tabs, and syntax-highlighted code diffs</li>
+          <li><b>Right Pane:</b> Live <span class="code-pill">vibetrace.md</span> guidance, harness audit, AI Q&A box, and plain-English summary</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="card">
+      <h3>📁 Codebase Manifest</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>File / Directory</th>
+            <th>Component Responsibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="code-pill">vibetrace.md</span></td>
+            <td>Root agent protocol file tracking active status, task intent, and checklist steps.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">skills/vibetrace/SKILL.md</span></td>
+            <td>Agent instruction skill file guiding agents on running the harness and reporting.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">server/index.js</span></td>
+            <td>Express server with SSE telemetry broadcast, protocol endpoints, and query engine.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">server/watcher.js</span></td>
+            <td>Chokidar watcher with sliding debouncing (1500ms), diff deduplication, and completion trigger.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">server/db.js</span></td>
+            <td>Persistent SQLite database layer using Node.js built-in <span class="code-pill">node:sqlite</span>.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">server/harness/harnessEngine.js</span></td>
+            <td>Mechanical software engineering checks: syntax, protected files, secrets, dependencies.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">server/harness/protocol.js</span></td>
+            <td>Robust YAML frontmatter and markdown parser/writer for <span class="code-pill">vibetrace.md</span>.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">server/gitService.js</span></td>
+            <td>Multi-mode Git inspection (working tree, index, untracked, recent commit fallback).</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">public/index.html</span></td>
+            <td>Clean 3-pane light-theme dashboard layout with zero onboarding modals or demo clutter.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">public/app.js</span></td>
+            <td>Frontend controller handling SSE streams, diff rendering, theme toggling, and AI Q&A.</td>
+          </tr>
+          <tr>
+            <td><span class="code-pill">public/diffViewer.js</span></td>
+            <td>Syntax-highlighted diff engine with line numbers, file filtering, and chunk headers.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

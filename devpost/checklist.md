@@ -49,6 +49,16 @@ Build mode: fast
   Learner check: Connect to a local folder, view the 3-pane UI, inspect code diffs in the middle pane, and ask questions in the right pane.
   Commit: `feat: implement functional 3-pane AI code observability with real-time diffs and trace query engine`
 
+- [x] **5. vibetrace.md Agent-Harness Communication Protocol, SQLite Persistence & Skills Integration**
+  Becomes usable: AI coding agents automatically discover the VibeTrace skill via `skills/vibetrace/SKILL.md` (and `.agents/skills/vibetrace/SKILL.md`), maintain `vibetrace.md` for live task tracking (`idle`, `in_progress`, `completed`), checklist steps, and inter-agent notes. When `status: completed` is set, VibeTrace automatically captures diffs, executes mechanical harness audits (syntax check via `node --check`, protected files, secret scanner, dependency guard), and persists traces permanently into SQLite (`vibetrace.db`).
+  Why now: Directly solves the core developer pain—enabling transparent, observable agent execution without onboarding modals, fake demos, or manual overhead.
+  PRD ref: `prd.md > 1. Live Project Watcher & Ingestion`, `prd.md > 2. Timeline Tile Feed`
+  Spec ref: `spec.md > Components > 1. Workspace & Git Watcher`, `spec.md > Components > 2. Harness & Skills Context Reader`
+  Build: Built `skills/vibetrace/SKILL.md`, `vibetrace.md`, `server/harness/protocol.js`, `server/db.js`, `server/harness/harnessEngine.js`, and updated `server/watcher.js` and `public/app.js`.
+  Verify (mechanical): Tested `vibetrace.md` lifecycle transitions (`in_progress` -> `completed`), confirmed SSE telemetry broadcasts, SQLite trace persistence, and instant dashboard updates.
+  Learner check: Update `vibetrace.md` status, observe the live status pulse and task name in the top bar and right pane, and view the captured trace in the left pane.
+  Commit: `feat: implement vibetrace.md agent communication protocol, live task tracking, and skills guide`
+
 ## Hands-on Checkpoints
 
 - [ ] Early usable behavior explored — Slice 2 (Demo Scenario execution with plain-English summary & drift alert)
