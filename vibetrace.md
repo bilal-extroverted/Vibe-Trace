@@ -1,25 +1,25 @@
 ---
 status: completed
-task: "Remove redundant project pill from navbar and streamline top header"
+task: "Ensure right pane information updates dynamically with each trace"
 agent: "Antigravity AI"
-active_file: "public/index.html"
-file_action: "Removed project pill from top navbar, cleaned up style.css and bumped cache busters"
-file_summary: "Removed the redundant [folder] learn-ai-basics pill from the top navbar. The workspace directory remains clearly stated in Pane 1 header, leaving the top navbar minimal with brand logo, Mind Map, Rescan, and Theme toggle."
-started_at: "2026-10-25T09:40:00Z"
-completed_at: "2026-10-25T09:43:00Z"
+active_file: "public/app.js"
+file_action: "Updated right pane data binding and fixed prompt submission handler"
+file_summary: "Right pane now immediately updates with each trace captured, created, or selected"
+started_at: "2026-10-25T10:01:01.482Z"
+completed_at: "2026-10-25T10:02:15.000Z"
+updated_at: "2026-10-25T10:02:15.000Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Remove project pill from top navbar to simplify the top controls and eliminate redundancy with Pane 1 header.
+> Ensure right pane information updates dynamically with each new trace
 
 ## Execution Plan & Steps
-- [x] Step 1: Remove `.project-pill` (`nav-project-name`) from `public/index.html`.
-- [x] Step 2: Clean up obsolete `.project-pill` CSS styles from `public/style.css`.
-- [x] Step 3: Bump cache busters to `?v=6.2` in `public/index.html`.
-- [x] Step 4: Verify and commit cleanly.
+- [x] Step 1: Fixed renderTraces typo in initAgentPromptComposer to ensure selectTrace executes
+- [x] Step 2: Bound all right pane sections (Prompt Card, Drift Guard, AI Synthesis, Agent Plan steps, Harness checks, Telemetry) in populateRightPane
+- [x] Step 3: Verified SSE trace, trace_active, and drift_update handlers immediately trigger populateRightPane
 
 ## Inter-Agent & Harness Communication Notes
-- Color harmony strictly enforced: Emerald Green (`#15803d` / `#f0fdf4`) for verified success, Crimson Red (`#dc2626` / `#fef2f2`) exclusively for true divergences or critical regressions.
-- Risk consensus between panes restored.
+- Real-time trace synchronization active on dashboard
+- Dual isolated perspectives (AI synthesis vs declared agent plan) fully operational

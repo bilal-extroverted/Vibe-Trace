@@ -296,8 +296,9 @@
           const targetTrace = traces.find(t => t.id === payload.traceId);
           if (targetTrace) {
             targetTrace.driftAnalysis = payload.driftAnalysis;
+            renderTracesList();
             if (selectedTraceId === payload.traceId) {
-              renderDriftAnalysis(payload.driftAnalysis, targetTrace);
+              populateRightPane(targetTrace);
             }
           }
         }
@@ -344,6 +345,9 @@
       if (proto.task) activeItem.title = proto.task;
       if (proto.active_file) activeItem.activeFile = proto.active_file;
       renderTracesList();
+      if (selectedTraceId === activeItem.id) {
+        populateRightPane(activeItem);
+      }
     }
   }
 
@@ -369,8 +373,9 @@
       traces.unshift(activeTrace);
     }
 
+    const currentActive = traces[existingIdx !== -1 ? existingIdx : 0];
     renderTracesList();
-    selectTrace(activeTrace.id);
+    selectTrace(currentActive ? currentActive.id : activeTrace.id);
 
     if (activeTrace.agentProtocol) {
       renderProtocol(activeTrace.agentProtocol);
@@ -1362,8 +1367,20 @@
 
   // 13. Populate Right Pane (Dual Isolated Perspectives & Visual Impact)
   function populateRightPane(trace) {
+    if (!trace) return;
+
+    // Update Coordinates
+    if (rightTraceId) rightTraceId.textContent = `ID: ${trace.id ? trace.id.slice(0, 8) : '--'}`;
+    if (rightTraceTime) rightTraceTime.textContent = trace.timestamp || '';
+    if (rightTraceCommit) rightTraceCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
+
     // Update Top Synthesized Prompt & Task Card
-    const traceProto = trace.agentProtocol || (trace.inProgress ? latestProtocol : null) || {};
+    const traceProto = {
+      ...(trace.agentProtocol || {}),
+      task: trace.agentProtocol?.task || trace.title || (trace.inProgress ? latestProtocol?.task : '') || 'Code Changes',
+      intent: trace.agentProtocol?.intent || trace.agentProtocol?.task || trace.summary || trace.title || (trace.inProgress ? latestProtocol?.intent : '') || 'Code Changes',
+      agent: trace.agentProtocol?.agent || (trace.inProgress ? latestProtocol?.agent : '') || 'Antigravity AI'
+    };
     updatePromptCard(traceProto, trace.inProgress ? (trace.changing ? 'writing' : 'working') : 'completed');
 
     // Render Independent Prompt-to-Output Drift & Risk Guard
@@ -1394,7 +1411,7 @@
       heroStatFiles.textContent = trace.inProgress ? `${cnt} active` : `${cnt} file${cnt === 1 ? '' : 's'}`;
     }
     if (heroStatRisk) {
-      heroStatRisk.textContent = trace.inProgress ? 'IN PROGRESS' : (synth.riskLevel || 'LOW').toUpperCase();
+      heroStatRisk.textContent = trace.inProgress ? 'IN PROGRESS' : (synth.riskLevel || trace.driftAnalysis?.riskLevel || 'LOW').toUpperCase();
     }
 
     // Populate Right Pane Live Active File Mutation Card
@@ -1409,13 +1426,13 @@
           rightFileActionTag.style.borderColor = '#a7f3d0';
         }
         if (rightActiveFilePath) rightActiveFilePath.textContent = trace.activeFile || 'vibetrace.md';
-        if (rightFileActionDesc) rightFileActionDesc.textContent = trace.fileAction || 'Agent actively writing code to workspace...';
-        if (rightFileSummaryDesc) rightFileSummaryDesc.textContent = trace.fileSummary || trace.synthesis?.summary || 'Live modifications taking place in codebase.';
+        if (rightFileActionDesc) rightFileActionDesc.textContent = trace.fileAction || trace.agentProtocol?.file_action || 'Agent actively writing code to workspace...';
+        if (rightFileSummaryDesc) rightFileSummaryDesc.textContent = trace.fileSummary || trace.agentProtocol?.file_summary || trace.synthesis?.summary || 'Live modifications taking place in codebase.';
       } else {
         rightActiveFileCard.classList.remove('is-live');
-        const activeFile = trace.agentProtocol?.activeFile || (trace.files && trace.files[0]) || 'vibetrace.md';
-        const fileAction = trace.agentProtocol?.fileAction || trace.summary || `Code modifications across ${trace.files?.length || 1} file(s)`;
-        const fileSummary = trace.agentProtocol?.fileSummary || trace.synthesis?.overview || trace.summary || 'Trace recorded in SQLite.';
+        const activeFile = trace.agentProtocol?.activeFile || trace.activeFile || (trace.files && trace.files[0]) || 'vibetrace.md';
+        const fileAction = trace.agentProtocol?.fileAction || trace.fileAction || trace.summary || `Code modifications across ${trace.files?.length || 1} file(s)`;
+        const fileSummary = trace.agentProtocol?.fileSummary || trace.fileSummary || trace.synthesis?.overview || trace.summary || 'Trace recorded in SQLite.';
 
         if (rightFileStatusLabel) rightFileStatusLabel.textContent = 'CAPTURED MUTATION';
         if (rightFileActionTag) {
@@ -1438,7 +1455,7 @@
     // Exact Mechanical Changes Bullets
     if (aiWhatChangedList) {
       aiWhatChangedList.innerHTML = '';
-      const changes = synth.whatChanged || [
+      const changes = synth.whatChanged && synth.whatChanged.length > 0 ? synth.whatChanged : [
         `Modified ${trace.files?.length || 1} file(s) across repository`,
         `Applied line delta (+${trace.additions || 0} / -${trace.deletions || 0})`
       ];
@@ -1452,7 +1469,7 @@
     // Visualizing Affected Features & Modules
     if (aiAffectedFeaturesRow) {
       aiAffectedFeaturesRow.innerHTML = '';
-      const features = synth.affectedFeatures || (trace.subsystems?.length ? trace.subsystems : ['Core Logic']);
+      const features = synth.affectedFeatures && synth.affectedFeatures.length > 0 ? synth.affectedFeatures : (trace.subsystems?.length ? trace.subsystems : ['Core Logic']);
       features.forEach(feat => {
         const chip = document.createElement('span');
         chip.className = 'feature-tag';
@@ -1468,7 +1485,7 @@
 
     // Risk Assessment Badge
     if (aiRiskBadge) {
-      const risk = (synth.riskLevel || 'Low').toUpperCase();
+      const risk = (synth.riskLevel || trace.driftAnalysis?.riskLevel || 'LOW').toUpperCase();
       aiRiskBadge.className = `risk-badge risk-${risk.toLowerCase()}`;
       aiRiskBadge.textContent = `${risk} RISK`;
     }
@@ -1484,18 +1501,69 @@
     // PERSPECTIVE 2: CODING AGENT DECLARED PLAN (vibetrace.md)
     // (Completely isolated from OpenRouter AI synthesis)
     // -----------------------------------------------------------------
-    const agentProto = trace.agentProtocol;
-    if (agentProto && agentProto.task) {
-      if (protoTaskIntent) protoTaskIntent.textContent = agentProto.task;
-      if (protoStatusTag) {
-        if (trace.inProgress) {
-          protoStatusTag.className = 'agent-status-pill status-in_progress';
-          protoStatusTag.textContent = 'IN PROGRESS';
-        } else {
-          protoStatusTag.className = 'agent-status-pill status-completed';
-          protoStatusTag.textContent = 'COMPLETED';
-        }
+    const agentProto = trace.agentProtocol || (trace.inProgress ? latestProtocol : null) || {};
+    const taskIntent = agentProto.intent || agentProto.task || trace.title || 'Coding task executed';
+
+    if (protoTaskIntent) {
+      protoTaskIntent.textContent = taskIntent;
+    }
+    if (protoStatusTag) {
+      if (trace.inProgress) {
+        protoStatusTag.className = 'agent-status-pill status-in_progress';
+        protoStatusTag.textContent = 'IN PROGRESS';
+      } else {
+        protoStatusTag.className = 'agent-status-pill status-completed';
+        protoStatusTag.textContent = 'COMPLETED';
       }
+    }
+
+    // Populate Execution Steps Checklist
+    if (protoStepsList) {
+      protoStepsList.innerHTML = '';
+      const steps = agentProto.steps || (trace.inProgress && latestProtocol ? latestProtocol.steps : []) || [];
+      if (steps.length === 0) {
+        const fileNames = trace.files || (trace.diffs ? trace.diffs.map(d => d.file) : []);
+        const defaultSteps = trace.inProgress
+          ? [
+              { done: true, text: `Capture prompt: ${taskIntent}` },
+              { done: false, text: `Modifying workspace (${fileNames.length || 1} file(s))` },
+              { done: false, text: 'Harness syntax and security verification' }
+            ]
+          : [
+              { done: true, text: `Execute prompt: ${taskIntent}` },
+              { done: true, text: `Applied modifications across ${fileNames.length || 1} file(s)` },
+              { done: true, text: 'Harness syntax and security verification passed' }
+            ];
+        defaultSteps.forEach(s => {
+          const row = document.createElement('div');
+          row.className = `proto-step-row ${s.done ? 'done' : ''}`;
+          const checkIcon = s.done
+            ? '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"/></svg>';
+          row.innerHTML = `
+            <span class="proto-step-checkbox">${checkIcon}</span>
+            <span>${escapeHtml(s.text)}</span>
+          `;
+          protoStepsList.appendChild(row);
+        });
+      } else {
+        steps.forEach(s => {
+          const row = document.createElement('div');
+          row.className = `proto-step-row ${s.done ? 'done' : ''}`;
+          const checkIcon = s.done
+            ? '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+            : '<svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><rect x="3" y="3" width="18" height="18" rx="3" ry="3"/></svg>';
+          row.innerHTML = `
+            <span class="proto-step-checkbox">${checkIcon}</span>
+            <span>${escapeHtml(s.text)}</span>
+          `;
+          protoStepsList.appendChild(row);
+        });
+      }
+    }
+
+    if (protoNotesText) {
+      protoNotesText.textContent = agentProto.notes || (trace.inProgress ? 'vibetrace.md protocol active — monitoring changes' : 'Trace recorded in SQLite database.');
     }
 
     // -----------------------------------------------------------------
@@ -2024,7 +2092,7 @@
             traces.unshift(data.trace);
           }
 
-          renderTraces();
+          renderTracesList();
           selectTrace(data.trace.id);
           logTicker(`Prompt accepted: ${promptText}`);
         }

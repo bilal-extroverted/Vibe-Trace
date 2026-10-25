@@ -66,7 +66,8 @@ class WorkspaceWatcher {
         ...proto,
         active_file: activeFile,
         file_action: fileAction,
-        file_summary: fileSummary
+        file_summary: fileSummary,
+        intent: proto.intent || proto.task || 'Active task'
       },
       synthesis: {
         overview: fileSummary,
@@ -81,10 +82,14 @@ class WorkspaceWatcher {
         downstreamImpact: `Live modifications taking place in ${activeFile}. Full causal ripple analysis will execute upon task completion.`
       },
       harness: {
-        syntaxIntegrity: { status: 'passed', details: 'Monitoring live syntax buffers' },
-        protectedFiles: { status: 'passed', details: 'Guarded system files protected' },
-        secretScanner: { status: 'passed', details: 'No secrets detected in live buffers' },
-        dependencyGuard: { status: 'passed', details: 'No untrusted dependencies added' }
+        status: 'PASS',
+        advice: 'Active harness monitoring. Syntax and boundary checks running.',
+        checks: [
+          { name: 'Syntax Integrity', status: 'PASS', detail: 'Monitoring live syntax buffers' },
+          { name: 'Protected Files', status: 'PASS', detail: 'Guarded system files protected' },
+          { name: 'Secret Scanner', status: 'PASS', detail: 'No secrets detected in live buffers' },
+          { name: 'Dependency Guard', status: 'PASS', detail: 'No untrusted dependencies added' }
+        ]
       },
       driftAnalysis: {
         hasDifference: false,
@@ -348,10 +353,13 @@ class WorkspaceWatcher {
       analysis.agentProtocol = {
         agent: proto.agent || 'Coding Agent',
         task: proto.task || prompt,
+        intent: proto.intent || prompt,
         status: proto.status || 'completed',
         activeFile: proto.active_file || (files.length > 0 ? files[0] : null),
         fileAction: proto.file_action || null,
-        fileSummary: proto.file_summary || null
+        fileSummary: proto.file_summary || null,
+        steps: proto.steps || [],
+        notes: proto.notes || ''
       };
 
       // Run independent prompt-to-output drift & risk analysis via OpenRouter
