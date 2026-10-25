@@ -162,8 +162,13 @@ async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', ha
 
   const modelsToTry = [
     configuredModel,
-    'nvidia/nemotron-3.5-lightning:free'
-  ];
+    'nvidia/nemotron-3.5-lightning:free',
+    'meta-llama/llama-3.2-3b-instruct:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'google/gemini-2.0-flash-exp:free',
+    'mistralai/mistral-7b-instruct:free',
+    'qwen/qwen-2.5-coder-32b-instruct:free'
+  ].filter((v, i, a) => a.indexOf(v) === i);
 
   const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
 

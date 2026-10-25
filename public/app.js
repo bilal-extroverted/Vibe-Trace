@@ -19,6 +19,7 @@
   const themeIcon = document.getElementById('theme-icon');
 
   // Left Pane: Project & Traces Feed
+  const paneLeft = document.getElementById('pane-left');
   const leftGitBranch = document.getElementById('left-git-branch');
   const leftProjectName = document.getElementById('left-project-name');
   const leftProjectPath = document.getElementById('left-project-path');
@@ -28,6 +29,7 @@
   const emptyTracesState = document.getElementById('empty-traces-state');
 
   // Middle Pane: Trace Content & Diffs
+  const paneMiddle = document.getElementById('pane-middle');
   const middleTraceTitle = document.getElementById('middle-trace-title');
   const middleTraceId = document.getElementById('middle-trace-id');
   const middleTraceTime = document.getElementById('middle-trace-time');
@@ -36,7 +38,8 @@
   const diffsContainer = document.getElementById('diffs-container');
   const emptyDiffState = document.getElementById('empty-diff-state');
 
-  // Right Pane: Card 1 - Independent AI Model Synthesis (OpenRouter)
+  // Right Pane: Inspector
+  const paneRight = document.getElementById('pane-right');
   const aiRiskBadge = document.getElementById('ai-risk-badge');
   const aiModelTag = document.getElementById('ai-model-tag');
   const aiSummaryText = document.getElementById('ai-summary-text');
@@ -44,18 +47,18 @@
   const aiAffectedFeaturesRow = document.getElementById('ai-affected-features-row');
   const aiDownstreamText = document.getElementById('ai-downstream-text');
 
-  // Right Pane: Card 2 - Coding Agent Declared Plan (vibetrace.md)
+  // Agent Protocol Section
   const protoStatusTag = document.getElementById('proto-status-tag');
   const protoTaskIntent = document.getElementById('proto-task-intent');
   const protoStepsList = document.getElementById('proto-steps-list');
   const protoNotesText = document.getElementById('proto-notes-text');
 
-  // Right Pane: Card 3 - Mechanical AI Harness Engineering Audit
+  // Mechanical Harness Section
   const harnessOverallStatus = document.getElementById('harness-overall-status');
   const harnessAdviceText = document.getElementById('harness-advice-text');
   const harnessChecksList = document.getElementById('harness-checks-list');
 
-  // Right Pane: Card 4 - AI Query Engine
+  // AI Query Section
   const aiQueryInput = document.getElementById('ai-query-input');
   const btnRunQuery = document.getElementById('btn-run-query');
   const querySpinner = document.getElementById('query-spinner');
@@ -65,7 +68,7 @@
   const queryAnswerBody = document.getElementById('query-answer-body');
   const btnCloseQueryAnswer = document.getElementById('btn-close-query-answer');
 
-  // Right Pane: Telemetry
+  // Telemetry
   const rightMetaBranch = document.getElementById('right-meta-branch');
   const rightMetaCommit = document.getElementById('right-meta-commit');
   const rightMetaAdd = document.getElementById('right-meta-add');
@@ -75,26 +78,105 @@
   const footerStatusLabel = document.getElementById('footer-status-label');
   const footerTickerMsg = document.getElementById('footer-ticker-msg');
 
-  // 1. Theme Management (Light / Dark)
+  // Resizers
+  const resizerLeft = document.getElementById('resizer-left');
+  const resizerRight = document.getElementById('resizer-right');
+
+  // 1. Draggable Resizable Panes Engine
+  function initResizers() {
+    // Restore persistent widths
+    const savedLeft = localStorage.getItem('vibetrace_left_w');
+    const savedRight = localStorage.getItem('vibetrace_right_w');
+
+    if (savedLeft && paneLeft) {
+      paneLeft.style.width = `${Math.max(220, Math.min(550, parseInt(savedLeft, 10)))}px`;
+    }
+    if (savedRight && paneRight) {
+      paneRight.style.width = `${Math.max(280, Math.min(700, parseInt(savedRight, 10)))}px`;
+    }
+
+    // Left Resizer (Controls Left Pane Width)
+    if (resizerLeft && paneLeft) {
+      resizerLeft.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        document.body.classList.add('resizing');
+        resizerLeft.classList.add('dragging');
+        const startX = e.clientX;
+        const startW = paneLeft.getBoundingClientRect().width;
+
+        function onMouseMove(moveEvt) {
+          const delta = moveEvt.clientX - startX;
+          const newW = Math.max(220, Math.min(550, startW + delta));
+          paneLeft.style.width = `${newW}px`;
+        }
+
+        function onMouseUp() {
+          document.body.classList.remove('resizing');
+          resizerLeft.classList.remove('dragging');
+          localStorage.setItem('vibetrace_left_w', Math.round(paneLeft.getBoundingClientRect().width));
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        }
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+    }
+
+    // Right Resizer (Controls Right Pane Width)
+    if (resizerRight && paneRight) {
+      resizerRight.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        document.body.classList.add('resizing');
+        resizerRight.classList.add('dragging');
+        const startX = e.clientX;
+        const startW = paneRight.getBoundingClientRect().width;
+
+        function onMouseMove(moveEvt) {
+          // Dragging left increases right pane width
+          const delta = startX - moveEvt.clientX;
+          const newW = Math.max(280, Math.min(700, startW + delta));
+          paneRight.style.width = `${newW}px`;
+        }
+
+        function onMouseUp() {
+          document.body.classList.remove('resizing');
+          resizerRight.classList.remove('dragging');
+          localStorage.setItem('vibetrace_right_w', Math.round(paneRight.getBoundingClientRect().width));
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        }
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+    }
+  }
+
+  // 2. Theme Management (Light / Dark)
   function initTheme() {
     const saved = localStorage.getItem('vibetrace_theme') || 'light';
     applyTheme(saved);
 
-    btnThemeToggle.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      const next = current === 'light' ? 'dark' : 'light';
-      applyTheme(next);
-      localStorage.setItem('vibetrace_theme', next);
-    });
+    if (btnThemeToggle) {
+      btnThemeToggle.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+        localStorage.setItem('vibetrace_theme', next);
+      });
+    }
   }
 
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     document.body.className = `${theme}-theme`;
-    themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+    if (themeIcon) {
+      themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
   }
 
-  // 2. Initialize Server-Sent Events (SSE)
+  // 3. Initialize Server-Sent Events (SSE)
   function initSSE() {
     const evtSource = new EventSource('/api/events');
 
@@ -126,13 +208,13 @@
     };
   }
 
-  // 3. Render Agent Protocol Card from `vibetrace.md`
+  // 4. Render Agent Protocol from `vibetrace.md`
   function renderProtocol(proto) {
     if (!proto) return;
 
     const status = (proto.status || 'idle').toLowerCase();
     if (protoStatusTag) {
-      protoStatusTag.className = `agent-status-tag status-${status}`;
+      protoStatusTag.className = `agent-status-pill status-${status}`;
       protoStatusTag.textContent = status === 'in_progress' ? 'IN PROGRESS' : status.toUpperCase();
     }
 
@@ -144,14 +226,14 @@
       protoStepsList.innerHTML = '';
       const steps = proto.steps || [];
       if (steps.length === 0) {
-        protoStepsList.innerHTML = '<span style="font-size:11px;color:var(--text-muted);">No steps listed in vibetrace.md</span>';
+        protoStepsList.innerHTML = '<span style="font-size:11.5px;color:var(--text-muted);">No steps listed in vibetrace.md</span>';
       } else {
         steps.forEach(s => {
           const row = document.createElement('div');
           row.className = `proto-step-row ${s.done ? 'done' : ''}`;
           row.innerHTML = `
             <span class="proto-step-checkbox">${s.done ? '☑' : '☐'}</span>
-            <span>${s.text}</span>
+            <span>${escapeHtml(s.text)}</span>
           `;
           protoStepsList.appendChild(row);
         });
@@ -170,7 +252,7 @@
     }
   }
 
-  // 4. Top Bar Real-Time Status Management
+  // 5. Top Bar Real-Time Status Management
   function setTopBarStatus(type, badgeText, detailText) {
     if (!liveIndicatorPill) return;
 
@@ -207,7 +289,7 @@
     }
   }
 
-  // 5. Fetch System Status & Protocol
+  // 6. Fetch System Status & Protocol
   async function fetchStatus() {
     try {
       const [resStatus, resProto] = await Promise.all([
@@ -238,7 +320,7 @@
     }
   }
 
-  // 6. Force Immediate Rescan
+  // 7. Force Immediate Rescan
   async function rescanRepo() {
     btnRescan.classList.add('loading');
     btnRescan.querySelector('span:last-child').textContent = 'Scanning...';
@@ -253,16 +335,16 @@
     }
   }
 
-  // 7. Add Trace to List
+  // 8. Add Trace to List
   function addTrace(trace) {
     traces.unshift(trace);
     renderTracesList();
     selectTrace(trace.id);
   }
 
-  // 8. Render Left Pane: Chronological Traces Bar
+  // 9. Render Left Pane: Chronological Traces Feed (BORDERLESS ROWS, NO CARDS!)
   function renderTracesList() {
-    tracesCountTag.textContent = traces.length;
+    if (tracesCountTag) tracesCountTag.textContent = traces.length;
 
     let filtered = traces;
     if (searchQuery) {
@@ -277,19 +359,19 @@
 
     if (filtered.length === 0) {
       tracesScrollList.innerHTML = '';
-      emptyTracesState.classList.remove('hidden');
+      if (emptyTracesState) emptyTracesState.classList.remove('hidden');
       return;
     }
 
-    emptyTracesState.classList.add('hidden');
+    if (emptyTracesState) emptyTracesState.classList.add('hidden');
     tracesScrollList.innerHTML = '';
 
     filtered.forEach(trace => {
-      const barItem = document.createElement('div');
-      barItem.className = `trace-bar-item ${trace.id === selectedTraceId ? 'active' : ''}`;
-      barItem.dataset.id = trace.id;
+      const rowItem = document.createElement('div');
+      rowItem.className = `trace-item-row ${trace.id === selectedTraceId ? 'active' : ''}`;
+      rowItem.dataset.id = trace.id;
 
-      const timeStr = trace.timestamp ? trace.timestamp.split(' ')[1] || trace.timestamp : '--:--';
+      const timeStr = trace.timestamp ? trace.timestamp.split(' ')[1] || trace.timestamp : '--:--:--';
       const fileCount = trace.files ? trace.files.length : (trace.diffs ? trace.diffs.length : 1);
       const addStr = trace.additions != null ? `+${trace.additions}` : '+0';
       const delStr = trace.deletions != null ? `-${trace.deletions}` : '-0';
@@ -297,29 +379,29 @@
       const taskDisplayName = trace.agentProtocol?.task || trace.title || 'Code Changes';
       const isAgentTask = Boolean(trace.agentProtocol?.task);
 
-      barItem.innerHTML = `
-        <div class="trace-bar-top-row">
-          <span class="trace-bar-time">${timeStr}</span>
-          <span class="trace-bar-tag ${isAgentTask ? 'agent-task' : ''}">
+      rowItem.innerHTML = `
+        <div class="trace-item-header">
+          <span class="trace-item-time">${timeStr}</span>
+          <span class="trace-item-tag ${isAgentTask ? 'tag-agent' : ''}">
             ${isAgentTask ? 'AGENT TASK' : (trace.changeType || 'CODE MUTATION')}
           </span>
         </div>
-        <div class="trace-bar-title" title="${taskDisplayName}">${taskDisplayName}</div>
-        <div class="trace-bar-bottom-row">
-          <span class="trace-bar-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
+        <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
+        <div class="trace-item-footer">
+          <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
           <div class="trace-diff-pills">
-            <span class="diff-add">${addStr}</span>
-            <span class="diff-del">${delStr}</span>
+            <span class="diff-pill-add">${addStr}</span>
+            <span class="diff-pill-del">${delStr}</span>
           </div>
         </div>
       `;
 
-      barItem.addEventListener('click', () => selectTrace(trace.id));
-      tracesScrollList.appendChild(barItem);
+      rowItem.addEventListener('click', () => selectTrace(trace.id));
+      tracesScrollList.appendChild(rowItem);
     });
   }
 
-  // 9. Select Trace
+  // 10. Select Trace
   function selectTrace(id) {
     selectedTraceId = id;
     selectedFileFilter = 'all';
@@ -327,17 +409,19 @@
     const trace = traces.find(t => t.id === id);
     if (!trace) return;
 
-    // Highlight active bar item
-    document.querySelectorAll('.trace-bar-item').forEach(c => {
-      c.classList.toggle('active', c.dataset.id === id);
+    // Highlight active list row
+    document.querySelectorAll('.trace-item-row').forEach(row => {
+      row.classList.toggle('active', row.dataset.id === id);
     });
 
     // Populate Middle Pane
-    emptyDiffState.classList.add('hidden');
-    middleTraceTitle.textContent = trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes';
-    middleTraceId.textContent = trace.id ? trace.id.slice(0, 8) : '--';
-    middleTraceTime.textContent = trace.timestamp || '';
-    middleTraceCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
+    if (emptyDiffState) emptyDiffState.classList.add('hidden');
+    if (middleTraceTitle) {
+      middleTraceTitle.textContent = trace.agentProtocol?.task || trace.title || trace.changeType || 'Code Changes';
+    }
+    if (middleTraceId) middleTraceId.textContent = trace.id ? trace.id.slice(0, 8) : '--';
+    if (middleTraceTime) middleTraceTime.textContent = trace.timestamp || '';
+    if (middleTraceCommit) middleTraceCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
 
     // Render file pill tabs in Middle Pane
     renderFileTabs(trace);
@@ -349,7 +433,7 @@
     populateRightPane(trace);
   }
 
-  // 10. Render File Tabs in Middle Pane
+  // 11. Render File Tabs in Middle Pane
   function renderFileTabs(trace) {
     fileTabsScroll.innerHTML = '';
     const diffs = trace.diffs || [];
@@ -389,7 +473,7 @@
     });
   }
 
-  // 11. Render Diffs in Middle Pane
+  // 12. Render Diffs in Middle Pane
   function renderDiffsContent(trace) {
     const diffs = trace.diffs || [];
     if (window.diffViewer) {
@@ -397,7 +481,7 @@
     }
   }
 
-  // 12. Populate Right Pane (Dual Isolated Summaries & Visual Impact)
+  // 13. Populate Right Pane (Dual Isolated Perspectives & Visual Impact)
   function populateRightPane(trace) {
     // -----------------------------------------------------------------
     // PERSPECTIVE 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS
@@ -406,41 +490,51 @@
     const synth = trace.synthesis || {};
 
     // Plain-English Summary
-    aiSummaryText.textContent = synth.summary || trace.summary || 'Code modifications recorded.';
+    if (aiSummaryText) {
+      aiSummaryText.textContent = synth.summary || trace.summary || 'Code modifications recorded.';
+    }
 
     // Exact Mechanical Changes Bullets
-    aiWhatChangedList.innerHTML = '';
-    const changes = synth.whatChanged || [
-      `Modified ${trace.files?.length || 1} file(s) across repository`,
-      `Applied line delta (+${trace.additions || 0} / -${trace.deletions || 0})`
-    ];
-    changes.forEach(ch => {
-      const li = document.createElement('li');
-      li.textContent = ch;
-      aiWhatChangedList.appendChild(li);
-    });
+    if (aiWhatChangedList) {
+      aiWhatChangedList.innerHTML = '';
+      const changes = synth.whatChanged || [
+        `Modified ${trace.files?.length || 1} file(s) across repository`,
+        `Applied line delta (+${trace.additions || 0} / -${trace.deletions || 0})`
+      ];
+      changes.forEach(ch => {
+        const li = document.createElement('li');
+        li.textContent = ch;
+        aiWhatChangedList.appendChild(li);
+      });
+    }
 
     // Visualizing Affected Features & Modules
-    aiAffectedFeaturesRow.innerHTML = '';
-    const features = synth.affectedFeatures || (trace.subsystems?.length ? trace.subsystems : ['Core Logic']);
-    features.forEach(feat => {
-      const chip = document.createElement('span');
-      chip.className = 'feature-chip';
-      chip.textContent = feat;
-      aiAffectedFeaturesRow.appendChild(chip);
-    });
+    if (aiAffectedFeaturesRow) {
+      aiAffectedFeaturesRow.innerHTML = '';
+      const features = synth.affectedFeatures || (trace.subsystems?.length ? trace.subsystems : ['Core Logic']);
+      features.forEach(feat => {
+        const chip = document.createElement('span');
+        chip.className = 'feature-tag';
+        chip.textContent = feat;
+        aiAffectedFeaturesRow.appendChild(chip);
+      });
+    }
 
     // Downstream Ripple Effect & Architectural Impact
-    aiDownstreamText.textContent = synth.downstreamImpact || trace.architecturalImpact || 'Systemic boundaries consistent.';
+    if (aiDownstreamText) {
+      aiDownstreamText.textContent = synth.downstreamImpact || trace.architecturalImpact || 'Systemic boundaries consistent.';
+    }
 
     // Risk Assessment Badge
-    const risk = (synth.riskLevel || 'Low').toUpperCase();
-    aiRiskBadge.className = `risk-badge risk-${risk.toLowerCase()}`;
-    aiRiskBadge.textContent = `${risk} RISK`;
+    if (aiRiskBadge) {
+      const risk = (synth.riskLevel || 'Low').toUpperCase();
+      aiRiskBadge.className = `risk-badge risk-${risk.toLowerCase()}`;
+      aiRiskBadge.textContent = `${risk} RISK`;
+    }
 
     // Model Tag
     if (aiModelTag) {
-      aiModelTag.textContent = trace.model ? (trace.model.split('/')[1] || trace.model) : 'OpenRouter AI';
+      aiModelTag.textContent = trace.model ? (trace.model.split('/')[1] || trace.model) : 'nemotron-3.5';
     }
 
     // -----------------------------------------------------------------
@@ -449,63 +543,71 @@
     // -----------------------------------------------------------------
     const agentProto = trace.agentProtocol;
     if (agentProto && agentProto.task) {
-      protoTaskIntent.textContent = agentProto.task;
-      protoStatusTag.className = 'agent-status-tag status-completed';
-      protoStatusTag.textContent = 'COMPLETED';
+      if (protoTaskIntent) protoTaskIntent.textContent = agentProto.task;
+      if (protoStatusTag) {
+        protoStatusTag.className = 'agent-status-pill status-completed';
+        protoStatusTag.textContent = 'COMPLETED';
+      }
     }
 
     // -----------------------------------------------------------------
-    // CARD 3: MECHANICAL AI HARNESS ENGINEERING AUDIT
+    // SECTION 3: MECHANICAL AI HARNESS ENGINEERING AUDIT
     // -----------------------------------------------------------------
     const harness = trace.harness || {};
     const hStatus = (harness.status || 'PASS').toUpperCase();
 
-    harnessOverallStatus.className = `harness-status-pill ${hStatus.toLowerCase()}`;
-    harnessOverallStatus.textContent = hStatus === 'PASS' ? 'PASSED' : (hStatus === 'WARN' ? 'WARNING' : 'FAILED');
+    if (harnessOverallStatus) {
+      harnessOverallStatus.className = `harness-badge ${hStatus.toLowerCase()}`;
+      harnessOverallStatus.textContent = hStatus === 'PASS' ? 'PASSED' : (hStatus === 'WARN' ? 'WARNING' : 'FAILED');
+    }
 
-    harnessAdviceText.textContent = harness.advice || 'Harness verification completed cleanly.';
+    if (harnessAdviceText) {
+      harnessAdviceText.textContent = harness.advice || 'Harness verified: Clean AST syntax and intact security boundaries.';
+    }
 
-    harnessChecksList.innerHTML = '';
-    const checks = harness.checks || [
-      { name: 'Syntax Integrity', status: 'PASS', detail: 'node --check AST validation' },
-      { name: 'Protected Files', status: 'PASS', detail: 'Zero .env/keys touched' },
-      { name: 'Secret Scanner', status: 'PASS', detail: 'No hardcoded credentials' },
-      { name: 'Dependency Guard', status: 'PASS', detail: 'Package boundaries valid' }
-    ];
+    if (harnessChecksList) {
+      harnessChecksList.innerHTML = '';
+      const checks = harness.checks || [
+        { name: 'Syntax Integrity', status: 'PASS', detail: 'node --check AST validation' },
+        { name: 'Protected Files', status: 'PASS', detail: 'Zero .env/keys touched' },
+        { name: 'Secret Scanner', status: 'PASS', detail: 'No hardcoded credentials' },
+        { name: 'Dependency Guard', status: 'PASS', detail: 'Package boundaries valid' }
+      ];
 
-    checks.forEach(check => {
-      const chkStatus = (check.status || 'PASS').toLowerCase();
-      const icoChar = chkStatus === 'pass' ? '✓' : (chkStatus === 'warn' ? '!' : '✕');
+      checks.forEach(check => {
+        const chkStatus = (check.status || 'PASS').toLowerCase();
+        const icoChar = chkStatus === 'pass' ? '✓' : (chkStatus === 'warn' ? '!' : '✕');
 
-      const box = document.createElement('div');
-      box.className = `check-box ${chkStatus}`;
-      box.innerHTML = `
-        <span class="check-icon">${icoChar}</span>
-        <div class="check-details">
-          <span class="check-title">${check.name}</span>
-          <span class="check-desc">${check.detail}</span>
-        </div>
-      `;
-      harnessChecksList.appendChild(box);
-    });
+        const box = document.createElement('div');
+        box.className = `harness-check-item ${chkStatus}`;
+        box.innerHTML = `
+          <span class="check-glyph">${icoChar}</span>
+          <div class="check-meta">
+            <span class="check-title">${escapeHtml(check.name)}</span>
+            <span class="check-desc">${escapeHtml(check.detail)}</span>
+          </div>
+        `;
+        harnessChecksList.appendChild(box);
+      });
+    }
 
     // -----------------------------------------------------------------
     // TELEMETRY
     // -----------------------------------------------------------------
-    leftGitBranch.textContent = trace.git?.branch || 'main';
-    rightMetaBranch.textContent = trace.git?.branch || 'main';
-    rightMetaCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
-    rightMetaAdd.textContent = `+${trace.additions || 0}`;
-    rightMetaDel.textContent = `-${trace.deletions || 0}`;
+    if (leftGitBranch) leftGitBranch.textContent = trace.git?.branch || 'main';
+    if (rightMetaBranch) rightMetaBranch.textContent = trace.git?.branch || 'main';
+    if (rightMetaCommit) rightMetaCommit.textContent = trace.git?.commit ? trace.git.commit.slice(0, 7) : 'HEAD';
+    if (rightMetaAdd) rightMetaAdd.textContent = `+${trace.additions || 0}`;
+    if (rightMetaDel) rightMetaDel.textContent = `-${trace.deletions || 0}`;
   }
 
-  // 13. Submit Question to AI Query Engine
+  // 14. Submit Question to AI Query Engine
   async function submitQuery(customQuestion = null) {
-    const question = customQuestion || aiQueryInput.value.trim();
+    const question = customQuestion || (aiQueryInput ? aiQueryInput.value.trim() : '');
     if (!question) return;
 
-    btnRunQuery.disabled = true;
-    querySpinner.classList.remove('hidden');
+    if (btnRunQuery) btnRunQuery.disabled = true;
+    if (querySpinner) querySpinner.classList.remove('hidden');
 
     try {
       const res = await fetch('/api/query', {
@@ -519,17 +621,29 @@
 
       const data = await res.json();
       if (data.success) {
-        queryAnswerBody.textContent = data.answer;
-        queryModelTag.textContent = data.modelUsed ? data.modelUsed.split('/')[1] || data.modelUsed : 'VibeTrace AI';
-        queryAnswerCard.classList.remove('hidden');
+        if (queryAnswerBody) queryAnswerBody.textContent = data.answer;
+        if (queryModelTag) {
+          queryModelTag.textContent = data.modelUsed ? (data.modelUsed.split('/')[1] || data.modelUsed) : 'OpenRouter AI';
+        }
+        if (queryAnswerCard) queryAnswerCard.classList.remove('hidden');
       }
     } catch (err) {
-      queryAnswerBody.textContent = `Error querying AI engine: ${err.message}`;
-      queryAnswerCard.classList.remove('hidden');
+      if (queryAnswerBody) queryAnswerBody.textContent = `Error querying AI engine: ${err.message}`;
+      if (queryAnswerCard) queryAnswerCard.classList.remove('hidden');
     } finally {
-      btnRunQuery.disabled = false;
-      querySpinner.classList.add('hidden');
+      if (btnRunQuery) btnRunQuery.disabled = false;
+      if (querySpinner) querySpinner.classList.add('hidden');
     }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   // Event Listeners
@@ -546,7 +660,7 @@
   presetChips.forEach(chip => {
     chip.addEventListener('click', () => {
       const q = chip.dataset.q;
-      aiQueryInput.value = q;
+      if (aiQueryInput) aiQueryInput.value = q;
       submitQuery(q);
     });
   });
@@ -559,6 +673,7 @@
   }
 
   // Initialize
+  initResizers();
   initTheme();
   fetchStatus();
   initSSE();

@@ -7,12 +7,12 @@
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="light-theme">
 
   <!-- ========================================================
-       TOP GLOBAL NAVIGATION (PILL-BASED MODERN CONTROLS)
+       TOP GLOBAL NAVIGATION (SLEEK FLOATING PILL CONTROLS)
        ======================================================== -->
   <header class="top-nav">
     <div class="nav-left">
@@ -21,7 +21,7 @@
         <span class="brand-text">VibeTrace</span>
       </div>
 
-      <!-- Real-Time Agent & Harness State Indicator -->
+      <!-- Real-Time Agent & Harness Lifecycle State Pill -->
       <div class="agent-live-pill status-idle" id="live-indicator-pill">
         <span class="pulse-dot" id="live-pulse-dot"></span>
         <span class="live-status-badge" id="live-status-badge">HARNESS READY</span>
@@ -39,7 +39,7 @@
       <!-- OpenRouter AI Model Pill -->
       <div class="pill-btn model-pill" title="AI Model configured via OpenRouter">
         <span class="pill-dot"></span>
-        <span class="pill-text" id="nav-model-name">inkling-small:free</span>
+        <span class="pill-text" id="nav-model-name">nemotron-3.5-lightning</span>
       </div>
 
       <!-- Rescan Button -->
@@ -56,220 +56,209 @@
   </header>
 
   <!-- ========================================================
-       MAIN 3-PANE OBSERVABILITY WORKSPACE
+       FULL-BLEED RESIZABLE 3-PANE WORKSPACE (NO DUMB CARDS!)
        ======================================================== -->
-  <main class="workspace-grid">
+  <div class="workspace-layout">
 
     <!-- ========================================================
-         PANE 1 (LEFT): CHRONOLOGICAL TRACES BAR & TIMELINE
+         PANE 1 (LEFT): CHRONOLOGICAL TRACES TIMELINE (BORDERLESS LIST)
          ======================================================== -->
     <aside class="pane pane-left" id="pane-left">
-      <!-- Project Context Widget -->
-      <div class="project-header-box">
-        <div class="project-title-row">
-          <div class="project-info-group">
-            <span class="caption-label">ACTIVE REPO</span>
-            <h3 class="project-title" id="left-project-name">learn-ai-basics</h3>
+      <div class="left-pane-header">
+        <div class="repo-meta-row">
+          <div class="repo-info">
+            <span class="repo-caption">REPOSITORY</span>
+            <h3 class="repo-name" id="left-project-name">learn-ai-basics</h3>
           </div>
           <span class="git-branch-tag" id="left-git-branch">main</span>
         </div>
-        <div class="project-path-text" id="left-project-path" title="">c:\...</div>
+        <div class="repo-path" id="left-project-path" title="">c:\...</div>
       </div>
 
-      <!-- Search & Filter Bar -->
-      <div class="traces-search-container">
+      <div class="traces-search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="traces-search-input" placeholder="Search tasks, traces, files..." autocomplete="off" spellcheck="false">
+        <input type="text" id="traces-search-input" placeholder="Filter tasks, traces, files..." autocomplete="off">
       </div>
 
-      <!-- Traces Bar Header -->
-      <div class="traces-bar-header">
-        <div class="bar-header-left">
-          <span class="section-title">EXECUTION TRACES</span>
-          <span class="traces-count-pill" id="traces-count-tag">0</span>
+      <div class="traces-list-header">
+        <div class="traces-header-title">
+          <span class="list-title">EXECUTION TRACES</span>
+          <span class="traces-count-tag" id="traces-count-tag">0</span>
         </div>
-        <span class="bar-caption">CHRONOLOGICAL BAR</span>
+        <span class="sort-tag">CHRONOLOGICAL</span>
       </div>
 
-      <!-- Traces Bar / Timeline List -->
-      <div class="traces-timeline-list" id="traces-scroll-list">
-        <!-- Injected dynamically by app.js as sleek chronological bars -->
+      <div class="traces-scroll-feed" id="traces-scroll-list">
+        <!-- Rendered dynamically as sleek borderless list rows -->
       </div>
 
-      <!-- Empty State -->
-      <div class="empty-traces-state" id="empty-traces-state">
+      <div class="empty-traces-notice hidden" id="empty-traces-state">
         <div class="empty-state-dot"></div>
-        <h4>Standing By for Agent Edits</h4>
-        <p>When an AI agent modifies code or completes a task, traces appear here in chronological order.</p>
+        <h4>No Matching Traces</h4>
+        <p>No recorded traces match your search filter.</p>
       </div>
     </aside>
 
+    <!-- DRAGGABLE RESIZER 1 (BETWEEN LEFT & MIDDLE) -->
+    <div class="pane-resizer" id="resizer-left" title="Drag to resize traces timeline"></div>
+
     <!-- ========================================================
-         PANE 2 (MIDDLE): CODE CONTENT & SYNTAX DIFFS
+         PANE 2 (MIDDLE): FULL-WIDTH SYNTAX DIFF INSPECTOR
          ======================================================== -->
     <section class="pane pane-middle" id="pane-middle">
-      <div class="middle-top-bar">
-        <div class="trace-title-cluster">
-          <h2 class="trace-heading" id="middle-trace-title">Select a Trace</h2>
-          <div class="trace-meta-pills">
-            <span class="meta-pill id-pill" id="middle-trace-id">--</span>
-            <span class="meta-pill time-pill" id="middle-trace-time">--:--:--</span>
-            <span class="meta-pill commit-pill" id="middle-trace-commit">HEAD</span>
+      <div class="middle-header">
+        <div class="middle-title-row">
+          <h2 class="trace-title" id="middle-trace-title">Select an Execution Trace</h2>
+          <div class="trace-tags-row">
+            <span class="tag-chip tag-id" id="middle-trace-id">--</span>
+            <span class="tag-chip tag-time" id="middle-trace-time">--:--:--</span>
+            <span class="tag-chip tag-commit" id="middle-trace-commit">HEAD</span>
           </div>
         </div>
-        <div class="file-tabs-scroll" id="file-tabs-scroll">
+
+        <div class="file-tabs-bar" id="file-tabs-scroll">
           <!-- File pill buttons injected dynamically -->
         </div>
       </div>
 
-      <div class="diff-viewer-area" id="diff-viewer-area">
-        <div id="diffs-container" class="diffs-container">
-          <!-- Syntax diffs rendered here -->
-        </div>
-
+      <div class="diff-viewer-container" id="diff-viewer-area">
+        <div id="diffs-container" class="diffs-container"></div>
         <div class="empty-diff-state" id="empty-diff-state">
-          <div class="empty-diff-glyph">⎇</div>
+          <div class="empty-diff-icon">⎇</div>
           <h3>No Trace Selected</h3>
-          <p>Select any execution trace from the left timeline bar to inspect the exact line-by-line diffs.</p>
+          <p>Select any execution trace from the left timeline to inspect the exact line-by-line diffs.</p>
         </div>
       </div>
     </section>
 
+    <!-- DRAGGABLE RESIZER 2 (BETWEEN MIDDLE & RIGHT) -->
+    <div class="pane-resizer" id="resizer-right" title="Drag to resize inspector"></div>
+
     <!-- ========================================================
-         PANE 3 (RIGHT): DUAL ISOLATED SUMMARIES & IMPACT VISUALIZATION
+         PANE 3 (RIGHT): DUAL ISOLATED SUMMARIES & VISUAL IMPACT
          ======================================================== -->
     <aside class="pane pane-right" id="pane-right">
 
-      <!-- ====================================================
-           CARD 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS
-           (What happened, What changed, Affected Features, Downstream Impact)
-           ==================================================== -->
-      <div class="card ai-synthesis-card" id="ai-synthesis-card">
-        <div class="card-top-bar">
-          <div class="card-heading-group">
-            <span class="card-icon gradient-icon">◈</span>
+      <!-- SECTION 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS -->
+      <div class="inspector-section ai-synthesis-section">
+        <div class="section-top-header">
+          <div class="header-cluster">
+            <span class="section-icon emerald-icon">◈</span>
             <div>
-              <span class="card-eyebrow">INDEPENDENT OBSERVER</span>
-              <h3 class="card-title">OpenRouter AI Synthesis</h3>
+              <span class="section-eyebrow">INDEPENDENT OBSERVER</span>
+              <h3 class="section-heading">OpenRouter AI Synthesis</h3>
             </div>
           </div>
-          <div class="card-top-tags">
+          <div class="header-tags">
             <span class="risk-badge risk-low" id="ai-risk-badge">LOW RISK</span>
-            <span class="model-tag-small" id="ai-model-tag">nvidia/nemotron</span>
+            <span class="model-tag-chip" id="ai-model-tag">nemotron-3.5</span>
           </div>
         </div>
 
-        <!-- Section: What Happened (Plain-English Overview) -->
-        <div class="synthesis-section">
-          <span class="section-label">WHAT HAPPENED & OVERVIEW</span>
-          <p class="synthesis-body-text" id="ai-summary-text">
-            No trace selected. Select a trace to view the AI synthesis.
+        <!-- What Happened (Plain-English Overview) -->
+        <div class="detail-block">
+          <span class="detail-caption">WHAT HAPPENED & OVERVIEW</span>
+          <p class="summary-paragraph" id="ai-summary-text">
+            No trace selected. Select a trace on the left to view the AI synthesis.
           </p>
         </div>
 
-        <!-- Section: Exact Mechanical Changes -->
-        <div class="synthesis-section">
-          <span class="section-label">EXACT MECHANICAL CHANGES</span>
-          <ul class="changes-bullet-list" id="ai-what-changed-list">
+        <!-- Exact Mechanical Changes -->
+        <div class="detail-block">
+          <span class="detail-caption">EXACT MECHANICAL CHANGES</span>
+          <ul class="changes-list" id="ai-what-changed-list">
             <li>Select an execution trace to view detailed changes.</li>
           </ul>
         </div>
 
-        <!-- Section: Visualizing Affected Features & Options -->
-        <div class="synthesis-section">
-          <span class="section-label">AFFECTED FEATURES & APPLICATION MODULES</span>
-          <div class="features-chips-row" id="ai-affected-features-row">
-            <span class="feature-chip">Core Logic</span>
+        <!-- Affected Features & Modules -->
+        <div class="detail-block">
+          <span class="detail-caption">AFFECTED FEATURES & APPLICATION MODULES</span>
+          <div class="features-pill-row" id="ai-affected-features-row">
+            <span class="feature-tag">Core Logic</span>
           </div>
         </div>
 
-        <!-- Section: Downstream Ripple Effect & Architectural Impact -->
-        <div class="synthesis-section highlight-box">
-          <span class="section-label">DOWNSTREAM EFFECT & SYSTEMIC IMPACT</span>
-          <p class="impact-body-text" id="ai-downstream-text">
+        <!-- Downstream Ripple Effects & Systemic Impact -->
+        <div class="detail-block impact-callout">
+          <span class="detail-caption">DOWNSTREAM EFFECT & SYSTEMIC IMPACT</span>
+          <p class="impact-paragraph" id="ai-downstream-text">
             Select a trace to visualize ripple effects across features and database layers.
           </p>
         </div>
       </div>
 
-      <!-- ====================================================
-           CARD 2: CODING AGENT DECLARED PLAN (vibetrace.md)
-           (Completely isolated from OpenRouter AI synthesis)
-           ==================================================== -->
-      <div class="card agent-protocol-card" id="agent-protocol-card">
-        <div class="card-top-bar">
-          <div class="card-heading-group">
-            <span class="card-icon agent-icon">⚡</span>
+      <!-- SECTION 2: CODING AGENT DECLARED PLAN (vibetrace.md) -->
+      <div class="inspector-section agent-protocol-section">
+        <div class="section-top-header">
+          <div class="header-cluster">
+            <span class="section-icon agent-icon">⚡</span>
             <div>
-              <span class="card-eyebrow">AGENT SELF-DECLARATION</span>
-              <h3 class="card-title">Coding Agent Plan</h3>
+              <span class="section-eyebrow">AGENT SELF-DECLARATION</span>
+              <h3 class="section-heading">Coding Agent Plan</h3>
             </div>
           </div>
-          <span class="agent-status-tag status-idle" id="proto-status-tag">IDLE</span>
+          <span class="agent-status-pill status-idle" id="proto-status-tag">IDLE</span>
         </div>
 
-        <div class="agent-task-banner">
-          <span class="task-caption">DECLARED TASK INTENT:</span>
-          <div class="agent-task-name" id="proto-task-intent">Waiting for coding agent instruction...</div>
+        <div class="declared-task-banner">
+          <span class="banner-label">DECLARED TASK INTENT:</span>
+          <div class="declared-task-text" id="proto-task-intent">Waiting for coding agent instruction...</div>
         </div>
 
-        <div class="agent-checklist-section">
-          <span class="section-label">EXECUTION STEPS CHECKLIST</span>
-          <div class="agent-steps-list" id="proto-steps-list">
-            <!-- Checklist items rendered dynamically -->
-          </div>
+        <div class="detail-block">
+          <span class="detail-caption">EXECUTION STEPS CHECKLIST</span>
+          <div class="agent-checklist" id="proto-steps-list"></div>
         </div>
 
-        <div class="agent-notes-box">
-          <span class="notes-heading">Inter-Agent Channel:</span>
-          <span class="notes-content" id="proto-notes-text">vibetrace.md protocol active</span>
+        <div class="inter-agent-notes-box">
+          <span class="notes-title">Inter-Agent Channel:</span>
+          <span class="notes-body" id="proto-notes-text">vibetrace.md protocol active</span>
         </div>
       </div>
 
-      <!-- ====================================================
-           CARD 3: MECHANICAL AI HARNESS ENGINEERING AUDIT
-           ==================================================== -->
-      <div class="card harness-audit-card" id="harness-audit-card">
-        <div class="card-top-bar">
-          <div class="card-heading-group">
-            <span class="card-icon shield-icon">🛡️</span>
+      <!-- SECTION 3: MECHANICAL AI HARNESS ENGINEERING AUDIT -->
+      <div class="inspector-section harness-audit-section">
+        <div class="section-top-header">
+          <div class="header-cluster">
+            <span class="section-icon shield-icon">🛡️</span>
             <div>
-              <span class="card-eyebrow">AUTOMATED HARNESS</span>
-              <h3 class="card-title">Engineering Verification</h3>
+              <span class="section-eyebrow">AUTOMATED HARNESS</span>
+              <h3 class="section-heading">Engineering Verification</h3>
             </div>
           </div>
-          <span class="harness-status-pill pass" id="harness-overall-status">PASSED</span>
+          <span class="harness-badge pass" id="harness-overall-status">PASSED</span>
         </div>
 
-        <p class="harness-advice-text" id="harness-advice-text">
-          Harness verified: All modified files compiled cleanly with no protected file violations.
+        <p class="harness-advice-paragraph" id="harness-advice-text">
+          Harness verified: All modified files compiled cleanly with zero syntax violations.
         </p>
 
         <div class="harness-checks-grid" id="harness-checks-list">
-          <div class="check-box pass">
-            <span class="check-icon">✓</span>
-            <div class="check-details">
+          <div class="harness-check-item pass">
+            <span class="check-glyph">✓</span>
+            <div class="check-meta">
               <span class="check-title">Syntax Integrity</span>
               <span class="check-desc">node --check AST validation</span>
             </div>
           </div>
-          <div class="check-box pass">
-            <span class="check-icon">✓</span>
-            <div class="check-details">
+          <div class="harness-check-item pass">
+            <span class="check-glyph">✓</span>
+            <div class="check-meta">
               <span class="check-title">Protected Files</span>
               <span class="check-desc">Zero .env/keys touched</span>
             </div>
           </div>
-          <div class="check-box pass">
-            <span class="check-icon">✓</span>
-            <div class="check-details">
+          <div class="harness-check-item pass">
+            <span class="check-glyph">✓</span>
+            <div class="check-meta">
               <span class="check-title">Secret Scanner</span>
               <span class="check-desc">No hardcoded credentials</span>
             </div>
           </div>
-          <div class="check-box pass">
-            <span class="check-icon">✓</span>
-            <div class="check-details">
+          <div class="harness-check-item pass">
+            <span class="check-glyph">✓</span>
+            <div class="check-meta">
               <span class="check-title">Dependency Guard</span>
               <span class="check-desc">Package boundaries valid</span>
             </div>
@@ -277,78 +266,76 @@
         </div>
       </div>
 
-      <!-- ====================================================
-           CARD 4: INTERACTIVE AI TRACE QUERY ENGINE
-           ==================================================== -->
-      <div class="card ai-query-card">
-        <div class="card-top-bar">
-          <div class="card-heading-group">
-            <span class="card-icon sparkle-icon">💬</span>
+      <!-- SECTION 4: INTERACTIVE AI TRACE QUERY ENGINE -->
+      <div class="inspector-section query-section">
+        <div class="section-top-header">
+          <div class="header-cluster">
+            <span class="section-icon sparkle-icon">💬</span>
             <div>
-              <span class="card-eyebrow">INTERACTIVE ANALYSIS</span>
-              <h3 class="card-title">Ask Questions About This Change</h3>
+              <span class="section-eyebrow">INTERACTIVE ANALYSIS</span>
+              <h3 class="section-heading">Ask Questions About This Change</h3>
             </div>
           </div>
         </div>
 
-        <div class="query-input-bar">
+        <div class="query-input-wrapper">
           <input type="text" id="ai-query-input" placeholder="Ask anything about these code changes... (Press Enter)" spellcheck="false">
-          <button id="btn-run-query" class="btn-query-submit">
-            <span class="submit-text">Ask AI</span>
+          <button id="btn-run-query" class="btn-query-action">
+            <span class="submit-label">Ask AI</span>
             <span class="query-spinner hidden" id="query-spinner"></span>
           </button>
         </div>
 
-        <div class="query-preset-chips">
+        <div class="preset-chips-row">
           <button class="preset-chip" data-q="What files changed and what was implemented?">What was changed?</button>
           <button class="preset-chip" data-q="What is the architectural and downstream impact?">Downstream impact?</button>
           <button class="preset-chip" data-q="Are there any breaking changes or edge cases?">Breaking changes?</button>
         </div>
 
-        <div id="query-answer-card" class="query-answer-box hidden">
-          <div class="answer-header">
-            <span class="answer-tag" id="query-model-tag">OpenRouter AI</span>
-            <button id="btn-close-query-answer" class="btn-close-x" title="Close answer">✕</button>
+        <div id="query-answer-card" class="query-response-box hidden">
+          <div class="response-header">
+            <span class="response-model-tag" id="query-model-tag">OpenRouter AI</span>
+            <button id="btn-close-query-answer" class="btn-close-response" title="Close answer">✕</button>
           </div>
-          <div class="answer-content" id="query-answer-body">Answer will render here...</div>
+          <div class="response-body" id="query-answer-body">Answer will render here...</div>
         </div>
       </div>
 
-      <!-- Telemetry Metadata Pill Bar -->
-      <div class="telemetry-bar">
-        <div class="telemetry-item">
-          <span class="t-key">Branch</span>
-          <span class="t-val" id="right-meta-branch">main</span>
+      <!-- SECTION 5: TELEMETRY METRICS -->
+      <div class="telemetry-grid">
+        <div class="telemetry-cell">
+          <span class="t-label">Branch</span>
+          <span class="t-value" id="right-meta-branch">main</span>
         </div>
-        <div class="telemetry-item">
-          <span class="t-key">Commit</span>
-          <span class="t-val" id="right-meta-commit">HEAD</span>
+        <div class="telemetry-cell">
+          <span class="t-label">Commit</span>
+          <span class="t-value" id="right-meta-commit">HEAD</span>
         </div>
-        <div class="telemetry-item">
-          <span class="t-key">Additions</span>
-          <span class="t-val add" id="right-meta-add">+0</span>
+        <div class="telemetry-cell">
+          <span class="t-label">Additions</span>
+          <span class="t-value add" id="right-meta-add">+0</span>
         </div>
-        <div class="telemetry-item">
-          <span class="t-key">Deletions</span>
-          <span class="t-val del" id="right-meta-del">-0</span>
+        <div class="telemetry-cell">
+          <span class="t-label">Deletions</span>
+          <span class="t-value del" id="right-meta-del">-0</span>
         </div>
       </div>
     </aside>
-  </main>
+  </div>
 
   <!-- ========================================================
        FOOTER STATUS BAR
        ======================================================== -->
   <footer class="app-footer">
     <div class="footer-left">
-      <span class="footer-live-dot"></span>
-      <span class="footer-status-tag" id="footer-status-label">HARNESS ACTIVE</span>
+      <span class="footer-dot"></span>
+      <span class="footer-status-label" id="footer-status-label">HARNESS ACTIVE</span>
     </div>
-    <div class="footer-ticker-text" id="footer-ticker-msg">
+    <div class="footer-center" id="footer-ticker-msg">
       Watching repository mutations with intelligent sliding debouncing and persistent SQLite history.
     </div>
     <div class="footer-right">
-      <span>Storage: <b>vibetrace.db</b></span>
+      <span>Database: <b>vibetrace.db</b></span>
     </div>
   </footer>
 
