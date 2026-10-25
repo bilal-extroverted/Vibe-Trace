@@ -81,6 +81,21 @@
           <span class="repo-path" id="left-project-path" title="">c:\...</span>
           <span class="repo-path-copy-tag" id="repo-path-copy-tag">Copy</span>
         </div>
+      <!-- Agent Prompt Entry: Create Trace on Prompt -->
+      <div class="agent-prompt-composer">
+        <form id="form-agent-prompt" class="prompt-composer-form">
+          <div class="prompt-input-wrapper">
+            <span class="prompt-input-icon">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </span>
+            <input type="text" id="agent-prompt-input" placeholder="Prompt agent (creates trace)..." autocomplete="off">
+            <button type="submit" id="btn-submit-agent-prompt" class="btn-prompt-run" title="Send prompt to agent & create trace">
+              <span>Run</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       <div class="traces-search-box">
@@ -771,7 +786,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="diffViewer.js?v=5.7"></script>
-  <script src="app.js?v=5.7"></script>
+  <script src="diffViewer.js?v=5.8"></script>
+  <script src="app.js?v=5.8"></script>
 </body>
 </html>

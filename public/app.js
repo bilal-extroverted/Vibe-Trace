@@ -992,31 +992,43 @@
       const rowItem = document.createElement('div');
       rowItem.dataset.id = trace.id;
 
-      if (isWorking) {
-        // STATE 1: TASK STARTED / WORKING (WARM AMBER/YELLOW, CALM, NON-ANIMATING)
-        rowItem.className = `trace-item-row is-working status-working ${trace.id === selectedTraceId ? 'active' : ''}`;
+      // Check if difference is created / observed previously
+      const hasDifference = Boolean(
+        trace.driftAnalysis?.hasDifference ||
+        trace.driftAnalysis?.hasSignificantIssue ||
+        trace.status === 'diverged' ||
+        trace.status === 'difference' ||
+        (trace.driftAnalysis?.discrepancies && trace.driftAnalysis.discrepancies.length > 0)
+      );
+
+      if (hasDifference) {
+        // STATE 4: DIFFERENCE CREATED / OBSERVED PREVIOUSLY [RED GRADIENT]
+        rowItem.className = `trace-item-row is-difference status-difference has-difference status-diverged ${trace.id === selectedTraceId ? 'active' : ''}`;
+        const alertLabel = trace.driftAnalysis?.alertLevel === 'CRITICAL' ? 'CRITICAL DRIFT' : 'DIFFERENCE DETECTED';
+        const discrepancySnippet = trace.driftAnalysis?.discrepancies?.[0] || trace.driftAnalysis?.alertTitle || 'Prompt-output divergence detected';
+
         rowItem.innerHTML = `
           <div class="trace-item-header">
             <span class="trace-item-time">${timeStr}</span>
-            <span class="trace-item-tag tag-working">
-              <span class="pill-amber-dot"></span> WORKING
+            <span class="trace-item-tag tag-difference">
+              <span class="pill-red-alert-dot"></span> ${alertLabel}
             </span>
           </div>
           <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
-          <div class="trace-item-active-file" title="${escapeHtml(activeFileName)}">
-            <span class="working-amber-dot"></span>
-            <span class="active-file-label">In Progress:</span>
-            <code class="active-file-name">${escapeHtml(activeFileName || 'Planning task & reading files')}</code>
+          <div class="trace-item-active-file" title="${escapeHtml(trace.driftAnalysis?.alertMessage || discrepancySnippet)}">
+            <span class="difference-alert-dot"></span>
+            <span class="active-file-label">Difference:</span>
+            <code class="active-file-name difference-alert-name">${escapeHtml(discrepancySnippet)}</code>
           </div>
           <div class="trace-item-footer">
             <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
             <div class="trace-diff-pills">
-              <span class="diff-pill-working">TASK STARTED</span>
+              <span class="diff-pill-difference">RISK: ${(trace.driftAnalysis?.riskLevel || 'HIGH').toUpperCase()}</span>
             </div>
           </div>
         `;
       } else if (isChanging) {
-        // STATE 2: FILES MUTATING / EDITING (LIVING ANIMATED GRADIENT MESH)
+        // STATE 2: FILES MUTATING / EDITING [ORANGE GRADIENT]
         rowItem.className = `trace-item-row in-progress is-changing is-editing status-changing status-editing ${trace.id === selectedTraceId ? 'active' : ''}`;
         rowItem.innerHTML = `
           <div class="trace-item-header">
@@ -1034,14 +1046,36 @@
           <div class="trace-item-footer">
             <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'} in progress</span>
             <div class="trace-diff-pills">
-              <span class="diff-pill-add">LIVE</span>
+              <span class="diff-pill-editing">EDITING</span>
             </div>
           </div>
           <div class="trace-progress-line-track"><div class="trace-progress-line-bar"></div></div>
         `;
+      } else if (isWorking) {
+        // STATE 1: TASK STARTED / WORKING [YELLOW GRADIENT]
+        rowItem.className = `trace-item-row is-working status-working ${trace.id === selectedTraceId ? 'active' : ''}`;
+        rowItem.innerHTML = `
+          <div class="trace-item-header">
+            <span class="trace-item-time">${timeStr}</span>
+            <span class="trace-item-tag tag-working">
+              <span class="pill-amber-dot"></span> WORKING
+            </span>
+          </div>
+          <div class="trace-item-title" title="${escapeHtml(taskDisplayName)}">${escapeHtml(taskDisplayName)}</div>
+          <div class="trace-item-active-file" title="${escapeHtml(activeFileName)}">
+            <span class="working-amber-dot"></span>
+            <span class="active-file-label">In Progress:</span>
+            <code class="active-file-name">${escapeHtml(activeFileName || 'Planning task & reading files')}</code>
+          </div>
+          <div class="trace-item-footer">
+            <span class="trace-item-files">${fileCount} file${fileCount === 1 ? '' : 's'}</span>
+            <div class="trace-diff-pills">
+              <span class="diff-pill-working">WORKING</span>
+            </div>
+          </div>
+        `;
       } else {
-        // STATE 3: TASK COMPLETED (CLEAN ELEVATED CARD, PERMANENT)
-        // All completed traces MUST have the COMPLETED tag (never ARCHITECTURAL or category labels)
+        // STATE 3: TASK COMPLETED [BLUE GRADIENT]
         const tagLabel = 'COMPLETED';
         const tagClass = 'tag-completed';
 
@@ -1908,13 +1942,62 @@
         const orig = btnCopyMermaid.textContent;
         btnCopyMermaid.textContent = 'Copied!';
         setTimeout(() => { btnCopyMermaid.textContent = orig; }, 1500);
-      } catch (err) {}
+  // Agent Prompt Entry Composer Form
+  const formAgentPrompt = document.getElementById('form-agent-prompt');
+  const agentPromptInput = document.getElementById('agent-prompt-input');
+  const btnSubmitAgentPrompt = document.getElementById('btn-submit-agent-prompt');
+
+  function initAgentPromptComposer() {
+    if (!formAgentPrompt) return;
+
+    formAgentPrompt.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const promptText = (agentPromptInput?.value || '').trim();
+      if (!promptText) return;
+
+      if (btnSubmitAgentPrompt) {
+        btnSubmitAgentPrompt.disabled = true;
+        btnSubmitAgentPrompt.innerHTML = '<span>...</span>';
+      }
+
+      try {
+        const response = await fetch('/api/prompt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: promptText })
+        });
+
+        const data = await response.json();
+        if (data.success && data.trace) {
+          if (agentPromptInput) agentPromptInput.value = '';
+
+          // Add / update active trace locally
+          const existingIdx = traces.findIndex(t => t.id === data.trace.id || t.id === 'trace-live-active');
+          if (existingIdx >= 0) {
+            traces[existingIdx] = data.trace;
+          } else {
+            traces.unshift(data.trace);
+          }
+
+          renderTraces();
+          selectTrace(data.trace.id);
+          logTicker(`Prompt accepted: ${promptText}`);
+        }
+      } catch (err) {
+        console.error('Failed to submit prompt to agent:', err);
+      } finally {
+        if (btnSubmitAgentPrompt) {
+          btnSubmitAgentPrompt.disabled = false;
+          btnSubmitAgentPrompt.innerHTML = '<span>Run</span>';
+        }
+      }
     });
   }
 
   // Initialize
   initResizers();
   initTheme();
+  initAgentPromptComposer();
   fetchStatus();
   fetchTraces();
   initSSE();

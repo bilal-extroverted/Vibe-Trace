@@ -170,7 +170,7 @@ class WorkspaceWatcher {
           protocol: proto
         });
 
-        if (proto.status === 'in_progress') {
+        if (proto.status === 'in_progress' || proto.status === 'working' || proto.status === 'started') {
           const isChanging = this.pendingChangedFiles.size > 0;
           this.ensureActiveTrace(proto, null, isChanging);
           sse.broadcast({

@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const sse = require('./sse');
 const watcher = require('./watcher');
 const db = require('./db');
@@ -282,6 +283,87 @@ app.post('/api/analyze-drift', async (req, res) => {
     res.json({ success: true, traceId: trace.id, driftAnalysis });
   } catch (err) {
     console.error('[API /api/analyze-drift] Error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint: User enters a prompt to agent -> trace is created immediately
+app.post('/api/prompt', (req, res) => {
+  try {
+    const { prompt: userPrompt } = req.body || {};
+    if (!userPrompt || !userPrompt.trim()) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    const cleanPrompt = userPrompt.trim();
+    const nowIso = new Date().toISOString();
+
+    // 1. Update vibetrace.md file to reflect new prompt & active task
+    const vibetraceContent = `---
+status: in_progress
+task: "${cleanPrompt.replace(/"/g, '\\"')}"
+agent: "Antigravity AI"
+active_file: "vibetrace.md"
+file_action: "Executing prompt: ${cleanPrompt.replace(/"/g, '\\"')}"
+file_summary: "Task created from user prompt"
+started_at: "${nowIso}"
+updated_at: "${nowIso}"
+---
+
+# VibeTrace Agent-Harness Communication Protocol
+
+## Current Task Intent
+> ${cleanPrompt}
+
+## Execution Plan & Steps
+- [ ] Step 1: Execute prompt instructions
+- [ ] Step 2: Validate code modifications
+- [ ] Step 3: Run harness verification
+
+## Inter-Agent & Harness Communication Notes
+- Real-time trace active on dashboard
+`;
+
+    const vibetracePath = path.join(WATCH_DIR, 'vibetrace.md');
+    fs.writeFileSync(vibetracePath, vibetraceContent, 'utf8');
+
+    // 2. Read protocol and immediately create active trace in watcher
+    const proto = protocol.read(WATCH_DIR);
+    const trace = watcher.ensureActiveTrace(proto, 'vibetrace.md', false);
+    trace.substatus = 'working';
+    trace.changing = false;
+    trace.status = 'in_progress';
+    trace.inProgress = true;
+
+    // 3. Broadcast real-time updates via SSE
+    sse.broadcast({
+      type: 'protocol_update',
+      protocol: proto
+    });
+
+    sse.broadcast({
+      type: 'trace_active',
+      trace
+    });
+
+    sse.broadcast({
+      type: 'agent_status',
+      status: 'working',
+      substatus: 'working',
+      task: cleanPrompt,
+      active_file: 'vibetrace.md',
+      file_action: 'Task initiated from user prompt',
+      message: `Prompt accepted: ${cleanPrompt}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Trace created from prompt',
+      trace,
+      protocol: proto
+    });
+  } catch (err) {
+    console.error('[API /api/prompt] Error:', err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -1131,8 +1131,8 @@ body.dark-theme .trace-item-row.active.status-working {
 }
 
 /* =========================================================
-   STATE 2: FILES MUTATING / CHANGING — ANIMATED LIVING GRADIENT MESH
-   (Triggers when agent writes/mutates files in real time)
+   STATE 2: FILES MUTATING / EDITING — VIBRANT LIVING ORANGE GRADIENT
+   (Triggers when agent writes/mutates files in real time: editing [orange])
    ========================================================= */
 .trace-item-row.is-changing,
 .trace-item-row.status-changing,
@@ -1140,11 +1140,11 @@ body.dark-theme .trace-item-row.active.status-working {
 .trace-item-row.status-editing,
 .trace-item-row.active.is-changing,
 .trace-item-row.active.is-editing {
-  background: linear-gradient(125deg, #14532d 0%, #16a34a 25%, #4ade80 50%, #22c55e 75%, #15803d 100%) !important;
+  background: linear-gradient(125deg, #9a3412 0%, #c2410c 25%, #ea580c 50%, #f97316 75%, #fb923c 100%) !important;
   background-size: 260% 260% !important;
   animation: liveWorkingMesh 3.2s ease infinite, liveWorkingPulse 2s ease-in-out infinite !important;
   border: 1px solid rgba(255, 255, 255, 0.45) !important;
-  box-shadow: 0 4px 16px -2px rgba(34, 197, 94, 0.5), 0 0 12px rgba(74, 222, 128, 0.3) !important;
+  box-shadow: 0 4px 16px -2px rgba(234, 88, 12, 0.55), 0 0 12px rgba(249, 115, 22, 0.35) !important;
   color: #ffffff !important;
   position: relative;
   overflow: hidden;
@@ -1163,7 +1163,7 @@ body.dark-theme .trace-item-row.active.status-working {
   left: -120%;
   width: 70%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
   animation: liveSweepBeam 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
 }
@@ -1176,10 +1176,10 @@ body.dark-theme .trace-item-row.active.status-working {
 
 @keyframes liveWorkingPulse {
   0%, 100% {
-    box-shadow: 0 4px 14px -2px rgba(34, 197, 94, 0.4), 0 0 8px rgba(74, 222, 128, 0.2);
+    box-shadow: 0 4px 14px -2px rgba(234, 88, 12, 0.45), 0 0 8px rgba(249, 115, 22, 0.25);
   }
   50% {
-    box-shadow: 0 4px 18px -1px rgba(34, 197, 94, 0.7), 0 0 16px rgba(74, 222, 128, 0.45);
+    box-shadow: 0 4px 18px -1px rgba(234, 88, 12, 0.75), 0 0 16px rgba(249, 115, 22, 0.5);
   }
 }
 
@@ -1231,6 +1231,16 @@ body.dark-theme .trace-item-row.active.status-working {
   gap: 4px;
 }
 
+.diff-pill-editing {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 8.5px;
+  font-weight: 500;
+}
+
 .live-dot-pulse {
   width: 5px;
   height: 5px;
@@ -1245,13 +1255,13 @@ body.dark-theme .trace-item-row.active.status-working {
   50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 8px #ffffff; }
 }
 
-/* Changing / Editing Trace When NOT Actively Selected: Light Soft Surface (No solid dark green) */
+/* Changing / Editing Trace When NOT Actively Selected: Warm Orange Resting Gradient */
 .trace-item-row.is-changing:not(.active),
 .trace-item-row.is-editing:not(.active) {
-  background: #f0fdf4 !important;
-  border: 1.5px solid #22c55e !important;
-  box-shadow: 0 1px 4px rgba(34, 197, 94, 0.15) !important;
-  color: var(--text-primary) !important;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%) !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.15) !important;
+  color: #7c2d12 !important;
   animation: none !important;
 }
 
@@ -1262,44 +1272,338 @@ body.dark-theme .trace-item-row.active.status-working {
 
 .trace-item-row.is-changing:not(.active) .trace-item-time,
 .trace-item-row.is-editing:not(.active) .trace-item-time {
-  color: #15803d !important;
+  color: #c2410c !important;
 }
 
 .trace-item-row.is-changing:not(.active) .trace-item-title,
 .trace-item-row.is-editing:not(.active) .trace-item-title {
-  color: #166534 !important;
+  color: #9a3412 !important;
 }
 
 .trace-item-row.is-changing:not(.active) .trace-item-tag.tag-changing,
 .trace-item-row.is-changing:not(.active) .trace-item-tag.tag-editing,
 .trace-item-row.is-editing:not(.active) .trace-item-tag.tag-editing {
-  background: #dcfce7 !important;
-  color: #15803d !important;
-  border-color: #86efac !important;
+  background: #ffedd5 !important;
+  color: #c2410c !important;
+  border-color: #fca5a5 !important;
 }
 
 .trace-item-row.is-changing:not(.active) .live-dot-pulse,
 .trace-item-row.is-editing:not(.active) .live-dot-pulse {
-  background: #16a34a !important;
-  box-shadow: 0 0 6px #16a34a !important;
+  background: #ea580c !important;
+  box-shadow: 0 0 6px #ea580c !important;
 }
 
 .trace-item-row.is-changing:not(.active) .trace-item-active-file .active-file-dot {
-  color: #16a34a !important;
+  color: #ea580c !important;
 }
 
 .trace-item-row.is-changing:not(.active) .trace-item-active-file .active-file-label {
-  color: #15803d !important;
+  color: #c2410c !important;
 }
 
 .trace-item-row.is-changing:not(.active) .trace-item-active-file .active-file-name {
   background: #ffffff !important;
-  color: #166534 !important;
-  border-color: #bbf7d0 !important;
+  color: #9a3412 !important;
+  border-color: #fdba74 !important;
 }
 
 .trace-item-row.is-changing:not(.active) .trace-item-files {
-  color: #15803d !important;
+  color: #c2410c !important;
+}
+
+.trace-item-row.is-changing:not(.active) .diff-pill-editing,
+.trace-item-row.is-editing:not(.active) .diff-pill-editing {
+  color: #c2410c !important;
+  background: #ffedd5 !important;
+  border: 1px solid #fdba74 !important;
+}
+
+/* Dark Mode Overrides for Editing Cards */
+[data-theme="dark"] .trace-item-row.is-changing:not(.active),
+[data-theme="dark"] .trace-item-row.is-editing:not(.active),
+body.dark-theme .trace-item-row.is-changing:not(.active),
+body.dark-theme .trace-item-row.is-editing:not(.active) {
+  background: rgba(234, 88, 12, 0.14) !important;
+  border-color: #ea580c !important;
+  color: #fed7aa !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.is-changing,
+[data-theme="dark"] .trace-item-row.active.is-editing,
+body.dark-theme .trace-item-row.active.is-changing,
+body.dark-theme .trace-item-row.active.is-editing {
+  background: linear-gradient(135deg, #7c2d12 0%, #9a3412 50%, #c2410c 100%) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 16px -2px rgba(234, 88, 12, 0.65) !important;
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   STATE 4: DIFFERENCE CREATED / OBSERVED PREVIOUSLY — RED COLOR GRADIENT
+   (Triggers whenever difference is observed between user prompt and output)
+   ========================================================= */
+/* Difference Card: Inactive / Resting State */
+.trace-item-row.status-difference:not(.active),
+.trace-item-row.has-difference:not(.active),
+.trace-item-row.status-diverged:not(.active) {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 50%, #fecaca 100%) !important;
+  border: 1px solid #f87171 !important;
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.18) !important;
+  color: #7f1d1d !important;
+  animation: none !important;
+}
+
+.trace-item-row.status-difference:not(.active)::before,
+.trace-item-row.has-difference:not(.active)::before {
+  display: none !important;
+}
+
+.trace-item-row.status-difference:not(.active) .trace-item-time,
+.trace-item-row.has-difference:not(.active) .trace-item-time {
+  color: #b91c1c !important;
+  font-weight: 500 !important;
+}
+
+.trace-item-row.status-difference:not(.active) .trace-item-title,
+.trace-item-row.has-difference:not(.active) .trace-item-title {
+  color: #991b1b !important;
+  font-weight: 600 !important;
+}
+
+.trace-item-row.status-difference:not(.active) .trace-item-files,
+.trace-item-row.has-difference:not(.active) .trace-item-files {
+  color: #b91c1c !important;
+}
+
+.trace-item-row.status-difference:not(.active) .trace-item-tag.tag-difference,
+.trace-item-row.has-difference:not(.active) .trace-item-tag.tag-difference {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+.trace-item-row.status-difference:not(.active) .difference-alert-name,
+.trace-item-row.has-difference:not(.active) .difference-alert-name {
+  color: #991b1b !important;
+  background: #ffffff !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+.trace-item-row.status-difference:not(.active) .diff-pill-difference,
+.trace-item-row.has-difference:not(.active) .diff-pill-difference {
+  color: #ffffff !important;
+  background: #dc2626 !important;
+  border: 1px solid #b91c1c !important;
+}
+
+/* Difference Card: Selected / Active State — VIBRANT CRIMSON RED GRADIENT */
+.trace-item-row.active.status-difference,
+.trace-item-row.active.has-difference,
+.trace-item-row.active.status-diverged {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 30%, #b91c1c 60%, #dc2626 85%, #ef4444 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 0 4px 18px -2px rgba(220, 38, 38, 0.65), 0 0 14px rgba(239, 68, 68, 0.4) !important;
+  color: #ffffff !important;
+  animation: liveDifferencePulse 2.4s ease-in-out infinite !important;
+}
+
+@keyframes liveDifferencePulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px -2px rgba(220, 38, 38, 0.5), 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px -1px rgba(220, 38, 38, 0.8), 0 0 18px rgba(239, 68, 68, 0.55);
+  }
+}
+
+.trace-item-row.active.status-difference .trace-item-time,
+.trace-item-row.active.has-difference .trace-item-time,
+.trace-item-row.active.status-difference .trace-item-title,
+.trace-item-row.active.has-difference .trace-item-title,
+.trace-item-row.active.status-difference .trace-item-files,
+.trace-item-row.active.has-difference .trace-item-files {
+  color: #ffffff !important;
+}
+
+.trace-item-row.active.status-difference .trace-item-tag.tag-difference,
+.trace-item-row.active.has-difference .trace-item-tag.tag-difference {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+}
+
+.trace-item-row.active.status-difference .difference-alert-name,
+.trace-item-row.active.has-difference .difference-alert-name {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.trace-item-row.active.status-difference .diff-pill-difference,
+.trace-item-row.active.has-difference .diff-pill-difference {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.28) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+}
+
+.pill-red-alert-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 5px #ef4444;
+  display: inline-block;
+  animation: beaconPulse 1.2s ease-in-out infinite;
+}
+
+.trace-item-row.active .pill-red-alert-dot {
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+}
+
+.difference-alert-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ef4444;
+  display: inline-block;
+}
+
+.trace-item-row.active .difference-alert-dot {
+  background: #ffffff;
+}
+
+.diff-pill-difference {
+  color: #ffffff;
+  background: #dc2626;
+  border: 1px solid #b91c1c;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Dark Mode Overrides for Difference Cards */
+[data-theme="dark"] .trace-item-row.status-difference:not(.active),
+[data-theme="dark"] .trace-item-row.has-difference:not(.active),
+body.dark-theme .trace-item-row.status-difference:not(.active),
+body.dark-theme .trace-item-row.has-difference:not(.active) {
+  background: rgba(220, 38, 38, 0.16) !important;
+  border-color: #dc2626 !important;
+  color: #fecaca !important;
+}
+
+[data-theme="dark"] .trace-item-row.active.status-difference,
+[data-theme="dark"] .trace-item-row.active.has-difference,
+body.dark-theme .trace-item-row.active.status-difference,
+body.dark-theme .trace-item-row.active.has-difference {
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 40%, #991b1b 75%, #b91c1c 100%) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 4px 18px -2px rgba(220, 38, 38, 0.7) !important;
+  color: #ffffff !important;
+}
+
+/* =========================================================
+   AGENT PROMPT ENTRY COMPOSER (PANE 1)
+   ========================================================= */
+.agent-prompt-composer {
+  padding: 8px 10px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.prompt-composer-form {
+  margin: 0;
+  padding: 0;
+}
+
+.prompt-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-medium);
+  border-radius: 6px;
+  padding: 2px 6px;
+  transition: all 0.15s ease;
+}
+
+.prompt-input-wrapper:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  background: var(--bg-surface);
+}
+
+.prompt-input-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.prompt-input-icon .ui-icon {
+  width: 12px;
+  height: 12px;
+}
+
+#agent-prompt-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-primary);
+  outline: none;
+  padding: 4px 0;
+}
+
+#agent-prompt-input::placeholder {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.btn-prompt-run {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2.5px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.btn-prompt-run:hover {
+  background: #1d4ed8;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.btn-prompt-run:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .agent-prompt-composer,
+body.dark-theme .agent-prompt-composer {
+  background: #312F30;
+  border-bottom-color: #444242;
+}
+
+[data-theme="dark"] .prompt-input-wrapper,
+body.dark-theme .prompt-input-wrapper {
+  background: #444242;
+  border-color: #555252;
+}
+
+[data-theme="dark"] #agent-prompt-input,
+body.dark-theme #agent-prompt-input {
+  color: #ffffff;
 }
 
 .trace-item-active-file {
