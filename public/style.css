@@ -2101,28 +2101,7 @@ body.dark-theme .middle-meta-badge.tag-completed {
   text-transform: uppercase;
 }
 
-.impact-risk-chip {
-  font-size: 8.5px;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: var(--radius-pill);
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
-  letter-spacing: 0.03em;
-}
 
-.impact-risk-chip.risk-high {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
-.impact-risk-chip.risk-medium {
-  background: #fffbeb;
-  color: #b45309;
-  border-color: #fde68a;
-}
 
 .btn-toggle-impact {
   display: flex;

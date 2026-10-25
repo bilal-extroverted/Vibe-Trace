@@ -48,7 +48,7 @@
   const btnToggleTraceImpact = document.getElementById('btn-toggle-trace-impact');
   const toggleImpactIcon = document.getElementById('toggle-impact-icon');
   const toggleImpactLabel = document.getElementById('toggle-impact-label');
-  const middleImpactRisk = document.getElementById('middle-impact-risk');
+
   const middleWhatChangedList = document.getElementById('middle-what-changed-list');
   const middleAffectedFeaturesChips = document.getElementById('middle-affected-features-chips');
   const middleDownstreamDesc = document.getElementById('middle-downstream-desc');
@@ -573,11 +573,6 @@
         if (driftAlertTag) driftAlertTag.textContent = 'VERIFIED';
         if (driftAlertMessage) driftAlertMessage.textContent = 'No unrequested modifications or discrepancies detected. Code strictly matches declared prompt.';
 
-        // Reconcile Middle Pane Impact Risk to avoid false "HIGH RISK" alarm
-        if (middleImpactRisk) {
-          middleImpactRisk.className = 'impact-risk-chip risk-low';
-          middleImpactRisk.textContent = 'LOW RISK';
-        }
       }
     }
 
@@ -1235,15 +1230,7 @@
     if (middleTraceImpactBanner) {
       middleTraceImpactBanner.style.display = 'block';
     }
-    if (middleImpactRisk) {
-      // Harmonize risk with driftAnalysis to prevent contradictory risk alarms across panes
-      const drift = trace.driftAnalysis;
-      const risk = (drift && !drift.hasDifference && drift.riskLevel === 'LOW')
-        ? 'LOW'
-        : ((drift && drift.riskLevel) ? drift.riskLevel : (synth.riskLevel || 'LOW')).toUpperCase();
-      middleImpactRisk.className = `impact-risk-chip risk-${risk.toLowerCase()}`;
-      middleImpactRisk.textContent = `${risk} RISK`;
-    }
+
     if (middleWhatChangedList) {
       middleWhatChangedList.innerHTML = '';
       const changes = synth.whatChanged && synth.whatChanged.length > 0
