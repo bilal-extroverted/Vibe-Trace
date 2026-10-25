@@ -1,32 +1,31 @@
 ---
 status: completed
-task: "Replace emojis across the entire app with proper crisp SVG icons"
+task: "Refine middle pane header: Remove clutter, eliminate redundant badges, and streamline active file bar"
 agent: "Antigravity AI"
 active_file: "public/app.js"
-file_action: "Completed replacing emojis across the dashboard with proper inline SVG icons"
-file_summary: "All informal emojis in navigation, diff viewer, inspector, and theme toggle replaced with crisp Feather/Lucide-style vector SVGs"
-started_at: "2026-10-25T04:35:00Z"
-completed_at: "2026-10-25T04:46:00Z"
-updated_at: "2026-10-25T04:46:00Z"
+file_action: "Completed refining middle pane header, typography, and active file bar"
+file_summary: "Removed noisy [IN PROGRESS] title prefix, eliminated redundant LIVE MUTATION pills, fixed badge wrapping, and streamlined active file indicator into a clean single-line bar"
+started_at: "2026-10-25T05:50:00Z"
+completed_at: "2026-10-25T05:54:00Z"
+updated_at: "2026-10-25T05:54:00Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Replace all informal emojis across the VibeTrace dashboard UI with clean, crisp, professional inline SVG vector icons (Lucide/Feather style). This includes navigation buttons, action bars, file diff headers, intelligence cards, and status tags.
+> Refine the middle pane UI by removing visual clutter, eliminating redundant status badges, fixing wrapped pills, and replacing the noisy green activity banner with a calm, minimal, elegant single-line status indicator according to clean SaaS dashboard design principles.
 
 ## Current File Status
 - **Active File**: `public/app.js`
-- **What is Happening**: Completed replacing emojis across the dashboard with proper inline SVG icons
-- **Summary**: All informal emojis in navigation, diff viewer, inspector, and theme toggle replaced with crisp Feather/Lucide-style vector SVGs
+- **What is Happening**: Completed refining middle pane header, typography, and active file bar
+- **Summary**: Removed noisy [IN PROGRESS] title prefix, eliminated redundant LIVE MUTATION pills, fixed badge wrapping, and streamlined active file indicator into a clean single-line bar
 
 ## Execution Plan & Steps
-- [x] Audit all emojis across public/index.html, public/app.js, and public/diffViewer.js
-- [x] Add CSS styling and sizing for SVG icons in public/style.css
-- [x] Replace emojis in public/index.html with crisp inline SVG icons
-- [x] Replace emojis in public/diffViewer.js with clean SVG icons
-- [x] Replace emojis in public/app.js with clean SVG icons
-- [x] Verify all icons render cleanly on http://localhost:3000
+- [x] Declutter middleTraceTitle in public/app.js by removing raw '[IN PROGRESS]' prefix
+- [x] Streamline middle-meta-subrow in public/app.js & style.css to eliminate wrapped badges and redundant LIVE MUTATION text
+- [x] Overhaul file-live-activity-bar to be a clean, minimal single-line status indicator without cut-off labels
+- [x] Refine file tabs styling in public/style.css to remove harsh green neon fills
+- [x] Bump cache busting query strings and verify refined layout on http://localhost:3000
 
 ## Inter-Agent & Harness Communication Notes
 - Real-time SSE telemetry active on /api/events

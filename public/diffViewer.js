@@ -49,7 +49,7 @@ class DiffViewer {
       const analysis = diffItem.analysis || this.analyzeFileDiff(diffItem.file, rawContent, trace);
 
       const liveBadgeHtml = isEditingNow
-        ? `<span class="diff-file-editing-badge"><span class="pill-live-dot"></span> EDITING NOW</span>`
+        ? `<span class="diff-file-editing-badge"><span class="pill-live-dot"></span> Active File</span>`
         : '';
 
       // 1. File Card Header
