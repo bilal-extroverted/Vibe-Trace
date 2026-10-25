@@ -1,31 +1,30 @@
 ---
 status: completed
-task: "Refine middle pane header: Remove clutter, eliminate redundant badges, and streamline active file bar"
+task: "Fix trace state dissonance: Isolate active editing bar to active traces only, deduplicate timeline feed, and clarify UI states"
 agent: "Antigravity AI"
 active_file: "public/app.js"
-file_action: "Completed refining middle pane header, typography, and active file bar"
-file_summary: "Removed noisy [IN PROGRESS] title prefix, eliminated redundant LIVE MUTATION pills, fixed badge wrapping, and streamlined active file indicator into a clean single-line bar"
-started_at: "2026-10-25T05:50:00Z"
-completed_at: "2026-10-25T05:54:00Z"
-updated_at: "2026-10-25T05:54:00Z"
+file_action: "Completed state isolation between active and historical traces and timeline deduplication"
+file_summary: "Restricted isInProgress checks strictly to trace.inProgress, deduplicated identical completed traces in left feed, and added historical viewing banner with instant switch to live trace"
+started_at: "2026-10-25T06:00:00Z"
+updated_at: "2026-10-25T06:07:30Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Refine the middle pane UI by removing visual clutter, eliminating redundant status badges, fixing wrapped pills, and replacing the noisy green activity banner with a calm, minimal, elegant single-line status indicator according to clean SaaS dashboard design principles.
+> Fix the confusing UI state where inspecting a completed past trace still displays active editing banners for current files. Ensure past traces render pure completed historical diffs with zero live artifacts, deduplicate duplicate traces in the timeline, and keep the active in-progress trace cleanly isolated and highlighted.
 
 ## Current File Status
 - **Active File**: `public/app.js`
-- **What is Happening**: Completed refining middle pane header, typography, and active file bar
-- **Summary**: Removed noisy [IN PROGRESS] title prefix, eliminated redundant LIVE MUTATION pills, fixed badge wrapping, and streamlined active file indicator into a clean single-line bar
+- **What is Happening**: Completed state isolation between active and historical traces and timeline deduplication
+- **Summary**: Restricted isInProgress checks strictly to trace.inProgress, deduplicated identical completed traces in left feed, and added historical viewing banner with instant switch to live trace
 
 ## Execution Plan & Steps
-- [x] Declutter middleTraceTitle in public/app.js by removing raw '[IN PROGRESS]' prefix
-- [x] Streamline middle-meta-subrow in public/app.js & style.css to eliminate wrapped badges and redundant LIVE MUTATION text
-- [x] Overhaul file-live-activity-bar to be a clean, minimal single-line status indicator without cut-off labels
-- [x] Refine file tabs styling in public/style.css to remove harsh green neon fills
-- [x] Bump cache busting query strings and verify refined layout on http://localhost:3000
+- [x] Fix isInProgress logic in public/app.js and public/diffViewer.js to check trace.inProgress ONLY, never polluting past completed traces with live editing bars
+- [x] Deduplicate identical traces in renderTracesList() so duplicate cards never appear in the left timeline
+- [x] Ensure active in-progress trace is automatically created and selected when agent is working
+- [x] Add a subtle "Viewing Past Trace" banner with a 1-click "Return to Live Active Trace" button when a past trace is inspected while an agent is working
+- [x] Verify clean, unified states on http://localhost:3000
 
 ## Inter-Agent & Harness Communication Notes
 - Real-time SSE telemetry active on /api/events

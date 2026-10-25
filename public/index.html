@@ -6,7 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4.2">
+  <link rel="stylesheet" href="style.css?v=4.3">
 </head>
 <body class="light-theme">
 
@@ -103,6 +103,18 @@
          ======================================================== -->
     <section class="pane pane-middle" id="pane-middle">
       <div class="middle-header">
+        <!-- HISTORICAL TRACE NOTICE: Shown ONLY when viewing a past completed trace while an agent is actively working -->
+        <div class="viewing-historical-banner hidden" id="viewing-historical-banner">
+          <span class="historical-banner-text">
+            <svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            Viewing completed trace history
+          </span>
+          <button type="button" class="btn-return-live" id="btn-return-live-trace">
+            <span class="pill-live-dot"></span>
+            <span>Switch to Active Live Trace</span>
+          </button>
+        </div>
+
         <div class="middle-title-row">
           <div class="middle-title-group">
             <h2 class="trace-title" id="middle-trace-title">Select an Execution Trace</h2>
@@ -469,7 +481,7 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="diffViewer.js?v=4.2"></script>
-  <script src="app.js?v=4.2"></script>
+  <script src="diffViewer.js?v=4.3"></script>
+  <script src="app.js?v=4.3"></script>
 </body>
 </html>

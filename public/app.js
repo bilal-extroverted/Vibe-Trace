@@ -503,7 +503,8 @@
           traces = data.traces;
           renderTracesList();
           if (!selectedTraceId && traces.length > 0) {
-            selectTrace(traces[0].id);
+            const activeTrace = traces.find(t => t.inProgress || t.status === 'in_progress');
+            selectTrace(activeTrace ? activeTrace.id : traces[0].id);
           }
         }
       }
@@ -578,6 +579,21 @@
         });
       }
     }
+
+    // Deduplicate completed traces: filter out identical traces (same task/title, timestamp, additions, deletions)
+    const seenCompletedKeys = new Set();
+    filtered = filtered.filter(t => {
+      const isInProgress = Boolean(t.inProgress || t.status === 'in_progress');
+      if (isInProgress) return true;
+      const taskName = (t.agentProtocol?.task || t.title || '').trim().toLowerCase();
+      const timeStr = formatTraceTime(t.timestamp);
+      const key = `${taskName}::${timeStr}::${t.additions || 0}::${t.deletions || 0}`;
+      if (seenCompletedKeys.has(key)) {
+        return false;
+      }
+      seenCompletedKeys.add(key);
+      return true;
+    });
 
     if (filtered.length === 0) {
       tracesScrollList.innerHTML = '';
@@ -687,6 +703,29 @@
       row.classList.toggle('active', row.dataset.id === id);
     });
 
+    // Check if viewing completed history while an agent task is active
+    const activeLiveTrace = traces.find(t => t.inProgress || t.status === 'in_progress');
+    const isViewingHistoricalWhileLive = Boolean(activeLiveTrace && activeLiveTrace.id !== trace.id && !trace.inProgress);
+    const histBanner = document.getElementById('viewing-historical-banner');
+    if (histBanner) {
+      if (isViewingHistoricalWhileLive) {
+        histBanner.classList.remove('hidden');
+      } else {
+        histBanner.classList.add('hidden');
+      }
+    }
+
+    const btnReturnLive = document.getElementById('btn-return-live-trace');
+    if (btnReturnLive && !btnReturnLive.dataset.bound) {
+      btnReturnLive.dataset.bound = 'true';
+      btnReturnLive.addEventListener('click', () => {
+        const active = traces.find(t => t.inProgress || t.status === 'in_progress');
+        if (active) {
+          selectTrace(active.id);
+        }
+      });
+    }
+
     // Populate Middle Pane
     if (emptyDiffState) emptyDiffState.classList.add('hidden');
     if (middleTraceTitle) {
@@ -786,11 +825,10 @@
   }
 
   function isFileBeingEdited(filepath, trace) {
-    if (!filepath) return false;
-    const isInProgress = Boolean(trace?.inProgress || (latestProtocol && latestProtocol.status === 'in_progress'));
-    if (!isInProgress) return false;
+    // A file is ONLY being edited if THIS specific trace is currently in progress
+    if (!filepath || !trace || !trace.inProgress) return false;
 
-    const activeFile = trace?.activeFile || latestProtocol?.active_file || trace?.agentProtocol?.active_file;
+    const activeFile = trace.activeFile || latestProtocol?.active_file || trace.agentProtocol?.active_file;
     if (!activeFile) return false;
 
     return matchesFile(filepath, activeFile);
@@ -861,11 +899,10 @@
     const bar = document.getElementById('file-live-activity-bar');
     if (!bar) return;
 
-    const isInProgress = Boolean(trace?.inProgress || (latestProtocol && latestProtocol.status === 'in_progress'));
-
-    // When trace is completed or not in progress, hide the bar to keep diffs uncluttered
-    if (!trace || !isInProgress) {
+    // The live file activity bar is STRICTLY for active in-progress traces
+    if (!trace || !trace.inProgress) {
       bar.classList.add('hidden');
+      bar.classList.remove('is-live');
       return;
     }
 

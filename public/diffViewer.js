@@ -31,8 +31,8 @@ class DiffViewer {
       return;
     }
 
-    const isInProgress = Boolean(trace?.inProgress || (window.latestProtocol && window.latestProtocol.status === 'in_progress'));
-    const activeEditingFile = trace?.activeFile || (window.latestProtocol && window.latestProtocol.active_file) || (trace?.agentProtocol && trace.agentProtocol.active_file) || null;
+    const isInProgress = Boolean(trace?.inProgress);
+    const activeEditingFile = isInProgress ? (trace?.activeFile || (trace?.agentProtocol && trace.agentProtocol.active_file) || null) : null;
 
     filteredDiffs.forEach((diffItem, fileIdx) => {
       const isEditingNow = isInProgress && this.matchesFile(diffItem.file, activeEditingFile);
