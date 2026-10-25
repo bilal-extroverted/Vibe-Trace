@@ -74,6 +74,9 @@ class Database {
     try {
       this.db.exec('ALTER TABLE traces ADD COLUMN synthesis_json TEXT');
     } catch (e) {}
+    try {
+      this.db.exec('ALTER TABLE traces ADD COLUMN drift_analysis_json TEXT');
+    } catch (e) {}
 
     // Clean duplicate traces on startup
     this.cleanDuplicateTraces();
@@ -156,8 +159,8 @@ class Database {
         summary, architectural_impact, subsystems_json,
         git_branch, git_commit, additions, deletions,
         latency, model, harness_status, harness_report_json,
-        agent_protocol_json, synthesis_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        agent_protocol_json, synthesis_json, drift_analysis_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertTrace.run(
@@ -178,7 +181,8 @@ class Database {
       trace.harness?.status || 'PASS',
       JSON.stringify(trace.harness || {}),
       JSON.stringify(trace.agentProtocol || {}),
-      JSON.stringify(trace.synthesis || {})
+      JSON.stringify(trace.synthesis || {}),
+      JSON.stringify(trace.driftAnalysis || trace.drift || null)
     );
 
     // Insert diffs
@@ -230,10 +234,12 @@ class Database {
     let harness = {};
     let agentProtocol = null;
     let synthesis = {};
+    let driftAnalysis = null;
     try { subsystems = JSON.parse(row.subsystems_json || '[]'); } catch (e) {}
     try { harness = JSON.parse(row.harness_report_json || '{}'); } catch (e) {}
     try { agentProtocol = JSON.parse(row.agent_protocol_json || '{}'); } catch (e) {}
     try { synthesis = JSON.parse(row.synthesis_json || '{}'); } catch (e) {}
+    try { driftAnalysis = JSON.parse(row.drift_analysis_json || 'null'); } catch (e) {}
 
     if (!synthesis.summary) {
       synthesis = {
@@ -268,8 +274,21 @@ class Database {
       harness,
       agentProtocol,
       synthesis,
+      driftAnalysis,
       diffs
     };
+  }
+
+  // Update Drift Analysis for a specific trace
+  updateTraceDrift(traceId, driftAnalysis) {
+    try {
+      const stmt = this.db.prepare('UPDATE traces SET drift_analysis_json = ? WHERE id = ?');
+      stmt.run(JSON.stringify(driftAnalysis), traceId);
+      return true;
+    } catch (e) {
+      console.error('Failed to update trace drift analysis:', e);
+      return false;
+    }
   }
 
   // Save AI Query

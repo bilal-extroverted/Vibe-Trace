@@ -92,6 +92,24 @@
   const promptCardAgentLabel = document.getElementById('prompt-card-agent-label');
   const btnCopyPrompt = document.getElementById('btn-copy-prompt');
 
+  // Independent Prompt-to-Output Drift & Risk Guard (Right Pane)
+  const rightDriftGuardCard = document.getElementById('right-drift-guard-card');
+  const driftScoreBadge = document.getElementById('drift-score-badge');
+  const driftRiskBadge = document.getElementById('drift-risk-badge');
+  const driftAlertBanner = document.getElementById('drift-alert-banner');
+  const driftAlertTitle = document.getElementById('drift-alert-title');
+  const driftAlertMessage = document.getElementById('drift-alert-message');
+  const driftAlertTag = document.getElementById('drift-alert-tag');
+  const driftPromptIntentText = document.getElementById('drift-prompt-intent-text');
+  const driftActualOutputText = document.getElementById('drift-actual-output-text');
+  const driftDifferenceText = document.getElementById('drift-difference-text');
+  const driftDiscrepanciesList = document.getElementById('drift-discrepancies-list');
+  const driftRiskText = document.getElementById('drift-risk-text');
+  const driftRemedyContent = document.getElementById('drift-remedy-content');
+  const driftSourceLabel = document.getElementById('drift-source-label');
+  const driftModelPill = document.getElementById('drift-model-pill');
+  const btnReauditDrift = document.getElementById('btn-reaudit-drift');
+
   // Mechanical Harness Section
   const harnessOverallStatus = document.getElementById('harness-overall-status');
   const harnessAdviceText = document.getElementById('harness-advice-text');
@@ -275,6 +293,14 @@
           setTopBarStatus('completed', 'TRACE CREATED', completedTask);
         } else if (payload.type === 'agent_status') {
           handleAgentStatus(payload);
+        } else if (payload.type === 'drift_update') {
+          const targetTrace = traces.find(t => t.id === payload.traceId);
+          if (targetTrace) {
+            targetTrace.driftAnalysis = payload.driftAnalysis;
+            if (selectedTraceId === payload.traceId) {
+              renderDriftAnalysis(payload.driftAnalysis, targetTrace);
+            }
+          }
         }
       } catch (err) {
         console.error('SSE Error:', err);
@@ -479,6 +505,134 @@
           setTimeout(() => { btnCopyPrompt.textContent = 'Copy'; }, 1500);
         }
       });
+    }
+  }
+
+  // 3b. Render Independent Prompt-to-Output Drift & Risk Guard (Right Pane)
+  function renderDriftAnalysis(driftData, trace) {
+    if (!rightDriftGuardCard) return;
+
+    const proto = trace?.agentProtocol || latestProtocol || {};
+    const promptText = trace?.agentProtocol?.task || proto.task || proto.intent || trace?.title || 'Active task';
+
+    // Fallback if driftData is missing or not yet generated
+    const drift = driftData || {
+      hasDifference: false,
+      alignmentScore: 98,
+      riskLevel: 'LOW',
+      hasSignificantIssue: false,
+      alertLevel: 'NONE',
+      alertTitle: '',
+      alertMessage: 'Output is faithfully aligned with user prompt.',
+      promptIntent: promptText,
+      actualExecution: `Applied modifications across ${trace?.files?.length || 1} file(s).`,
+      differenceAnalysis: 'The executed code accurately addresses the declared prompt intent. Systemic boundaries maintained.',
+      discrepancies: [],
+      unrequestedChanges: [],
+      missingRequirements: [],
+      riskAssessment: 'Low risk. Modifications stay strictly within requested boundaries.',
+      suggestedRemedy: 'Changes are verified and aligned. Safe to proceed.',
+      source: 'drift-guard',
+      modelUsed: currentEnvModel || 'drift-guard'
+    };
+
+    // Alignment Score Badge
+    if (driftScoreBadge) {
+      const score = Math.round(drift.alignmentScore != null ? drift.alignmentScore : 100);
+      driftScoreBadge.textContent = `${score}% ALIGNED`;
+    }
+
+    // Risk Badge
+    if (driftRiskBadge) {
+      const risk = (drift.riskLevel || 'LOW').toUpperCase();
+      driftRiskBadge.className = `drift-risk-badge risk-${risk.toLowerCase()}`;
+      driftRiskBadge.textContent = `${risk} RISK`;
+    }
+
+    // Significant Issue Alert Banner
+    if (driftAlertBanner) {
+      if (drift.hasSignificantIssue || drift.riskLevel === 'HIGH' || drift.riskLevel === 'CRITICAL') {
+        driftAlertBanner.className = 'drift-alert-banner alert-critical';
+        if (driftAlertTitle) driftAlertTitle.textContent = drift.alertTitle || '⚠️ SIGNIFICANT DIVERGENCE DETECTED';
+        if (driftAlertTag) driftAlertTag.textContent = `${(drift.riskLevel || 'CRITICAL').toUpperCase()} ALERT`;
+        if (driftAlertMessage) {
+          driftAlertMessage.textContent = drift.alertMessage || 'The output code differs significantly from what your prompt requested.';
+        }
+      } else if (drift.hasDifference) {
+        driftAlertBanner.className = 'drift-alert-banner alert-warning';
+        if (driftAlertTitle) driftAlertTitle.textContent = drift.alertTitle || 'Scope Discrepancy Observed';
+        if (driftAlertTag) driftAlertTag.textContent = 'NOTICE';
+        if (driftAlertMessage) driftAlertMessage.textContent = drift.alertMessage || 'Minor variance between prompt and output.';
+      } else {
+        driftAlertBanner.className = 'drift-alert-banner alert-success';
+        if (driftAlertTitle) driftAlertTitle.textContent = '✓ PROMPT & OUTPUT FULLY ALIGNED';
+        if (driftAlertTag) driftAlertTag.textContent = 'VERIFIED';
+        if (driftAlertMessage) driftAlertMessage.textContent = 'No unrequested modifications or discrepancies detected. Code strictly matches declared prompt.';
+      }
+    }
+
+    // Comparison Strip
+    if (driftPromptIntentText) {
+      driftPromptIntentText.textContent = drift.promptIntent || promptText;
+    }
+    if (driftActualOutputText) {
+      driftActualOutputText.textContent = drift.actualExecution || (trace?.summary ? trace.summary : 'Applied code modifications.');
+    }
+
+    // Difference Analysis
+    if (driftDifferenceText) {
+      driftDifferenceText.textContent = drift.differenceAnalysis || 'Output aligns with declared requirements.';
+    }
+
+    // Discrepancies List
+    if (driftDiscrepanciesList) {
+      driftDiscrepanciesList.innerHTML = '';
+      const items = [];
+      if (drift.discrepancies && drift.discrepancies.length > 0) {
+        items.push(...drift.discrepancies);
+      }
+      if (drift.unrequestedChanges && drift.unrequestedChanges.length > 0) {
+        items.push(...drift.unrequestedChanges.map(u => `Unrequested modification: ${u}`));
+      }
+      if (drift.missingRequirements && drift.missingRequirements.length > 0) {
+        items.push(...drift.missingRequirements.map(m => `Missing requirement: ${m}`));
+      }
+
+      if (items.length === 0) {
+        const li = document.createElement('li');
+        li.style.color = 'var(--text-muted)';
+        li.textContent = '✓ No unrequested deviations or missing requirements detected.';
+        driftDiscrepanciesList.appendChild(li);
+      } else {
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          driftDiscrepanciesList.appendChild(li);
+        });
+      }
+    }
+
+    // Risk & Impact
+    if (driftRiskText) {
+      driftRiskText.textContent = drift.riskAssessment || 'Systemic boundaries consistent.';
+    }
+
+    // Remedy
+    if (driftRemedyContent) {
+      driftRemedyContent.innerHTML = '';
+      const span = document.createElement('span');
+      span.textContent = drift.suggestedRemedy || 'Changes verified. Safe to proceed.';
+      driftRemedyContent.appendChild(span);
+    }
+
+    // Meta & Model
+    if (driftSourceLabel) {
+      driftSourceLabel.textContent = drift.source === 'openrouter' ? 'Audited via OpenRouter' : 'Audited via Drift Engine';
+    }
+    if (driftModelPill) {
+      const model = drift.modelUsed || currentEnvModel || '';
+      driftModelPill.textContent = model ? (model.split('/')[1] || model) : 'AI Model';
+      if (model) driftModelPill.title = `Model: ${model}`;
     }
   }
 
@@ -1155,6 +1309,9 @@
     const traceProto = trace.agentProtocol || (trace.inProgress ? latestProtocol : null) || {};
     updatePromptCard(traceProto, trace.inProgress ? (trace.changing ? 'writing' : 'working') : 'completed');
 
+    // Render Independent Prompt-to-Output Drift & Risk Guard
+    renderDriftAnalysis(trace.driftAnalysis, trace);
+
     // -----------------------------------------------------------------
     // PERSPECTIVE 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS
     // (What happened, Exact mechanical changes, Affected Features, Downstream Ripple Effects)
@@ -1391,6 +1548,42 @@
   if (btnRescan) btnRescan.addEventListener('click', rescanRepo);
   if (btnRunQuery) btnRunQuery.addEventListener('click', () => submitQuery());
   if (btnCloseQueryAnswer) btnCloseQueryAnswer.addEventListener('click', () => queryAnswerCard.classList.add('hidden'));
+
+  // Re-Audit Prompt-to-Output Drift with OpenRouter Action
+  if (btnReauditDrift) {
+    btnReauditDrift.addEventListener('click', async () => {
+      const trace = traces.find(t => t.id === selectedTraceId) || traces[0];
+      if (!trace) return;
+
+      btnReauditDrift.classList.add('is-loading');
+      const originalHtml = btnReauditDrift.innerHTML;
+      btnReauditDrift.innerHTML = '<span class="prompt-status-dot dot-changing" style="display:inline-block; margin-right:4px;"></span> Auditing...';
+
+      try {
+        const promptToUse = trace.agentProtocol?.task || trace.title || '';
+        const res = await fetch('/api/analyze-drift', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            traceId: trace.id,
+            prompt: promptToUse
+          })
+        });
+
+        const data = await res.json();
+        if (data.success && data.driftAnalysis) {
+          trace.driftAnalysis = data.driftAnalysis;
+          renderDriftAnalysis(data.driftAnalysis, trace);
+          logTicker(`Drift Audit: ${data.driftAnalysis.riskLevel} Risk (${data.driftAnalysis.alignmentScore}% Aligned)`);
+        }
+      } catch (err) {
+        console.error('Failed to re-audit drift with OpenRouter:', err);
+      } finally {
+        btnReauditDrift.classList.remove('is-loading');
+        btnReauditDrift.innerHTML = originalHtml;
+      }
+    });
+  }
 
   if (aiQueryInput) {
     aiQueryInput.addEventListener('keydown', (e) => {

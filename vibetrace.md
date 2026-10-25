@@ -1,30 +1,32 @@
 ---
 status: completed
-task: "Restore rich status-based gradients: Golden Amber for Working, Living Emerald Mesh for Changing, Sapphire Blue for Completed"
+task: "Independent OpenRouter prompt-to-output drift analyzer and risk alert guard in right pane"
 agent: "Antigravity AI"
-active_file: "public/style.css"
-file_action: "Restored status-based dynamic gradients for active cards and removed blanket blue border"
-file_summary: "Fully restored the rich, dynamic gradients to cards: Warm Golden Amber for Working state, Living Animated Mesh for Changing state, and Sapphire Royal Blue for Completed state when selected. Completely eliminated blanket blue border override on working/changing cards."
-started_at: "2026-10-25T08:24:00Z"
-updated_at: "2026-10-25T08:30:00Z"
+active_file: "server/driftAnalyzer.js"
+file_action: "Built independent OpenRouter prompt-to-output drift & risk audit engine and right pane guard UI"
+file_summary: "Engineered an independent OpenRouter drift analyzer that compares user prompt requirements with actual output code modifications. Flags scope discrepancies, unrequested design/feature stripping, and calculates risk rating with an active warning alert banner in the right pane."
+started_at: "2026-10-25T08:35:00Z"
+completed_at: "2026-10-25T08:50:00Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Restore rich status-based gradients to trace cards across lifecycle states: Warm Golden Amber for Working, Living Animated Gradient Mesh for Changing, and Sapphire Royal Blue for Completed cards. Eliminate blanket blue border override when clicking working/changing cards.
+> Independently analyze differences between what the user prompt gave and what code modifications were actually done using OpenRouter (with deterministic heuristic fallback). Surface the drift analysis, discrepancies, and risk level in the right pane, and actively alert the user with a prominent warning banner when significant issues/regressions occur.
 
 ## Execution Plan & Steps
-- [x] Analyze public/style.css and identify where blanket .trace-item-row.active stripped gradients and forced blue border
-- [x] Restore State 1: Working Active Card — Warm Golden Amber Gradient (linear-gradient(135deg, #b45309, #d97706, #f59e0b)) with white typography and glowing amber tag
-- [x] Restore State 2: Changing/Editing Card — Living Animated Gradient Mesh with sweeping light ray beam and pulsing live dot
-- [x] Restore State 3: Completed Active Card — Sapphire / Royal Blue Gradient (linear-gradient(135deg, #1e3a8a, #2563eb, #3b82f6)) with white typography and elevated glow
-- [x] Maintain clean, calm resting cards when unselected (warm sunny amber for working, soft emerald for changing, clean surface for completed)
-- [x] Bump cache busters in public/index.html to ?v=5.5
-- [x] Verify styles and commit changes to git
+- [x] Create server/driftAnalyzer.js: OpenRouter independent prompt-to-output drift auditor and risk rating engine with heuristic fallback
+- [x] Update server/db.js: Add migration and persistence for drift_analysis_json in traces SQLite table
+- [x] Update server/watcher.js: Run drift audit during active live trace assembly and on trace completion
+- [x] Add server/index.js POST /api/analyze-drift endpoint for on-demand re-auditing with SSE broadcasting
+- [x] Update public/index.html: Add dedicated #right-drift-guard-card with dynamic alert banner, prompt vs output comparison grid, discrepancies list, risk rating, and re-audit trigger
+- [x] Update public/style.css: Style drift guard card, pulsing alert beacon, risk badges, and comparison metrics across light & dark themes
+- [x] Update public/app.js: Implement renderDriftAnalysis(), SSE drift_update handler, and live re-audit interaction
+- [x] Restart server daemon and verify endpoint integration and right pane rendering
+- [x] Verify Git status and commit all changes
 
 ## Inter-Agent & Harness Communication Notes
-- Real-time SSE telemetry active on /api/events
-- Live active trace dynamically prepended on /api/traces and pushed via SSE
-- Persistent SQLite storage active in vibetrace.db
-- Mechanical harness checks active: Syntax integrity, Protected files guard, Secret scanner, Dependency guard
+- Model resolution strictly dynamic from process.env.OPENROUTER_API_MODEL
+- Real-time SSE telemetry broadcast on drift_update event
+- Active Alert Banner triggers whenever hasSignificantIssue is true (HIGH / CRITICAL risk)
+- Fallback heuristic ensures uninterrupted audit even during OpenRouter rate limits (HTTP 429)

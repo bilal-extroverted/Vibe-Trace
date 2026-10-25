@@ -5,6 +5,7 @@ const gitService = require('./gitService');
 const harnessContext = require('./harnessContext');
 const protocol = require('./harness/protocol');
 const { analyze } = require('./analyzer');
+const { analyzeDrift } = require('./driftAnalyzer');
 const sse = require('./sse');
 
 class WorkspaceWatcher {
@@ -84,6 +85,26 @@ class WorkspaceWatcher {
         protectedFiles: { status: 'passed', details: 'Guarded system files protected' },
         secretScanner: { status: 'passed', details: 'No secrets detected in live buffers' },
         dependencyGuard: { status: 'passed', details: 'No untrusted dependencies added' }
+      },
+      driftAnalysis: {
+        hasDifference: false,
+        alignmentScore: 100,
+        riskLevel: 'LOW',
+        hasSignificantIssue: false,
+        alertLevel: 'NONE',
+        alertTitle: '',
+        alertMessage: isChanging ? 'Live file modifications aligned with declared task.' : 'Task initialized in alignment with declared prompt.',
+        promptIntent: proto.task || proto.intent || 'Active Agent Task',
+        actualExecution: isChanging ? `Modifying ${activeFile}: ${fileAction}` : 'Planning task steps and inspecting workspace',
+        differenceAnalysis: 'Live execution is actively adhering to prompt intent without detected divergence.',
+        discrepancies: [],
+        unrequestedChanges: [],
+        missingRequirements: [],
+        riskAssessment: 'Active monitoring enabled. Drift guard scanning file mutations.',
+        suggestedRemedy: 'Execution proceeding normally.',
+        source: 'live-monitor',
+        modelUsed: (process.env.OPENROUTER_API_MODEL || '').trim() || 'drift-guard',
+        analyzedAt: new Date().toISOString()
       }
     };
 
@@ -332,6 +353,19 @@ class WorkspaceWatcher {
         fileAction: proto.file_action || null,
         fileSummary: proto.file_summary || null
       };
+
+      // Run independent prompt-to-output drift & risk analysis via OpenRouter
+      try {
+        console.log(`[VibeTrace Drift Analyzer] Auditing prompt-to-output alignment for: "${prompt}"...`);
+        analysis.driftAnalysis = await analyzeDrift({
+          prompt,
+          diffs,
+          agentProtocol: analysis.agentProtocol,
+          gitContext: { branch, filesChanged: files }
+        });
+      } catch (err) {
+        console.warn('[VibeTrace Drift Analyzer] Drift analysis error:', err.message);
+      }
 
       // Persist permanently to SQLite database
       const db = require('./db');

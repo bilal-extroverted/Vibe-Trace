@@ -2663,6 +2663,369 @@ body.dark-theme .middle-meta-badge.tag-completed {
 }
 
 /* =========================================================
+   INDEPENDENT PROMPT-TO-OUTPUT DRIFT & RISK GUARD CARD (RIGHT PANE)
+   ========================================================= */
+.drift-guard-card {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-card);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.drift-guard-card:hover {
+  border-color: var(--border-strong);
+}
+
+[data-theme="dark"] .drift-guard-card {
+  background: var(--bg-surface);
+  border-color: var(--border-medium);
+}
+
+.drift-guard-header {
+  margin-bottom: 2px;
+}
+
+.drift-icon {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #6366f1 !important;
+  border-color: rgba(99, 102, 241, 0.25) !important;
+}
+
+[data-theme="dark"] .drift-icon {
+  background: rgba(129, 140, 248, 0.15) !important;
+  color: #818cf8 !important;
+  border-color: rgba(129, 140, 248, 0.3) !important;
+}
+
+.drift-score-badge {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1.5px 6.5px;
+  border-radius: 4px;
+  background: var(--bg-surface-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+}
+
+.drift-risk-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.drift-risk-badge.risk-low {
+  background: var(--green-50, #F0FDF4) !important;
+  color: var(--green-700, #15803D) !important;
+  border: 1px solid var(--green-200, #BBF7D0) !important;
+}
+
+.drift-risk-badge.risk-medium {
+  background: var(--yellow-100, #FEF9C3) !important;
+  color: var(--yellow-800, #854D0E) !important;
+  border: 1px solid var(--yellow-200, #FEF08A) !important;
+}
+
+.drift-risk-badge.risk-high,
+.drift-risk-badge.risk-critical {
+  background: var(--red-100, #FEE2E2) !important;
+  color: var(--red-700, #B91C1C) !important;
+  border: 1px solid var(--red-300, #FCA5A5) !important;
+  animation: alertPulseSubtle 2s ease-in-out infinite;
+}
+
+@keyframes alertPulseSubtle {
+  0%, 100% { box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+}
+
+.drift-guard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* CRITICAL ALERT BANNER */
+.drift-alert-banner {
+  border-radius: 6px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.drift-alert-banner.alert-hidden {
+  display: none !important;
+}
+
+.drift-alert-banner.alert-critical,
+.drift-alert-banner.alert-warning {
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.9) 0%, rgba(254, 242, 242, 0.9) 100%);
+  border: 1.5px solid #ef4444;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.15);
+}
+
+[data-theme="dark"] .drift-alert-banner.alert-critical,
+[data-theme="dark"] .drift-alert-banner.alert-warning {
+  background: linear-gradient(135deg, rgba(185, 28, 28, 0.25) 0%, rgba(127, 29, 29, 0.15) 100%);
+  border-color: #f87171;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+}
+
+.drift-alert-banner.alert-success {
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.8) 0%, rgba(240, 253, 244, 0.8) 100%);
+  border: 1px solid #86efac;
+}
+
+[data-theme="dark"] .drift-alert-banner.alert-success {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: #22c55e;
+}
+
+.drift-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alert-pulse-beacon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #dc2626;
+  box-shadow: 0 0 6px #dc2626;
+  animation: beaconPing 1.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  flex-shrink: 0;
+}
+
+@keyframes beaconPing {
+  0% { transform: scale(0.9); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; box-shadow: 0 0 10px #dc2626; }
+  100% { transform: scale(0.9); opacity: 1; }
+}
+
+.drift-alert-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #991b1b;
+  flex: 1;
+}
+
+[data-theme="dark"] .drift-alert-title {
+  color: #fca5a5;
+}
+
+.drift-alert-tag {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.drift-alert-message {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #7f1d1d;
+  margin: 0;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .drift-alert-message {
+  color: #fecaca;
+}
+
+/* COMPARISON GRID */
+.drift-comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.drift-comparison-box {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.comparison-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.comparison-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.prompt-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 4px #3b82f6;
+}
+
+.output-dot {
+  background: #10b981;
+  box-shadow: 0 0 4px #10b981;
+}
+
+.comparison-label {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.comparison-text {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.drift-difference-text {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.drift-discrepancies-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drift-discrepancies-list li {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.drift-discrepancies-list li::before {
+  content: "•";
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.drift-risk-block {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 7px 9px;
+}
+
+.drift-risk-text {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.drift-remedy-block {
+  background: rgba(37, 99, 235, 0.04);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 6px;
+  padding: 7px 9px;
+}
+
+[data-theme="dark"] .drift-remedy-block {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
+.drift-remedy-content {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* FOOTER */
+.drift-guard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 10px;
+}
+
+.drift-footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drift-source-label {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+.drift-model-pill {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--bg-surface-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-reaudit-drift {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--color-accent);
+  border: 1px solid var(--border-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-reaudit-drift:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.btn-reaudit-drift.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* =========================================================
    LIVE ACTIVE FILE & MUTATION STATUS CARD (RIGHT PANE)
    ========================================================= */
 .active-file-mutation-card {

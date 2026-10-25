@@ -6,7 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5.5">
+  <link rel="stylesheet" href="style.css?v=5.6">
 </head>
 <body class="light-theme">
 
@@ -272,7 +272,110 @@
         </div>
       </div>
 
-      <!-- SECTION 1: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS -->
+      <!-- SECTION 1: INDEPENDENT PROMPT-TO-OUTPUT DRIFT & RISK GUARD (OPENROUTER POWERED) -->
+      <div class="inspector-section drift-guard-card" id="right-drift-guard-card">
+        <div class="section-top-header drift-guard-header">
+          <div class="header-cluster">
+            <span class="section-icon drift-icon" id="drift-guard-icon">
+              <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </span>
+            <div>
+              <span class="section-eyebrow">INDEPENDENT FIDELITY AUDIT</span>
+              <h3 class="section-heading">Prompt vs Output Drift Guard</h3>
+            </div>
+          </div>
+          <div class="header-tags">
+            <span class="drift-score-badge" id="drift-score-badge">100% ALIGNED</span>
+            <span class="drift-risk-badge risk-low" id="drift-risk-badge">LOW RISK</span>
+          </div>
+        </div>
+
+        <div class="drift-guard-body">
+          <!-- CRITICAL ALERT BANNER (Active when significant issue detected) -->
+          <div class="drift-alert-banner alert-hidden" id="drift-alert-banner">
+            <div class="drift-alert-header">
+              <span class="alert-pulse-beacon" id="drift-alert-beacon"></span>
+              <span class="drift-alert-title" id="drift-alert-title">SIGNIFICANT DIVERGENCE DETECTED</span>
+              <span class="drift-alert-tag" id="drift-alert-tag">CRITICAL ALERT</span>
+            </div>
+            <p class="drift-alert-message" id="drift-alert-message">
+              The output code differs significantly from what your prompt requested.
+            </p>
+          </div>
+
+          <!-- COMPARISON STRIP: WHAT PROMPT GAVE vs WHAT OUTPUT DONE -->
+          <div class="drift-comparison-grid">
+            <div class="drift-comparison-box prompt-intent-box">
+              <div class="comparison-head">
+                <span class="comparison-dot prompt-dot"></span>
+                <span class="comparison-label">WHAT PROMPT GAVE:</span>
+              </div>
+              <p class="comparison-text" id="drift-prompt-intent-text">
+                Analyzing prompt intent...
+              </p>
+            </div>
+            <div class="drift-comparison-box actual-output-box">
+              <div class="comparison-head">
+                <span class="comparison-dot output-dot"></span>
+                <span class="comparison-label">WHAT OUTPUT DONE:</span>
+              </div>
+              <p class="comparison-text" id="drift-actual-output-text">
+                Analyzing actual code modifications...
+              </p>
+            </div>
+          </div>
+
+          <!-- DETAILED DIFFERENCE & GAP ANALYSIS -->
+          <div class="detail-block drift-difference-block">
+            <span class="detail-caption">INDEPENDENT DIFFERENCE ANALYSIS</span>
+            <p class="drift-difference-text" id="drift-difference-text">
+              Selecting trace to evaluate prompt-to-output alignment...
+            </p>
+          </div>
+
+          <!-- DISCREPANCIES & UNREQUESTED CHANGES BULLETS -->
+          <div class="detail-block" id="drift-discrepancies-block">
+            <span class="detail-caption">DETECTED DISCREPANCIES & UNREQUESTED CHANGES</span>
+            <ul class="drift-discrepancies-list" id="drift-discrepancies-list">
+              <li>No unrequested deviations detected.</li>
+            </ul>
+          </div>
+
+          <!-- RISK & IMPACT CALLOUT -->
+          <div class="detail-block drift-risk-block" id="drift-risk-block">
+            <span class="detail-caption">POTENTIAL RISK & SYSTEMIC IMPACT</span>
+            <p class="drift-risk-text" id="drift-risk-text">
+              Low risk. Executed changes stay strictly within requested boundaries.
+            </p>
+          </div>
+
+          <!-- RECOMMENDED CORRECTIVE REMEDY -->
+          <div class="detail-block drift-remedy-block" id="drift-remedy-block">
+            <span class="detail-caption">RECOMMENDED REMEDY / ACTION</span>
+            <div class="drift-remedy-content" id="drift-remedy-content">
+              <span>Code is aligned with prompt intent.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER WITH MODEL SOURCE AND RE-AUDIT BUTTON -->
+        <div class="drift-guard-footer">
+          <div class="drift-footer-meta">
+            <span class="drift-source-label" id="drift-source-label">Audited via OpenRouter</span>
+            <span class="drift-model-pill" id="drift-model-pill">AI Model</span>
+          </div>
+          <button type="button" class="btn-reaudit-drift" id="btn-reaudit-drift" title="Re-analyze alignment with OpenRouter">
+            <svg class="ui-icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <span>Re-Audit with AI</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SECTION 2: INDEPENDENT OPENROUTER AI MODEL SYNTHESIS -->
       <div class="inspector-section ai-synthesis-section">
         <div class="section-top-header">
           <div class="header-cluster">
@@ -669,7 +772,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="diffViewer.js?v=5.5"></script>
-  <script src="app.js?v=5.5"></script>
+  <script src="diffViewer.js?v=5.6"></script>
+  <script src="app.js?v=5.6"></script>
 </body>
 </html>

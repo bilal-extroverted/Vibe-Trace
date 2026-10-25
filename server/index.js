@@ -7,6 +7,7 @@ const protocol = require('./harness/protocol');
 const { analyze } = require('./analyzer');
 const { answerQuestion } = require('./queryEngine');
 const { generateAiMindMap } = require('./mindMapEngine');
+const { analyzeDrift } = require('./driftAnalyzer');
 require('dotenv').config();
 
 const app = express();
@@ -225,6 +226,62 @@ app.all('/api/mindmap', async (req, res) => {
 
     res.json({ success: true, ...mindMapData });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to independently analyze prompt-to-output drift and risk via OpenRouter
+app.post('/api/analyze-drift', async (req, res) => {
+  try {
+    const { traceId, prompt } = req.body || {};
+    let trace = null;
+    if (traceId) {
+      if (watcher.activeTrace && watcher.activeTrace.id === traceId) {
+        trace = watcher.activeTrace;
+      } else {
+        trace = db.getTraceById(traceId);
+      }
+    }
+    if (!trace) {
+      if (watcher.activeTrace) {
+        trace = watcher.activeTrace;
+      } else {
+        const traces = db.getTraces(WATCH_DIR, 1);
+        trace = traces[0] || null;
+      }
+    }
+
+    if (!trace) {
+      return res.status(404).json({ error: 'No trace found to analyze drift' });
+    }
+
+    const proto = protocol.read(WATCH_DIR);
+    const promptToUse = prompt || trace.agentProtocol?.task || proto.task || proto.intent || trace.title;
+    const diffs = trace.diffs || [];
+
+    const driftAnalysis = await analyzeDrift({
+      prompt: promptToUse,
+      diffs,
+      agentProtocol: trace.agentProtocol || proto,
+      gitContext: trace.git || {}
+    });
+
+    // Update trace in memory and DB
+    trace.driftAnalysis = driftAnalysis;
+    if (trace.id && trace.id !== 'trace-live-active') {
+      db.updateTraceDrift(trace.id, driftAnalysis);
+    }
+
+    // Broadcast live update if active
+    sse.broadcast({
+      type: 'drift_update',
+      traceId: trace.id,
+      driftAnalysis
+    });
+
+    res.json({ success: true, traceId: trace.id, driftAnalysis });
+  } catch (err) {
+    console.error('[API /api/analyze-drift] Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
