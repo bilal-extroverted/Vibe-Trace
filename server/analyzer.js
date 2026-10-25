@@ -172,8 +172,10 @@ function generateTraceObject({ prompt, diffs = [], gitContext = {}, watchDir = '
   };
 }
 
-// OpenRouter API call with cascade
-async function callOpenRouter(apiKey, modelList, promptText, diffSummary, harnessRules) {
+// OpenRouter API call - strictly using model specified in .env
+async function callOpenRouter(apiKey, model, promptText, diffSummary, harnessRules) {
+  if (!apiKey || !model) return null;
+
   const systemPrompt = `You are VibeTrace, an industrial AI observability and traceability system for codebases and agent harness engineering.
 Analyze the prompt and code diffs, and return a strict JSON object:
 {
@@ -197,48 +199,46 @@ Harness Rules: "${harnessRules.slice(0, 1000)}"
 Code Changes:
 ${diffSummary.slice(0, 3500)}`;
 
-  for (const model of modelList) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://github.com/challengepost/learn-ai-basics',
-          'X-Title': 'VibeTrace Observability'
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.1,
-          max_tokens: 800
-        }),
-        signal: controller.signal
-      });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://github.com/challengepost/learn-ai-basics',
+        'X-Title': 'VibeTrace Observability'
+      },
+      body: JSON.stringify({
+        model, // Strictly the model specified in .env
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 800
+      }),
+      signal: controller.signal
+    });
 
-      clearTimeout(timeout);
+    clearTimeout(timeout);
 
-      if (response.ok) {
-        const data = await response.json();
-        const raw = data.choices?.[0]?.message?.content;
-        const match = raw?.match(/\{[\s\S]*\}/);
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          return { parsed, modelUsed: model };
-        }
-      } else {
-        const errText = await response.text();
-        console.warn(`[OpenRouter ${model} error ${response.status}]:`, errText.slice(0, 150));
+    if (response.ok) {
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content;
+      const match = raw?.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        return { parsed, modelUsed: model };
       }
-    } catch (e) {
-      console.warn(`[OpenRouter ${model} exception]:`, e.message);
+    } else {
+      const errText = await response.text();
+      console.warn(`[OpenRouter ${model} error ${response.status}]:`, errText.slice(0, 150));
     }
+  } catch (e) {
+    console.warn(`[OpenRouter ${model} exception]:`, e.message);
   }
 
   return null;
@@ -247,14 +247,13 @@ ${diffSummary.slice(0, 3500)}`;
 async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', harnessRules = '' }) {
   const startTime = Date.now();
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const configuredModel = (process.env.OPENROUTER_API_MODEL || '').trim();
-
-  const modelsToTry = configuredModel ? [configuredModel] : [];
+  const model = (process.env.OPENROUTER_API_MODEL || '').trim();
 
   const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
 
-  if (apiKey) {
-    const aiResult = await callOpenRouter(apiKey, modelsToTry, prompt, diffSummary, harnessRules);
+  // OpenRouter is only contacted if both API key and model are specified in .env
+  if (apiKey && model) {
+    const aiResult = await callOpenRouter(apiKey, model, prompt, diffSummary, harnessRules);
     if (aiResult && aiResult.parsed) {
       const latencyMs = Date.now() - startTime;
       return generateTraceObject({
@@ -269,14 +268,14 @@ async function analyze({ prompt, diffs = [], gitContext = {}, watchDir = '.', ha
     }
   }
 
-  // Fallback heuristic trace
+  // Fallback heuristic trace when OpenRouter is unconfigured, rate-limited, or offline
   return generateTraceObject({
     prompt,
     diffs,
     gitContext,
     watchDir,
     latencyMs: 120,
-    modelUsed: configuredModel || 'heuristic-engine'
+    modelUsed: 'heuristic-engine'
   });
 }
 

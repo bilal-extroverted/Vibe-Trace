@@ -73,7 +73,7 @@ app.get('/api/status', (req, res) => {
     watchDir: WATCH_DIR,
     eventsCount: traces.length,
     projectsCount: projects.length,
-    openRouterConfigured: Boolean((process.env.OPENROUTER_API_KEY || '').trim()),
+    openRouterConfigured: Boolean((process.env.OPENROUTER_API_KEY || '').trim() && model),
     model,
     activeTrace: watcher.activeTrace,
     activeFile: watcher.activeTrace ? watcher.activeTrace.activeFile : (proto.active_file || null)

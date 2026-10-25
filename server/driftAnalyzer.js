@@ -1,11 +1,10 @@
-// VibeTrace Independent Prompt-to-Execution Drift & Risk Analyzer
-// Analyzes discrepancies between what the user prompt requested and what code changes were actually performed.
-// Employs OpenRouter AI models independently to evaluate intent drift, scope creep, regressions, and alert on significant issues.
-
+require('dotenv').config();
 const path = require('path');
 
-// Call OpenRouter with cascade
-async function callOpenRouterDriftAudit(apiKey, modelList, promptText, diffSummary, agentTask) {
+// Call OpenRouter with strictly the model specified in .env
+async function callOpenRouterDriftAudit(apiKey, model, promptText, diffSummary, agentTask) {
+  if (!apiKey || !model) return null;
+
   const systemPrompt = `You are VibeTrace's Independent Prompt Fidelity, Execution Drift, and Risk Auditor.
 Your sole mission is to objectively and independently detect discrepancies between what the user prompt requested and what code modifications were actually done by the AI agent.
 
@@ -54,48 +53,46 @@ AGENT DECLARED TASK:
 ACTUAL CODE DIFFS & MODIFICATIONS PRODUCED:
 ${diffSummary.slice(0, 4000)}`;
 
-  for (const model of modelList) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://github.com/challengepost/learn-ai-basics',
-          'X-Title': 'VibeTrace Drift Analyzer'
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.1,
-          max_tokens: 900
-        }),
-        signal: controller.signal
-      });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://github.com/challengepost/learn-ai-basics',
+        'X-Title': 'VibeTrace Drift Analyzer'
+      },
+      body: JSON.stringify({
+        model, // Strictly the model specified in .env
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 900
+      }),
+      signal: controller.signal
+    });
 
-      clearTimeout(timeout);
+    clearTimeout(timeout);
 
-      if (response.ok) {
-        const data = await response.json();
-        const raw = data.choices?.[0]?.message?.content;
-        const match = raw?.match(/\{[\s\S]*\}/);
-        if (match) {
-          const parsed = JSON.parse(match[0]);
-          return { parsed, modelUsed: model };
-        }
-      } else {
-        const errText = await response.text();
-        console.warn(`[OpenRouter Drift Audit ${model} error ${response.status}]:`, errText.slice(0, 150));
+    if (response.ok) {
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content;
+      const match = raw?.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        return { parsed, modelUsed: model };
       }
-    } catch (e) {
-      console.warn(`[OpenRouter Drift Audit ${model} exception]:`, e.message);
+    } else {
+      const errText = await response.text();
+      console.warn(`[OpenRouter Drift Audit ${model} error ${response.status}]:`, errText.slice(0, 150));
     }
+  } catch (e) {
+    console.warn(`[OpenRouter Drift Audit ${model} exception]:`, e.message);
   }
 
   return null;
@@ -250,17 +247,17 @@ function runHeuristicDriftAudit(prompt, diffs = [], agentProtocol = {}) {
 // Master Analyze Drift function
 async function analyzeDrift({ prompt, diffs = [], agentProtocol = {}, gitContext = {} }) {
   const apiKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const configuredModel = (process.env.OPENROUTER_API_MODEL || '').trim();
-  const modelsToTry = configuredModel ? [configuredModel] : [];
+  const model = (process.env.OPENROUTER_API_MODEL || '').trim();
 
   const diffSummary = diffs.map(d => `File: ${d.file}\nStatus: ${d.status}\n${d.content}`).join('\n---\n');
   const agentTask = agentProtocol.task || agentProtocol.intent || '';
 
-  if (apiKey && modelsToTry.length > 0) {
+  // OpenRouter is only contacted if both API key and model are specified in .env
+  if (apiKey && model) {
     try {
       const openRouterResult = await callOpenRouterDriftAudit(
         apiKey,
-        modelsToTry,
+        model,
         prompt || agentTask,
         diffSummary,
         agentTask
@@ -279,12 +276,12 @@ async function analyzeDrift({ prompt, diffs = [], agentProtocol = {}, gitContext
     }
   }
 
-  // Fallback heuristic engine
+  // Fallback heuristic engine when OpenRouter is unconfigured, rate-limited, or offline
   const heuristic = runHeuristicDriftAudit(prompt, diffs, agentProtocol);
   return {
     ...heuristic,
     source: 'heuristic',
-    modelUsed: configuredModel || 'heuristic-guard',
+    modelUsed: 'heuristic-guard',
     analyzedAt: new Date().toISOString()
   };
 }
