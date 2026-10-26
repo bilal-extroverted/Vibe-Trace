@@ -147,7 +147,7 @@ Edit `.env` with your settings:
 OPENROUTER_API_KEY=your-openrouter-key-here
 
 # OpenRouter Model (must match exact model string on openrouter.ai)
-OPENROUTER_API_MODEL=recursive/flint-v1.0:free
+OPENROUTER_API_MODEL=nvidia/nemotron-3.5-lightning:free
 
 # Server Port
 PORT=3000

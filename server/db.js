@@ -154,7 +154,7 @@ class Database {
       return { id: existing.id, name, path: resolved };
     } else {
       const insertStmt = this.db.prepare(`
-        INSERT INTO projects (id, name, path, created_at, last_active_at)
+        INSERT OR REPLACE INTO projects (id, name, path, created_at, last_active_at)
         VALUES (?, ?, ?, ?, ?)
       `);
       insertStmt.run(id, name, resolved, now, now);

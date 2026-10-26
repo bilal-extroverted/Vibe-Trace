@@ -61,7 +61,7 @@ Before writing code or editing files:
    - If the user provides an API key, create or update `.env`:
      ```ini
      OPENROUTER_API_KEY=provided_key_here
-     OPENROUTER_API_MODEL=recursive/flint-v1.0:free
+     OPENROUTER_API_MODEL=nvidia/nemotron-3.5-lightning:free
      PORT=3000
      ```
    - If the user replies with 'skip' or declines, proceed in offline heuristic mode.

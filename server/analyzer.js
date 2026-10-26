@@ -1,7 +1,7 @@
 // VibeTrace Observability & Trace Engine
 // Analyzes real filesystem mutations, Git diffs, and executes AI Harness verification
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(process.env.WATCH_DIR || process.cwd(), '.env') });
 const crypto = require('crypto');
 const harnessEngine = require('./harness/harnessEngine');
 

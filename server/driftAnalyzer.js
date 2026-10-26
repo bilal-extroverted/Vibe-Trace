@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(process.env.WATCH_DIR || process.cwd(), '.env') });
 const path = require('path');
 
 // Call OpenRouter with strictly the model specified in .env
@@ -72,7 +72,7 @@ ${diffSummary.slice(0, 4000)}`;
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.1,
-        max_tokens: 900
+        max_tokens: 2500
       }),
       signal: controller.signal
     });
@@ -81,7 +81,7 @@ ${diffSummary.slice(0, 4000)}`;
 
     if (response.ok) {
       const data = await response.json();
-      const raw = data.choices?.[0]?.message?.content;
+      const raw = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning;
       const match = raw?.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);

@@ -11,7 +11,7 @@ const { generateAiMindMap } = require('./mindMapEngine');
 const { analyzeDrift } = require('./driftAnalyzer');
 const featureTimelineEngine = require('./featureTimelineEngine');
 const gitService = require('./gitService');
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(process.env.WATCH_DIR || process.cwd(), '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;

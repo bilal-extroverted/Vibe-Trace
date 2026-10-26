@@ -1,27 +1,27 @@
 ---
 status: completed
-task: "Enforce mandatory Git repo requirement and default .gitignore isolation"
+task: "Fix driftAnalyzer .env resolution, increase max_tokens to 2500, support reasoning models, and fix SQLite duplicate project ID"
 agent: "Antigravity AI"
-active_file: "README.md"
-file_action: "Added gitService.ensureRepoAndGitignore, updated skill files, .gitignore, and documented Git requirement note in README"
-file_summary: "VibeTrace now guarantees Git initialization, auto-creates default .gitignore shielding .agents/ and harness files, and documents requirements in README"
-started_at: "2026-10-25T16:31:00.000Z"
-completed_at: "2026-10-25T16:35:00.000Z"
-updated_at: "2026-10-25T16:35:00.000Z"
+active_file: "server/driftAnalyzer.js"
+file_action: "Updated driftAnalyzer.js, .env.example, and db.js with npx .env path resolution, max_tokens 2500, reasoning fallback, and INSERT OR REPLACE"
+file_summary: "Resolved .env resolution for npx global cache runs, increased max_tokens for reasoning models, and added INSERT OR REPLACE in db.js"
+started_at: "2026-10-26T18:33:00.000Z"
+completed_at: "2026-10-26T18:38:00.000Z"
+updated_at: "2026-10-26T18:38:00.000Z"
 ---
 
 # VibeTrace Agent-Harness Communication Protocol
 
 ## Current Task Intent
-> Enforce mandatory Git repository initialization and default .gitignore shielding for .agents/ and harness files across skills, server auto-setup, and README documentation.
+> Fix .env path resolution for npx execution, increase max_tokens to 2500, add reasoning model fallback in driftAnalyzer.js, update default model in .env.example to nvidia/nemotron-3.5-lightning:free, and use INSERT OR REPLACE in db.js for Windows path casing safety.
 
 ## Execution Plan & Steps
-- [x] Step 1: Add ensureRepoAndGitignore to server/gitService.js and wire in server/index.js
-- [x] Step 2: Update skills/vibetrace/SKILL.md with mandatory Git requirement and default .gitignore isolation
-- [x] Step 3: Update .agents/skills/vibetrace/SKILL.md with Git init and .gitignore rules
-- [x] Step 4: Add Note in README.md explaining Git requirement and default .gitignore shielding
-- [x] Step 5: Update workspace .gitignore to ignore .agents/ and vibetrace.md
-- [x] Step 6: Push changes to GitHub repository
+- [x] Step 1: Update server/driftAnalyzer.js line 1 to resolve .env via WATCH_DIR or process.cwd()
+- [x] Step 2: Increase max_tokens to 2500 in server/driftAnalyzer.js
+- [x] Step 3: Add reasoning fallback in server/driftAnalyzer.js for reasoning models
+- [x] Step 4: Update .env.example default model to nvidia/nemotron-3.5-lightning:free
+- [x] Step 5: Change INSERT to INSERT OR REPLACE INTO projects in server/db.js
+- [x] Step 6: Push changes to GitHub repository bilal-extroverted/Vibe-Trace
 
 ## Inter-Agent & Harness Communication Notes
 - VibeTrace now guarantees that any watched project is initialized as a Git repository and shielded with a default .gitignore covering .agents/ and temporary files.

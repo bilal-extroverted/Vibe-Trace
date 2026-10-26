@@ -29,7 +29,7 @@ Before making code changes:
   If provided, write it to `.env`:
   ```ini
   OPENROUTER_API_KEY=your_key_here
-  OPENROUTER_API_MODEL=recursive/flint-v1.0:free
+  OPENROUTER_API_MODEL=nvidia/nemotron-3.5-lightning:free
   PORT=3000
   ```
 - **Ensure Server is Running:** Check if the VibeTrace server is active on `http://localhost:3000`. If not, start it in the background:
